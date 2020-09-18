@@ -1,18 +1,62 @@
 \chapter{Neccessary Theoretical Background}
 
 \section{Useful Results From Probability Theory}
-
-
  
 \subsection{Conditional Probabilities}
-The conditional probability $p(A | B)$ is the probability of $A$ occurring, given that we know $B$ has occured. 
-\begin{equation}
+The \texttt{conditional probability} $p(A | B)$ is the probability of $A$ occurring, given the known occurence of another event $B$. This can be interpreted as knowing the value of $B$ includes some information about $A$. Mathematically it can be expressed as
+\begin{equation}\label{eq:conditional_probability}
     p(A | B) = \frac{p(A, B)}{p(B)}
 \end{equation}
+
+\subsection{Bayes Law}
+
+A useful extension to \cref{eq:conditional_probability} is to recognize that the joint distribution $p(A, B)$ can be rewritten as a product of a conditional probability $p(B | A)$ and $p(A)$. Inserting into \cref{eq:conditional_probability} yields \texttt{Bayes Law}
+\begin{equation}\label{eq:bayes_law}
+    p(A | B) = \frac{p(A, B)}{p(B)} = \frac{p(B | A)p(A)}{p(B)}.
+\end{equation}
+
+As $B$ is known the denominator $p(B)$ is simply a normalizing constant. It is sometimes useful to rewrite \cref{eq:bayes_law} as
+\begin{equation}\label{eq:bayes_law_proportional}
+    p(A | B) = \frac{p(B | A) p(A)}{p(B)} \propto p(B | A)p(A)
+\end{equation} 
+which is useful if $p(B)$ is hard to calculate and we do not need normalized values of $p(A | B)$.
+
+\subsection{Marginal Probability \& The Law of Total Probability}
+The marginal probability of an event $X$ is the probability of $X$ occuring irrespective of any other variables.
+For notational simplicity we use the integral operator for marginalization of both continuous and discrete random variables, even though the integral is replaced by a sum for discrete random variables. For an event $X$ and any other variables $\bf Y$, the marginal probability of $X$ can be written as
+\begin{equation}
+    p(X) = \int_\mathbf{Y} p(X, \mathbf{Y}) d\mathbf{Y} = \int_\mathbf{Y} p(X | \mathbf{Y}) p(\mathbf{Y}) d\mathbf{Y}
+\end{equation}
+The last equation is by the \texttt{Law of total probability} which relates the marginal probabilities to conditional probabilities. This is a result we will use extensively as it allows us to split complex distributions into more managable pieces.
+
+\subsection{Interpreting Probability}
+The results we have mentioned so far stems from abstract mathematical axioms, and do not tell us how to interpret the resulting probabilities. There are however different interpretations which are commonly accepted. Perhaps the two biggest are the frequentist and bayesian interpretations. 
+
+\begin{description}
+    \item[The Frequentist Interpretation:] The frequentists defines an events probability as the limit of it's relative frequency over many trials. In other words, the probabilities are assigned a physical interpretation and remains rather objective. There do however arise issues and paradoxes when we try to assign probabilities to events which are not recurrent, i.e. they only happens a few times.
+    \item[The Bayesian Interpretation:] The bayesians interprets probability as a state of knowledge \cite{Jaynes86bayesianmethods:}. Data is used to update our prior knowledge about an event, and the probabilities is used to quantify how strongly we believe in each outcome. This interpretation is highly philosophical, but beautifully caputures humans intuitive reasoning. For those interested, see \Cite{Jaynes86bayesianmethods:} for a fascinating read on the history on Bayesian Probability.
+\end{description}
+
+Which interpretation to use is almost a religious discussion that we will not go into. We will mostly use the Bayesian interpretation.
+
+
 
 
 
 \section{Bayesian Statistics}
+
+Using \cref{eq:bayes_law} we can write 
+\begin{equation}\label{eq:bayes_learning}
+    p(A|BC) = \frac{p(B | AC) p(A | C)}{p(B | C)}
+\end{equation}
+
+If $A$ is the unknown outcome we are interested, $B$ represents data we have collected, and $C$ is any prior knowledge we have about $A$, then \cref{eq:bayes_learning} is a mathematical representation of the process of learning \cite{Jaynes86bayesianmethods:}. $A$ usually represent some sort of hypothesis we want to verify. 
+
+\begin{description}
+    \item[The prior probability $p(A | C)$:] The prior probability is all we know about $A$ before observing any data. This can be domain-specific knowledge, results from prior experiments or intuitive reasoning. 
+    \item[The Likelihood $p(B | AC)$]: The likelihood of $B$ tells us how likely it is to observe the data $B$ given that $A$ is true. 
+    \item[The posterior $p(A | BC)$]: The posterior distribution is our updated belief about $A$ after observing $B$.    
+\end{description}
 
 \section{Stochastic Modelling}
 
