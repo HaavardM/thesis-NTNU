@@ -34,7 +34,7 @@ The results we have mentioned so far stems from abstract mathematical axioms, an
 
 \begin{description}
     \item[The Frequentist Interpretation:] The frequentists defines an events probability as the limit of it's relative frequency over many trials. In other words, the probabilities are assigned a physical interpretation and remains rather objective. There do however arise issues and paradoxes when we try to assign probabilities to events which are not recurrent, i.e. they only happens a few times.
-    \item[The Bayesian Interpretation:] The bayesians interprets probability as a state of knowledge \cite{Jaynes86bayesianmethods:}. Data is used to update our prior knowledge about an event, and the probabilities is used to quantify how strongly we believe in each outcome. This interpretation is highly philosophical, but beautifully caputures humans intuitive reasoning. For those interested, see \Cite{Jaynes86bayesianmethods:} for a fascinating read on the history on Bayesian Probability.
+    \item[The Bayesian Interpretation:] The bayesians interprets probability as a state of knowledge \cite{Jaynes86bayesianmethods:}. Data is used to update our prior knowledge about an event, and the probabilities is used to quantify how strongly we believe in each outcome. This interpretation is highly philosophical, but beautifully captures humans intuitive reasoning. For those interested, see \Cite{Jaynes86bayesianmethods:} for a fascinating read on the history on Bayesian Probability.
 \end{description}
 
 Which interpretation to use is almost a religious discussion that we will not go into. We will mostly use the Bayesian interpretation.
@@ -47,15 +47,16 @@ Which interpretation to use is almost a religious discussion that we will not go
 
 Using \cref{eq:bayes_law} we can write 
 \begin{equation}\label{eq:bayes_learning}
-    p(A|BC) = \frac{p(B | AC) p(A | C)}{p(B | C)}
+    p(A|BC) = \frac{p(B | AC) p(A | C)}{p(B | C)} \propto p(B | AC)p(A | C)
 \end{equation}
 
 If $A$ is the unknown outcome we are interested, $B$ represents data we have collected, and $C$ is any prior knowledge we have about $A$, then \cref{eq:bayes_learning} is a mathematical representation of the process of learning \cite{Jaynes86bayesianmethods:}. $A$ usually represent some sort of hypothesis we want to verify. 
 
+The factors of \cref{eq:bayes_learning} can be summarized as
 \begin{description}
-    \item[The prior probability $p(A | C)$:] The prior probability is all we know about $A$ before observing any data. This can be domain-specific knowledge, results from prior experiments or intuitive reasoning. 
-    \item[The Likelihood $p(B | AC)$]: The likelihood of $B$ tells us how likely it is to observe the data $B$ given that $A$ is true. 
-    \item[The posterior $p(A | BC)$]: The posterior distribution is our updated belief about $A$ after observing $B$.    
+    \item[The Prior $p(A | C)$:] The prior is our knowledge about $A$ before observing any data. This can be domain-specific knowledge, results from prior experiments or intuitive reasoning about possible values of $A$. 
+    \item[The Likelihood $p(B | AC)$]: The likelihood of $B$ tells us how likely it is to observe the data $B$ given that $A$ is true. On other words, how well does what we observe ($B$) fit with what we believe ($A$). 
+    \item[The Posterior $p(A | BC)$]: The posterior distribution is our updated belief about $A$ after observing $B$. This is our knowledge about $A$ after observing the data. 
 \end{description}
 
 \section{Stochastic Modelling}
