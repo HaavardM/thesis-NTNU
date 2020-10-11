@@ -1,6 +1,42 @@
 \chapter{Survey of Training Methods}
 
 \section{Markov-Chain-Monte-Carlo}
+The key idea behind Markov-Chain-Monte-Carlo (MCMC) algorithms is to construct markov chains whose stationary distribution is the desired target density. After drawing many correlated samples from such a chain. the fraction of time spent in each state will be proportional to the target density $p^*(\mathbf{x})$ \cite{murphy}. 
+
+\subsection{Metropolis Hastings Algorithm}
+The Metropolis Hastings Algorithm (MH) is described in \cite[p.~850]{murphy}.
+For each current state $\mathbf{x}$, a new state $\mathbf{x'}$ is proposed according to the proposal density $q(\mathbf{x'} | \mathbf{x})$. The proposal density can be chosen freely as long as it gives a non-zero probability of moving to states with non-zero probability in the target density. In other words, $q(\cdot)$ must cover all possible realizations of $p^*(\cdot)$. 
+
+After proposing a move to $\mathbf{x'}$, the proposal is either \textbf{rejected} or \textbf{accepted} according to a formula which ensures that the stationary distribution of the markov chain equals the target distribution. For a symmetric proposal distribution, i.e. $q(\mathbf{x'} | \mathbf{x}) = q(\mathbf{x}| \mathbf{x'})$, the acceptable probability is given by 
+\begin{equation}
+    r = \min(1, \frac{p^*(\mathbf{x'})}{p^*(\mathbf{x})})
+\end{equation}
+
+For an asymmetric proposal, i.e. $q(\mathbf{x'} | \mathbf{x}) \neq q(\mathbf{x} | \mathbf{x'})$, the \textit{Hastings correction} is needed to compensate for any bias introduced by $q(\cdot)$.
+\begin{align}\label{eq:mcmc_mh_acceptance}
+    r &= \min(1, \alpha)\\
+    \alpha &= \frac{p^*(\mathbf{x'}) q(\mathbf{x'} | \mathbf{x})}{p^*(\mathbf{x}) q(\mathbf{x}| \mathbf{x'})}
+\end{align}
+
+The normalization constant in the target density $p^*(\cdot)$ will cancel in equation \eqref{eq:mcmc_mh_acceptance}. The MH algorithm can therefore be used with unnormalized distributions, making it a very useful algorithm for sampling from complex distributions. 
+
+A common proposal density is a symmetric Gaussian distribution centered at the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = \mathcal{N}(\mathbf{x'} | \mathbf{x}, \boldsymbol{\Sigma})$$, resulting in the \textit{random walk Metropolis Algorithm}.
+
+If the proposal density $q(\cdot)$ is independent of the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = q(\mathbf{x'})$$, then the MH algorithm boils down to the \textit{independence sampler}, which is similar to importance sampling as described in \cref{sec:theory_importance_sampling} \cite{murphy}.
+
+The MH algorithm is summarized in \cref{alg:metropolis_hastings}.
+\begin{algorithm}\label{alg:metropolis_hastings}
+\SetAlgoLined
+\For(){t = 0, 1, 2}{
+    Sample $x' \sim q(x' | x_t)$ \;
+    Compute acceptance probability \\
+    $\alpha = \frac{p^*(\mathbf{x'}) q(\mathbf{x'} | \mathbf{x}_t)}{p^*(\mathbf{x}_t) q(\mathbf{x}_t | \mathbf{x'})}$\;
+    Compute $r = \min(1, \alpha)$\;
+    Sample $u \sim \mathcal{U}(0, 1)$\;
+    Set $x_{t+1} = \begin{cases}x' & \text{if } u \leq r\\x_t & \text{otherwise}\end{cases}$;
+}
+\caption{Metropolis Hastings Algorithm}
+\end{algorithm}
 
 \section{Expectation Maximization}
 

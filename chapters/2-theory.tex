@@ -78,17 +78,31 @@ If $\boldsymbol{\theta}$ is the unknown parameters of a process, $\mathcal{D}$ i
     \item[The Posterior $p(\boldsymbol{\theta} | \mathcal{D}, \boldsymbol{\eta})$]: The posterior distribution is the updated belief about $\boldsymbol{\theta}$. This is knowledge about $\boldsymbol{\theta}$ after observing the data. 
 \end{description}
 
-\subsection{Selecting a good prior}
+\subsection{Choice of prior}
 
 \begin{description}
 \item[The Bayesian Approach:]As the prior $\boldsymbol{\eta}$ can be hard to determine, the Bayesian approach is to define priors on priors to express beliefs about the prior. This is called a hierarchical Bayesian model and allows for complex models with multiple dependent variables affecting each other through the priors \cite{murphy}. The relation between the variables can be represented as a graphical model:
-$$\boldsymbol{\eta} \rightarrow \boldsymbol{\theta} \rightarrow{\mathcal{D}}$$
+
+\begin{figure*}[h!]
+\centering    
+\begin{tikzpicture}
+    \node[latent] (e) {$\boldsymbol{\eta}$};
+    \node[latent, right=of e] (t) {$\boldsymbol{\theta}$};
+    \node[obs, right=of t] (d) {$\mathcal{D}$};
+    \edge {e} {t}
+    \edge{t} {d}
+\end{tikzpicture}
+\end{figure*}
 
 \item[Uninformative Priors:]Another approach is to use an uninformative prior. It is a distribution which do not assign more probability mass to any single outcome, and thereby does not incorporate any prior knowledge. It is like saying one simply does not know what to believe.
 \end{description}
 
 
 \section{Stochastic Modelling}
+
+\subsection{Markov Chains}
+
+\subsection{Importance Sampling}\label{sec:theory_importance_sampling}
 
 \section{Probabilistic Graphical Models}
 
