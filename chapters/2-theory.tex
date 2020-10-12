@@ -1,61 +1,76 @@
 \chapter{Neccessary Theoretical Background}
 
 \section{Useful Results From Probability Theory}
+
+The reader is assumed to have basic understanding of probability theory. Some of the most relevant results are summarized here.
+ 
+ \subsection{Notation}
+ 
+ The notation $p(X)$ is used to denote the probability distribution of the random variable $X$.
+ 
+ For \textbf{discrete} random variables the notation is straight forward. 
+ \begin{align*}
+ p(X) &= p(X=x)\\  &= p_X(X=x)\\ &= \Pr\{X = x\}
+ \end{align*}
+ 
+ For \textbf{continuous} random variables the probability of a single outcome is always zero, i.e. $p(X = x) \equiv 0$, as there are infinitely many possible outcomes. The notation $p(X)$ then denotes the probability density function (PDF) of $X$. 
+ 
+ 
  
 \subsection{Joint Probabilities}
-The \texttt{joint probability} $p(X, Y)$ is the probability that both $X$ and $Y$ occurs \cite[p.~29]{murphy}.
+The \textit{joint probability} $p(X, Y)$ is the probability that both $X$ and $Y$ occurs \cite[p.~29]{murphy}.
 
 \begin{equation}
     p(X, Y) = p(X \cap Y) = p(X | Y)p(Y)
 \end{equation}
 
 \subsection{Conditional Probabilities}
-The \texttt{conditional probability} $p(X | Y)$ is the probability of $X$ occurring, given the known occurrence of another event $Y$. This can be interpreted as knowing the value of $Y$ includes some information about $X$. Mathematically it can be expressed as \cite[p.~29]{murphy}
+The \textit{conditional probability} $p(X | Y)$ is the probability of $X$ occurring, given the known occurrence of another event $Y$. This can be interpreted as knowing the value of $Y$ includes some information about $X$. Mathematically it can be expressed as \cite[p.~29]{murphy}
 \begin{equation}\label{eq:conditional_probability}
     p(X | Y) = \frac{p(X, Y)}{p(Y)}
 \end{equation}
 
 \subsection{Bayes Rule}
 
-A useful extension to equation \eqref{eq:conditional_probability} is to recognize that the joint distribution $p(X, Y)$ can be rewritten as a product of a conditional probability $p(Y | X)$ and $p(X)$. Inserting into equation \eqref{eq:conditional_probability} yields \texttt{Bayes Rule}
+A useful extension to equation \eqref{eq:conditional_probability} is to recognize that the joint distribution $p(X, Y)$ can be rewritten as a product of a conditional probability $p(Y | X)$ and $p(X)$. Inserting into equation \eqref{eq:conditional_probability} yields \textit{Bayes Rule}
 \begin{equation}\label{eq:bayes_law}
     p(X | Y) = \frac{p(X, Y)}{p(Y)} = \frac{p(Y | X)p(X)}{p(Y)}.
 \end{equation}
 
-As $Y$ is known the denominator $p(Y)$ is simply a normalizing constant. It is sometimes useful to rewrite equation \eqref{eq:bayes_law} as
+As $Y$ is known, the denominator $p(Y)$ is simply a normalizing constant. It is sometimes useful to rewrite equation \eqref{eq:bayes_law} as
 \begin{equation}\label{eq:bayes_law_proportional}
     p(X | Y) = \frac{p(Y | X) p(X)}{p(Y)} \propto p(Y | X)p(X)
 \end{equation} 
-which is useful if $p(Y)$ is hard to calculate and the normalized value of $p(X | Y)$ is not needed.
+if $p(Y)$ is hard to calculate and the normalized value of $p(X | Y)$ is not needed.
 
 \subsection{Marginal Probability \& The Law of Total Probability}
-The marginal probability of an event $X$ is the probability of $X$ occurring irrespective of any other variables.
-For notational simplicity we use the integral operator for marginalization of both continuous and discrete random variables, even though the integral is replaced by a sum for discrete random variables. For an event $X$ and any other variables $\bf Y$, the marginal probability of $X$ can be written as
+The \textit{marginal probability} of an event $X$ is the probability of $X$ occurring irrespective of any other variables.
+For notational simplicity the integral operator is used for marginalization of both continuous and discrete random variables, even though the integral is replaced by a sum for discrete random variables. For an event $X$ and any other variables $\bf Y$, the marginal probability of $X$ can be written as
 \begin{equation}
     p(X) = \int_{\boldsymbol{Y}} p(X, \boldsymbol{Y}) d\boldsymbol{Y} = \int_{\boldsymbol{Y}} p(X | \boldsymbol{Y}) p(\boldsymbol{Y}) d\boldsymbol{Y}
 \end{equation}
-The last equation is by the \texttt{Law of total probability} which relates the marginal probabilities to conditional probabilities.
+The last equality is by the \textit{Law of total probability}, which relates marginal probabilities to conditional probabilities.
 
 \subsection{Independence \& Conditional Independence}
-If the joint probability of two variables $X$ and $Y$ can be expressed as a product of two marginals, then they are marginally independent.
+If the joint probability of two variables $X$ and $Y$ can be expressed as a product of two marginals, then they are \textit{marginally independent}.
 \begin{equation}
     X \perp Y \iff p(X, Y) = p(X | Y)p(Y) = p(Y | X)p(X) = p(X)p(Y)
 \end{equation}
 
-Marginal independence is rare, as most variables usually influences each other in some way. However, the variables usually influences each other through other variables and not directly. The variables $X$ and $Y$ is therefore said to be conditionally independent given $Z$ if the conditional joint can be written as a product of conditional marginals \cite[p.~31]{murphy}:
+Marginal independence is rare, as most variables usually influence each other in some way. However, the variables often affect one another indirectly through other variables. The variables $X$ and $Y$ are said to be \textit{conditionally independent} given $Z$, if the conditional joint can be written as a product of conditional marginals \cite[p.~31]{murphy}:
 \begin{equation}\label{eq:conditional_independence}
     X \perp Y | Z \iff p(X, Y | Z) = p(X | Z)p(Y | Z)
 \end{equation}
 
 \subsection{Interpretations of Probability}
-The results we have mentioned so far stems from abstract mathematical axioms, and do not tell us how to interpret the resulting probabilities. There are however different interpretations which are commonly accepted. Perhaps the two biggest are the frequentist and Bayesian interpretations. 
+The results mentioned so far stem from abstract mathematical axioms, and do not tell how to interpret the resulting probabilities. Different interpretations are commonly accepted. The perhaps two biggest interpretations are the Frequentist and Bayesian interpretations. 
 
 \begin{description}
-    \item[The Frequentist Interpretation:] The frequentist's defines an events probability as the limit of it's relative frequency over many trials. In other words, the probabilities are assigned a physical interpretation and remains rather objective. There do however arise issues and paradoxes when we try to assign probabilities to events which are not recurrent, i.e. they only happens a few times. The frequentist assumes that the collected data is random and the model (and its correspodnig parameters) are fixed. The main goal of the frequentist is therefore to create consistent methods for dealing with uncertain data.
-    \item[The Bayesian Interpretation:] The Bayesian's interprets probability as a state of knowledge \cite{Jaynes86bayesianmethods:}. In Bayesian analysis the data is fixed and it is the model that is unknown. Data is used to update prior knowledge about the model, and the probabilities are used to quantify how strongly one believe in each outcome. This interpretation is highly philosophical, but beautifully captures humans intuitive reasoning. The Bayesian interpretation do however involve a level of subjectivity when choosing priors, making it difficult to form an objective opinion from data. For those interested, see \Cite{Jaynes86bayesianmethods:} for a fascinating read on the history of Bayesian probability.
+    \item[The Frequentist Interpretation:] The Frequentists define an event's probability as the limit of its relative frequency over many trials. In other words, the probabilities are assigned a physical interpretation and remains rather objective. There do however arise issues and paradoxes when assigning probabilities to events which are not recurrent, i.e. they only happen a few times. The Frequentist interpretation assumes that the collected data is random and that the model (and its corresponding parameters) are fixed. The main goal of the Frequentists are therefore to create consistent methods for dealing with uncertain data.
+    \item[The Bayesian Interpretation:] The Bayesians interpret probability as a state of knowledge \cite{Jaynes86bayesianmethods:}. In Bayesian analysis the data is fixed, whereas the model is unknown. Data is used to update prior knowledge about the model, and the probabilities are used to quantify how strongly one believe in each outcome. This interpretation is highly philosophical, but beautifully captures humans' intuitive reasoning. The Bayesian interpretation does however involve a level of subjectivity when choosing priors, making it difficult to form objective opinions from data. For those interested, see \Cite{Jaynes86bayesianmethods:} for a fascinating read on the history of Bayesian probability.
 \end{description}
 
-While the differences between the frequentist and Bayesian interpretation are mostly philosophical, there are a few practical differences. For a frequentist it do not make sense to talk about any probabilities before an experiment has been performed. The prior $p(M)$ and posterior $p(M | D)$ is therefore nonsensical and cannot be computed using a frequentist interpretation.
+While the differences between the Frequentist and Bayesian interpretations are mostly philosophical, there are a few practical differences. For a Frequentist it does not make sense to talk about any probabilities before an experiment has been performed. The prior $p(X)$ and posterior $p(X | Y)$ is therefore nonsensical and cannot be computed using a Frequentist interpretation.
 
 
 
@@ -64,24 +79,27 @@ While the differences between the frequentist and Bayesian interpretation are mo
 
 \section{Bayesian Statistics}
 
-Using \cref{eq:bayes_law} we can write 
+Using \cref{eq:bayes_law} one can write 
 \begin{equation}\label{eq:bayes_learning}
-    p(\boldsymbol{\theta}| \mathcal{D}, \boldsymbol{\eta}) = \frac{p(\mathcal{D} | \boldsymbol{\theta}) p(\boldsymbol{\theta} | \boldsymbol{\eta})}{p(\mathcal{D} | \boldsymbol{\eta})} \propto p(\mathcal{D} | \boldsymbol{\theta})p(\boldsymbol{\theta} | \boldsymbol{\eta})
+    p(\boldsymbol{\theta}| \mathcal{D}, \boldsymbol{\eta}) = \frac{p(\mathcal{D} | \boldsymbol{\theta}) p(\boldsymbol{\theta} | \boldsymbol{\eta})}{p(\mathcal{D})} \propto p(\mathcal{D} | \boldsymbol{\theta})p(\boldsymbol{\theta} | \boldsymbol{\eta})
 \end{equation}
 
 If $\boldsymbol{\theta}$ is the unknown parameters of a process, $\mathcal{D}$ is collected data or observations, and $\boldsymbol{\eta}$ is all prior knowledge about $\boldsymbol{\theta}$, then equation \eqref{eq:bayes_learning} is a mathematical representation of the process of learning from data \cite{Jaynes86bayesianmethods:}.
 
 \cref{eq:bayes_learning} can be interpreted as
 \begin{description}
-    \item[The Prior $p(\boldsymbol{\theta} | \boldsymbol{\eta})$:] The prior is knowledge about $\boldsymbol{\theta}$ before observing any data. This can be domain-specific knowledge, results from prior experiments or intuitive reasoning about possible values of $\boldsymbol{\theta}$. 
-    \item[The Likelihood $p(\mathcal{D} | \boldsymbol{\theta}, \boldsymbol{\eta})$]: The likelihood of the observations $\mathcal{D}$ is how well the observations fit with the prior beliefs $\boldsymbol{\theta} | \boldsymbol{\eta}$. In other words, how likely is it to observe $\mathcal{D}$ if the current belief $\boldsymbol{\theta} | \boldsymbol{\eta}$ were to be true.
+    \item[The Prior $p(\boldsymbol{\theta} | \boldsymbol{\eta})$:] The prior incorporates knowledge about $\boldsymbol{\theta}$ before observing any data. This can be domain-specific knowledge, results from prior experiments or intuitive reasoning about possible values of $\boldsymbol{\theta}$. 
+    \item[The Likelihood $p(\mathcal{D} | \boldsymbol{\theta})$]: The likelihood of the observations $\mathcal{D}$ is how well the observations fit with prior beliefs $\boldsymbol{\theta} | \boldsymbol{\eta}$. In other words, how likely it is to observe $\mathcal{D}$ if the current belief $\boldsymbol{\theta}$ were to be true.
     \item[The Posterior $p(\boldsymbol{\theta} | \mathcal{D}, \boldsymbol{\eta})$]: The posterior distribution is the updated belief about $\boldsymbol{\theta}$. This is knowledge about $\boldsymbol{\theta}$ after observing the data. 
 \end{description}
+
+The conditional variable $\boldsymbol{\eta}$ is usually omitted for simplified notation, but is implicitly defined through the choice of prior distribution, i.e. $p(\boldsymbol{\theta}) = p(\boldsymbol{\theta} | \boldsymbol{\eta})$
+
 
 \subsection{Choice of prior}
 
 \begin{description}
-\item[The Bayesian Approach:]As the prior $\boldsymbol{\eta}$ can be hard to determine, the Bayesian approach is to define priors on priors to express beliefs about the prior. This is called a hierarchical Bayesian model and allows for complex models with multiple dependent variables affecting each other through the priors \cite{murphy}. The relation between the variables can be represented as a graphical model:
+\item[The Bayesian Approach:]As the prior $\boldsymbol{\eta}$ can be hard to determine, the Bayesian approach is to define priors on priors. This is called a hierarchical Bayesian model and allows for complex models with multiple dependent variables affecting each other through priors \cite{murphy}. The relation between the variables can be represented as a graphical model:
 
 \begin{figure*}[h!]
 \centering    
@@ -94,13 +112,28 @@ If $\boldsymbol{\theta}$ is the unknown parameters of a process, $\mathcal{D}$ i
 \end{tikzpicture}
 \end{figure*}
 
-\item[Uninformative Priors:]Another approach is to use an uninformative prior. It is a distribution which do not assign more probability mass to any single outcome, and thereby does not incorporate any prior knowledge. It is like saying one simply does not know what to believe.
+\item[Uninformative Priors:] An uninformative prior is a distribution which does not favor any outcome, and thereby does not incorporate any prior knowledge. It is like saying one simply does not know what to believe.
+\item[Empirical Bayes:] The priors can be estimated from the data, resulting in the so-called Empirical Bayes method. The parameters of the prior can be found by maximizing the conditional likelihood. %TODO: cite
 \end{description}
 
 
 \section{Stochastic Modelling}
 
 \subsection{Markov Chains}
+A Markov Chain is a chain of events, where the outcome of the next event only depends on the current state. All information needed to predict the future is contained in the current state. This property is called the \textit{Markov Property} and is expressed in \cref{eq:theory_markov_property}.
+
+\begin{equation}\label{eq:theory_markov_property}
+p(\mathbf{X}_{t+1} | \mathbf{X}_t,  \mathbf{X}_{0:t-1}) = p(\mathbf{X}_{t+1} | \mathbf{X}_t)  \quad \forall t \in [1, \infty)
+\end{equation}
+
+\subsubsection{Stationary Distribution}
+As time moves on, some states will be visited more frequently than others. This long-running distribution of states is called the \textit{stationary distribution} of the Markov Chain. If $\mathbf{P}$ is the transition probability matrix for a discrete Markov chain, then $\boldsymbol{\pi}$ is the stationary distribution if 
+\begin{equation}
+    \boldsymbol{\pi} = \boldsymbol{\pi} \mathbf{P}
+\end{equation}
+
+The stationary distribution may not be unique, and whether a unique stationary distribution exists, depends on how the Markov Chain behaves. Further details on stationary distributions are outside the scope of this thesis. 
+
 
 \subsection{Importance Sampling}\label{sec:theory_importance_sampling}
 
@@ -108,5 +141,4 @@ If $\boldsymbol{\theta}$ is the unknown parameters of a process, $\mathcal{D}$ i
 
 \section{Belief Propagation}
 
-\section{Markov Chains}
-
+\section{Calculus of Variation}
