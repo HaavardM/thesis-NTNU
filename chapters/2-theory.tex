@@ -138,7 +138,62 @@ The stationary distribution may not be unique, and whether a unique stationary d
 \subsection{Importance Sampling}\label{sec:theory_importance_sampling}
 
 \section{Probabilistic Graphical Models}
+With $N$ variables there are $\frac{N(N-1)}{2} = \mathcal{O}(N^2)$ different pairs, which may or may not be dependent of each other. Too keep track of all possible conditional distributions quickly becomes unmanagable as $N$ increases. 
+
+Probabilistic Graphical Models, often called Bayesian Networks, restricts the number of conditional distributions by assuming conditional independence, as defined in \cref{eq:conditional_independence}, between variables. 
+
+The conditional independence assumptions allow simplifications like $$p(A, B, C, D) = p(A)p(B | A)p(C | A) p(D | C)$$.
+
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{.49\textwidth}
+\centering
+\begin{tikzpicture}
+    \node[latent] (A) {$A$};
+    \node[latent, right=of A] (B) {$B$};
+    \node[latent, below=of A] (C) {$C$};
+    \node[latent, right=of C] (D) {$D$};
+    \edge {A} {B};
+    \edge {A} {C};
+    \edge {A} {D};
+    \edge {B} {A};
+    \edge {B} {C};
+    \edge {B} {D};
+    \edge {C} {A};
+    \edge {C} {B};
+    \edge {C} {D};
+    \edge {D} {A};
+    \edge {D} {B};
+    \edge {D} {C};
+\end{tikzpicture}
+\caption{Without conditional independence.}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+\centering
+\begin{tikzpicture}
+    \node[latent] (A) {$A$};
+    \node[latent, right=of A] (B) {$B$};
+    \node[latent, below=of A] (C) {$C$};
+    \node[latent, right=of C] (D) {$D$};
+    \edge {A} {B};
+    \edge {A} {C};
+    \edge {C} {D};
+\end{tikzpicture}
+\caption{With conditional independence.}
+\end{subfigure}
+\caption{Example of probabilistic graphical model with $4$ variables.}
+\end{figure}
+
+\section{Important Distributions}
+
+\subsection{Beta \& Dirichlet Distributions}
+\subsection{Binomial \& Multinomial Distributions}
+\subsection{Dirichlet-Multinomial Distribution}
+\subsection{Bernouilli \& Categorial Distributions}
+\subsection{Normal Distribution}
 
 \section{Belief Propagation}
-
+\subsection{Factor Graphs}
+\subsection{Sum-Product Algorithm}
 \section{Calculus of Variation}
