@@ -1,7 +1,9 @@
-\chapter{Survey of Training Methods}
+
+\chapter{Monte Carlo Sampling}
+\section{Importance Sampling}\label{sec:theory_importance_sampling}
 
 \section{Markov-Chain-Monte-Carlo}
-The main idea behind Markov-Chain-Monte-Carlo (MCMC) algorithms is to construct Markov Chains whose stationary distribution is the desired target density. After drawing many correlated samples from such a chain, the fraction of time spent in each state will be proportional to the target density $p^*(\mathbf{x})$ \cite{murphy}. 
+The main idea behind \acrfull{mcmc} algorithms is to construct Markov Chains whose stationary distribution is the desired target density. After drawing many correlated samples from such a chain, the fraction of time spent in each state will be proportional to the target density $p^*(\mathbf{x})$ \cite{murphy}. 
 
 \subsection{Metropolis Hastings Algorithm}
 The Metropolis Hastings Algorithm (MH) is described in \cite[p.~850]{murphy}.
@@ -24,12 +26,8 @@ For an \textbf{asymmetric} proposal, i.e. $q(\mathbf{x'} | \mathbf{x}) \neq q(\m
 
 The normalization constant in the target density $p^*(\cdot)$ will cancel in equation \eqref{eq:mcmc_mh_acceptance}. The MH algorithm can therefore be used with unnormalized distributions, making it a very useful algorithm for sampling from complex distributions. 
 
-A common proposal density is a symmetric Gaussian distribution centered at the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = \mathcal{N}(\mathbf{x'} | \mathbf{x}, \boldsymbol{\Sigma})$$ resulting in the \textit{random walk Metropolis Algorithm}.
-
-If the proposal density $q(\cdot)$ is independent of the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = q(\mathbf{x'})$$ then the MH algorithm boils down to the \textit{independence sampler}, which is similar to importance sampling as described in \cref{sec:theory_importance_sampling} \cite{murphy}.
-
 The MH algorithm is summarized in \cref{alg:metropolis_hastings}.
-\begin{algorithm}\label{alg:metropolis_hastings}
+\begin{algorithm}
 \SetAlgoLined
 \For(){t = 0, 1, 2}{
     Sample $x' \sim q(x' | x_t)$ \;
@@ -39,12 +37,19 @@ The MH algorithm is summarized in \cref{alg:metropolis_hastings}.
     Sample $u \sim \mathcal{U}(0, 1)$\;
     Set $x_{t+1} = \begin{cases}x' & \text{if } u \leq r\\x_t & \text{otherwise}\end{cases}$;
 }
-\caption{Metropolis Hastings Algorithm}
+\caption{Metropolis Hastings}
+\label{alg:metropolis_hastings}
 \end{algorithm}
+
+\subsection{Random Walk Metropolis}\label{sec:random_walk_metropolis}
+A common proposal density is a symmetric Gaussian distribution centered at the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = \mathcal{N}(\mathbf{x'} | \mathbf{x}, \boldsymbol{\Sigma})$$ resulting in the \textit{Random Walk Metropolis Algorithm}.
+
+\subsection{Independence Sampling}
+If the proposal density $q(\cdot)$ is independent of the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = q(\mathbf{x'})$$ then the MH algorithm boils down to the \textit{independence sampler}, which is similar to importance sampling as described in \cref{sec:theory_importance_sampling} \cite{murphy}.
+
 
 \section{Expectation Maximization}
 
-\section{Variational Bayes}
 
 \section{A Note on Probabilistic Programming}
 

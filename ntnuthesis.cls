@@ -185,7 +185,7 @@
     \RequirePackage[capitalize,noabbrev]{cleveref}   % automatic cross references
 \else
     \RequirePackage[noabbrev]{cleveref}
-\fi
+\fi 
 \RequirePackage[acronym]{glossaries}        % create a glossary and acronym list
 
 %% CUSTOMISATION

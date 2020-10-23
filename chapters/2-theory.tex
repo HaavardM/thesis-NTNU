@@ -135,12 +135,11 @@ As time moves on, some states will be visited more frequently than others. This 
 The stationary distribution may not be unique, and whether a unique stationary distribution exists, depends on how the Markov Chain behaves. Further details on stationary distributions are outside the scope of this thesis. 
 
 
-\subsection{Importance Sampling}\label{sec:theory_importance_sampling}
 
 \section{Probabilistic Graphical Models}
 With $N$ variables there are $\frac{N(N-1)}{2} = \mathcal{O}(N^2)$ different pairs, which may or may not be dependent of each other. Too keep track of all possible conditional distributions quickly becomes unmanagable as $N$ increases. 
 
-Probabilistic Graphical Models, often called Bayesian Networks, restricts the number of conditional distributions by assuming conditional independence, as defined in \cref{eq:conditional_independence}, between variables. 
+\acrfull{pgm}, often called Bayesian Networks, restricts the number of conditional distributions by assuming conditional independence, as defined in \cref{eq:conditional_independence}, between variables. 
 
 The conditional independence assumptions allow simplifications like $$p(A, B, C, D) = p(A)p(B | A)p(C | A) p(D | C)$$.
 
@@ -192,8 +191,3 @@ The conditional independence assumptions allow simplifications like $$p(A, B, C,
 \subsection{Dirichlet-Multinomial Distribution}
 \subsection{Bernouilli \& Categorial Distributions}
 \subsection{Normal Distribution}
-
-\section{Belief Propagation}
-\subsection{Factor Graphs}
-\subsection{Sum-Product Algorithm}
-\section{Calculus of Variation}

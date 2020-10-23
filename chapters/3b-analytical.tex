@@ -1,0 +1,36 @@
+\chapter{Analytical Methods \& Variational Inference}
+For some \acrshort{pgm}'s the joint distribution may have a functional form which allow marginalization using analytical methods, i.e. directly evaluating the integrals and sums. When applicable, analytical methods allow for excact inference and avoids the randomness introduced by sampling methods. %TODO Cite or explain further 
+
+\section{Belief Propagation}
+%TODO Better citations
+The computational complexity of marginalizing over many variables in a \acrshort{pgm} may be large as the number of possible hypothesises quickly increases with the number of variables. Finding the solution in a reasonable amount of time requires a strategy which avoids uneccessary computations and effeciently utilize the structure of the \acrshort{pgm}. 
+
+\textit{\acrfull{bp}}, also called the sum-product algorithm, is an algorithm for effecient marginalization in \acrshort{pgm}'s. The algorithm utilizes dynamic programming to avoid repeating costly calculations.
+
+To compute the marginal density for a node $r$, one can imagine "picking up" the \acrshort{pgm} by $r$. The remaining nodes will be pulled down by gravity and $r$ will become the root-node. \acrshort{bp} will then collect evidence from the leaf-nodes and work its way upward toward the root, collecting evidence and marginalizing on the way. One can imagine each node computes "messages" along the way describing the belief about each node, and passing those messages to the parent-node \cite{murphy}.
+\subsection{Message}
+A node $t$ computes a message containing the current belief about its parent given all evidence collected at or below node $t$ \cite{murphy}. Assuming all nodes below $t$ also calculated similar messages, one can by induction show that the evidence for $t$ becomes
+\begin{equation}\label{eq:bp_belief}
+    bel_t^-(x_t) = \frac{1}{Z_t}\psi_t(x_t) \prod_{c \in ch(t)} m_{c\to t}^-(x_t)
+\end{equation}
+where $\psi_t(x_t)$ is the local evidence at node $t$, $m_{c \to t}^-$ is the messages passed from $t$'s children and $Z_t$ is the normalization constant for node $t$.
+Assuming the belief $bel_s^-(x_s)$ for a children $s$ of node $t$ has been calculated using \cref{eq:bp_belief}. The message $m_{s\to t}^-$ can then, assumed by recursion, be computed as
+\begin{equation}\label{eq:bp_message}
+    m_{s \to t}^-(x_t) = \int_{x_s} \psi_{st}(x_s, x_t) bel_s^-(x_s)
+\end{equation}
+
+While this may sound very complicated, one can think of this algorithm as computing the marginal distribution of $x_r$ where each sum or integral is pushed in as far as possible to simplify calculations. By beginning with the inner-most integral, the marginalization boils down to recursively computing simple integrals or sums with only a small subset of the variables. A \acrshort{pgm} with a chain structure is used as an example below.
+\begin{align*}
+p(x_r) &= \idotsint_V p(x_r, x_1,\dots,x_k) \,dx_1 \dots dx_k\\
+&= \idotsint_V p(x_r | x_1)p(x_1|x_2)\dots p(x_{k-1} | x_k)p(x_k) \, dx_1 \dots dx_k\\
+&= \int_{x_1} p(x_r | x_1)\underbrace{\int_{x_2}p(x1 | x2) \; \;  \dots \underbrace{\int_{x_k} p(x_{k-1} | x_k)p(x_k) \, dx_1 \dots dx_k}_{m_{k\to k-1}^-(x_{k-1})}}_{m_{x_2 \to x_1}^-(x_1)}
+\end{align*}
+
+
+
+
+
+% TODO Cite. 
+\subsection{Factor Graphs}
+\section{Variational Bayes}
+\subsection{Calculus of Variation}
