@@ -1,15 +1,15 @@
 \chapter{Analytical Methods \& Variational Inference}
-For some \acrshort{pgm}'s the joint distribution may have a functional form which allow marginalization using analytical methods, i.e. directly evaluating the integrals and sums. When applicable, analytical methods allow for excact inference and avoids the randomness introduced by sampling methods. %TODO Cite or explain further 
+For some \acrshort{pgm}'s the joint distribution may have a functional form which allow marginalization using analytical methods, i.e. directly evaluating the integrals and sums. When applicable, analytical methods allow for exact inference and avoids the randomness introduced by sampling methods. %TODO Cite or explain further 
 
 \section{Belief Propagation}
 %TODO Better citations
-The computational complexity of marginalizing over many variables in a \acrshort{pgm} may be large as the number of possible hypothesises quickly increases with the number of variables. Finding the solution in a reasonable amount of time requires a strategy which avoids uneccessary computations and effeciently utilize the structure of the \acrshort{pgm}. 
+The computational complexity of marginalizing over many variables in a \acrshort{pgm} may be large as the number of possible hypothesises quickly increases with the number of variables. Finding the solution in a reasonable amount of time requires a strategy which avoids unnecessary computations and efficiently utilize the structure of the \acrshort{pgm}. 
 
-\textit{\acrfull{bp}}, also called the sum-product algorithm, is an algorithm for effecient marginalization in \acrshort{pgm}'s. The algorithm utilizes dynamic programming to avoid repeating costly calculations. The method is described in detail in \cite[p .~710]{murphy}, but is summarized here with a few notational modifications. 
+\textit{\acrfull{bp}}, also called the sum-product algorithm, is an algorithm for efficient marginalization in \acrshort{pgm}'s. The algorithm utilizes dynamic programming to avoid repeating costly calculations. The method is described in detail in \cite[p .~710]{murphy}, but is summarized here with a few notational modifications. 
 
 
 \subsection{Belief Propagation for trees}
-To compute the marginal density for a node $r$ in a tree-structued \acrshort{pgm}, one can imagine "picking up" the tree by $r$. The remaining nodes will be pulled down by gravity and $r$ will become the root-node. \acrshort{bp} will collect evidence from the leaf-nodes and work its way upward toward the root, collecting evidence and marginalizing on the way. One can imagine each node computes \textbf{messages} describing the belief about their parent nodes, and passing those messages to the parent-nodes \cite{murphy}.
+To compute the marginal density for a node $r$ in a tree-structured \acrshort{pgm}, one can imagine "picking up" the tree by $r$. The remaining nodes will be pulled down by gravity and $r$ will become the root-node. \acrshort{bp} will collect evidence from the leaf-nodes and work its way upward toward the root, collecting evidence and marginalizing on the way. One can imagine each node computes \textbf{messages} describing the belief about their parent nodes, and passing those messages to the parent-nodes \cite{murphy}.
 \subsection{Message passing}
 A node $t$ computes a message containing the current belief about its parent given all evidence collected at or below node $t$ \cite{murphy}. Assuming all nodes below $t$ also calculated similar messages, one can by induction show that the evidence for $t$ becomes
 \begin{equation}\label{eq:bp_belief}
