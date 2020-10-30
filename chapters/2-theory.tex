@@ -137,9 +137,7 @@ The stationary distribution may not be unique, and whether a unique stationary d
 
 
 \section{Probabilistic Graphical Models}
-With $N$ variables there are $\frac{N(N-1)}{2} = \mathcal{O}(N^2)$ different pairs, which may or may not be dependent of each other. Too keep track of all possible conditional distributions quickly becomes unmanagable as $N$ increases. 
-
-\textit{\acrfull{pgm}}, often called Bayesian Networks, restricts the number of conditional distributions by assuming conditional independence, as defined in \cref{eq:conditional_independence}, between variables. \acrshort{pgm}'s are graphs, where nodes represent random variables and edges represents statistical dependence between the variables. 
+\textit{\acrfull{pgm}}, often called Bayesian Networks, allows for effecient factorizations of the joint distribution by assuming conditional independence, as defined in \cref{eq:conditional_independence}, between variables. \acrshort{pgm}'s are graphs, where nodes represent random variables and edges represents statistical dependence between the variables. By utilizing the independence assumptions in the graphs, the computational complexity can be drastically reduced \cite{murphy}.
 
 \subsection{\acrfull{dgm}}
 \acrshort{dgm}'s are perhaps the simplest type of \acrshort{pgm} and is based on \textbf{Directed Acyclic Graphs} (DAG). It is a graph structure which do not allow cycles and all edges are directed. The flow of information is explicitly modeled in the direction on the edges. \acrshort{dgm}'s are well-suited for modelling causal relationships and when the flow of information is clearly directed. An example can be the relationship between the state of a physical system and a sensor. The system affects the sensor, but the sensor does not affect the system. For the \acrshort{dgm} in \cref{fig:dgm}, the variables $B$ and $C$ are conditionally independent given $A$, i.e. $B \perp C | \; A$. However, knowing $D$ restricts $C$ and $B$, i.e. $B \not\perp C | \; D$. This all comes directly from inspecting the graph. 
@@ -152,21 +150,23 @@ where $\mathcal{V}$ is all the nodes in the graph and $\mathbf{pa}(v)$ is the pa
 
 \subsection{\acrfull{mrf}}
 
-\acrshort{mrf}'s are undirected graphical models, which do not require the specification of edge direction. They are in some domains, such as relational or spatial data , more natural than \acrshort{dgm}'s as they are symmetric, i.e. the information flows both ways \cite{murphy}. The \acrshort{mrf} in \cref{fig:mrf} shows that $B$ and $C$ is only independent if both $A$ and $D$ is observed, i.e. $B \perp C | \; A, D$. The important thing to notice is that the \acrshort{mrf} makes vastly different assumptions than the \acrshort{dgm}.
+\acrshort{mrf}'s are undirected graphical models, and offers a more general specification of independence assumptions. They are in some domains, such as relational or spatial data , more natural than \acrshort{dgm}'s as they are symmetric, i.e. the information flows both ways \cite{murphy}. The \acrshort{mrf} in \cref{fig:mrf} shows that $B$ and $C$ is only independent if both $A$ and $D$ is observed, i.e. $B \perp C | \; A, D$. The important thing to notice is that the \acrshort{mrf} makes vastly different assumptions than the \acrshort{dgm}, eventhoug the structure is similar.
 
 By the \textbf{Hammersley-Clifford Theorem} \cite[p.~ 668]{murphy}, the joint distribution of \acrshort{mrf} models can be factorized on the form
 \begin{equation}
     p(\mathbf{x}) =\frac{1}{Z} \prod_{c \in \mathcal{C}} \psi_c(\mathbf{x}_c)
 \end{equation}
-where is $\mathcal{C}$ is the set of all \textit{maximal cliques}, i.e. largest, fully connected subgraphs. All variables in a maximal clique is therefore dependent on eachother. $\psi_c(\cdot)$ is the \textit{potential function} for the nodes in the clique $c$, and determines the strength of the interaction between the variables $\bf{x}_c$. The \textit{partition function}
+where is $\mathcal{C}$ is the set of all \textit{maximal cliques}, i.e. largest, fully connected subgraphs. All variables in a maximal clique is therefore dependent on eachother. $\psi_c(\cdot)$ is the \textit{(factor) potential function} for the nodes in the clique $c$, and determines the strength of the interaction between the variables $\bf{x}_c$. The \textit{(factor) partition function}
 \begin{equation}
-    Z = \int_\mathbf{x} \prod_{c \in \mathcal{C}} \psi_c(\mathbf{x}_c)
+    Z = \int_\mathbf{x} (\prod_{c \in \mathcal{C}} \psi_c(\mathbf{x}_c)) d \mathbf{x}
 \end{equation}
 is a normalization constant so that $p(\mathbf{x}) \in [0, 1]$. The potential functions $\psi_c(\cdot)$ can therefore be arbitrary non-negative functions. 
 
-\acrshort{mrf}'s are a generalization of \acrshort{dgm}'s with very specific potential functions that corresponds to conditional distributions and implies a DAG structure. \acrshort{mrf}'s are therefore more powerfull than \acrshort{dgm}, but are also more computationally challenging. 
+\acrshort{mrf}'s can in some ways be seen as a generalization of \acrshort{dgm}'s by creating potential factors for all the conditional distributions in \cref{eq:dgm_factorization} and create a graph with corresponding cliques. \acrshort{mrf}'s are therefore more powerfull than \acrshort{dgm}, but are also more computationally challenging to work with. 
 
-\acrshort{mrf}'s is not the subject of this paper, but some derivations in later chapters requires some familiarity.
+
+\subsection{Factor Graphs}
+Factor Graphs unifies the concept of directed (\acrshort{dgm}) and undirected graphical models (\acrshort{mrf}). A factor graph is an undirected bipartite graph. Bipartite graphs are graphs with two different types of nodes. All variables are represented by round nodes and all factors are square nodes. Each factor is connected to all variables it references through undirected edges. Both \acrshort{mrf}'s and \acrshort{dgm}'s can be converted to factor graphs. Factor graphs is not really intended for modelling independence, but rather visualize how the joint distribution can be factorized to allow for effecient computations. \cref{fig:factor} shows a factor graph for the \acrshort{mrf} in \cref{fig:mrf}.
 
 \begin{figure}[h]
 \centering
@@ -186,7 +186,7 @@ is a normalization constant so that $p(\mathbf{x}) \in [0, 1]$. The potential fu
 \label{fig:mrf}
 \end{subfigure}
 \begin{subfigure}{0.49\textwidth}
-    \centering
+\centering
 \begin{tikzpicture}
     \node[latent] (A) {$A$};
     \node[latent, right=of A] (B) {$B$};
@@ -200,7 +200,25 @@ is a normalization constant so that $p(\mathbf{x}) \in [0, 1]$. The potential fu
 \caption{\acrfull{dgm}}
 \label{fig:dgm}
 \end{subfigure}
-\caption{\acrshort{pgm} representations of a probabilistic model with $4$ variables.}
+\begin{subfigure}{0.5\textwidth}
+\centering
+\begin{tikzpicture}
+    \node[latent] (A) {$A$};
+    \node[latent, right=of A] (B) {$B$};
+    \node[latent, right=of B] (C) {$C$};
+    \node[latent, right=of C] (D) {$D$};
+    \factor[below=of A] {ba-factor} {} {} {};
+    \factor[below=of B] {ca-factor} {} {} {};
+    \factor[below=of C] {dbc-factor} {} {} {};
+    \factoredge{A, B}{ba-factor}{}
+    \factoredge{A, C}{ca-factor}{}
+    \factoredge{B, C, D}{dbc-factor}{}
+\end{tikzpicture}
+\caption{Factor Graph}
+\label{fig:factor}
+\end{subfigure}
+
+\caption{\acrshort{pgm} representations of a probabilistic models with $4$ variables.}
 \end{figure}
 
 \section{Probability Distributions}
