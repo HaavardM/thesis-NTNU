@@ -1,25 +1,26 @@
 \chapter{Analytical Methods \& Variational Inference}
-For some \acrshort{pgm}'s the joint distribution may have a functional form which allow marginalization using analytical methods, i.e. directly evaluating the integrals and sums. When applicable, analytical methods allow for exact inference and avoids the randomness introduced by sampling methods. %TODO Cite or explain further 
+For some \acrshort{pgm}'s the joint distribution may have a functional form which allow marginalization using analytical methods, i.e. directly evaluating the integrals and sums. When applicable, analytical methods allow for exact inference and avoid the randomness introduced by sampling methods. %TODO Cite or explain further 
 
 \section{Belief Propagation}
 %TODO Better citations
-The computational complexity of marginalizing over many variables in a \acrshort{pgm} may be large as the number of possible hypothesises quickly increases with the number of variables. Finding the solution in a reasonable amount of time requires a strategy which avoids unnecessary computations and efficiently utilize the structure of the \acrshort{pgm}. 
+The computational complexity of marginalizing over many variables in a \acrshort{pgm} may be large as the number of possible hypotheses quickly increases with the number of variables. Finding the solution in a reasonable amount of time requires a strategy which avoids unnecessary computations and efficiently utilize the structure of the \acrshort{pgm}. 
 
 \textit{\acrfull{bp}}, also called the sum-product algorithm, is an algorithm for efficient marginalization in \acrshort{pgm}'s. The algorithm utilizes dynamic programming to avoid repeating costly calculations. The method is described in detail in \cite[p .~710]{murphy}, but is summarized here with a few notational modifications. 
 
 
 \subsection{Belief Propagation for trees}
-To compute the marginal density for a node $r$ in a tree-structured \acrshort{pgm}, one can imagine "picking up" the tree by $r$. The remaining nodes will be pulled down by gravity and $r$ will become the root-node. \acrshort{bp} will collect evidence from the leaf-nodes and work its way upward toward the root, collecting evidence and marginalizing on the way. One can imagine each node computes \textbf{messages} describing the belief about their parent nodes, and passing those messages to the parent-nodes \cite{murphy}.
+To compute the marginal density for a node $r$ in a tree-structured \acrshort{pgm}, one can imagine "picking up" the tree by $r$. The remaining nodes will be pulled down by gravity and $r$ will become the root node. \acrshort{bp} will collect evidence from the leaf nodes and work its way upward toward the root, collecting evidence and marginalizing on the way. One can imagine each node computes \textbf{messages} describing the belief about their parent nodes, and passing those messages to the parent nodes \cite{murphy}.
 \subsection{Message passing}
-A node $t$ computes a message containing the current belief about its parent given all evidence collected at or below node $t$ \cite{murphy}. Assuming all nodes below $t$ also calculated similar messages, one can by induction show that the evidence for $t$ becomes
+A node $t$ computes a message containing the current belief about its parent given all evidence collected at or below node $t$ \cite{murphy}. Assuming all nodes below $t$ also calculated similar messages, one can by induction show that the belief for node $t$ becomes
 \begin{equation}\label{eq:bp_belief}
     bel_t^-(x_t) \triangleq p(x_t | \mathbf{v}_t^-) = \frac{1}{Z_t}\psi_t(x_t) \prod_{c \in ch(t)} m_{c\to t}^-(x_t)
 \end{equation}
 where $\mathbf{v}_t^-$ is all evidence at or below node $t$, $\psi_t(x_t)$ is the local evidence at node $t$, $m_{c \to t}^-$ is the messages passed from $t$'s children, $ch(t)$ is the children nodes for node $t$ and $Z_t$ is the normalization constant for node $t$.
-Assuming the belief $bel_s^-(x_s)$ for a children $s$ of node $t$ has been calculated using \cref{eq:bp_belief}. The message $m_{s\to t}^-$ can then, by recursion, be computed as
+Assuming the belief $bel_s^-(x_s)$ for a children $s$ of node $t$ has been calculated using \cref{eq:bp_belief},  the message $m_{s\to t}^-$ can then, by recursion, be computed as
 \begin{equation}\label{eq:bp_message}
-    m_{s \to t}^-(x_t) = \int_{x_s} \psi_{st}(x_s, x_t) bel_s^-(x_s)
+    m_{s \to t}^-(x_t) = \int_{x_s} \psi_{st}(x_s, x_t) bel_s^-(x_s) dx_s
 \end{equation}
+where $\psi_{st}(x_s, x_t)$ is the edge potential %TODO Expalin further
 
 While \acrshort{bp} may sound complicated, one can think of this algorithm as computing the marginal distribution of $x_r$ where each sum or integral is pushed in as far as possible to simplify calculations. By beginning with the inner-most integral, the marginalization boils down to recursively computing simple integrals or sums with only a small subset of the variables. A \acrshort{pgm} with a chain structure is used as an example to show the rather simple concept behind \acrshort{bp}.
 
@@ -31,15 +32,15 @@ p(x_r) &= \idotsint_V p(x_r, x_1,\dots,x_k) \,dx_1 \dots dx_k\\
 \end{align}
 \end{subequations}
 
-Computing all messages from leaf-nodes towards the top is called the \textbf{collecting evidence}-phase and yields the marginal distribution for the root-node. However, the marginal distribution for all other nodes can easily be calculated by calculating messages from the root-node and move distribute messages downward towards the leaf-nodes. This is called the \textbf{distribute evidence}-phase. 
+Computing all messages from leaf nodes towards the top is called the \textbf{collecting evidence}-phase and yields the marginal distribution for the root node. However, the marginal distribution for all other nodes can easily be calculated by calculating messages from the root node and move distribute messages downward towards the leaf nodes. This is called the \textbf{distribute evidence}-phase. 
 
-The belief state for nodes $s$ other than the root, can in the distribute-evidence phase be updated using
+The belief state for nodes $s$ other than the root, can in the distribute evidence-phase be updated using
 \begin{equation}\label{eq:bp_belief_top_down}
     bel_s(x_s) \triangleq p(x_s | \mathbf{v}) \propto bel_s^-(x_s) \prod_{t \in pa(s)} m_{t \to s}^+(x_s)
 \end{equation}
 where $\mathbf{v}$ is all evidence and $m_{t \to s}^+$ are the top-down message from $t$ to $s$, which summarizes all the remaining information in the graph about node $s$. 
 
-The top-down messages $m_{t \to s}^+$ can be computed by combining all the evidence $t$ has received, except for what $s$ sent it.
+The top-down messages $m_{t \to s}^+$ can be computed by combining all the evidence received by $t$, except for what $s$ sent it.
 
 \begin{subequations}
 \begin{align}
@@ -48,7 +49,7 @@ The top-down messages $m_{t \to s}^+$ can be computed by combining all the evid
 \end{align}
 \end{subequations}
 
-\cref{eq:bp_sum_product} is found by inserting the equation for $bel_t(x_t)$, \cref{eq:bp_belief_top_down}, into \cref{eq:bp_belief_updating}, and is called the \textit{sum-product} algorithm as it multiplies all-but-one message. 
+\cref{eq:bp_sum_product} is found by inserting the equation for $bel_t(x_t)$, \cref{eq:bp_belief_top_down}, into \cref{eq:bp_belief_updating}, and is called the \textit{sum-product} algorithm as it multiplies all-but-one messages. 
 
 
 
