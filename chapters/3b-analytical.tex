@@ -1,6 +1,7 @@
 \chapter{Analytical Methods \& Variational Inference}
 For some \acrshort{pgm}'s the joint distribution may have a functional form which allow marginalization using analytical methods, i.e. directly evaluating the integrals and sums. When applicable, analytical methods allow for exact inference and avoids the randomness introduced by sampling methods. %TODO Cite or explain further 
 
+
 \section{Belief Propagation}
 %TODO Better citations
 The computational complexity of marginalizing over many variables in a \acrshort{pgm} may be large as the number of possible hypothesises quickly increases with the number of variables. Finding the solution in a reasonable amount of time requires a strategy which avoids unnecessary computations and efficiently utilize the structure of the \acrshort{pgm}. 
@@ -10,7 +11,7 @@ The computational complexity of marginalizing over many variables in a \acrshort
 
 \subsection{Belief Propagation for trees}
 To compute the marginal density for a node $r$ in a tree-structured \acrshort{pgm}, one can imagine "picking up" the tree by $r$. The remaining nodes will be pulled down by gravity and $r$ will become the root-node. \acrshort{bp} will collect evidence from the leaf-nodes and work its way upward toward the root, collecting evidence and marginalizing on the way. One can imagine each node computes \textbf{messages} describing the belief about their parent nodes, and passing those messages to the parent-nodes \cite{murphy}.
-\subsection{Message passing}
+\subsubsection{Message passing}
 A node $t$ computes a message containing the current belief about its parent given all evidence collected at or below node $t$ \cite{murphy}. Assuming all nodes below $t$ also calculated similar messages, one can by induction show that the evidence for $t$ becomes
 \begin{equation}\label{eq:bp_belief}
     bel_t^-(x_t) \triangleq p(x_t | \mathbf{v}_t^-) = \frac{1}{Z_t}\psi_t(x_t) \prod_{c \in ch(t)} m_{c\to t}^-(x_t)
@@ -21,7 +22,7 @@ Assuming the belief $bel_s^-(x_s)$ for a children $s$ of node $t$ has been calcu
     m_{s \to t}^-(x_t) = \int_{x_s} \psi_{st}(x_s, x_t) bel_s^-(x_s)
 \end{equation}
 
-While \acrshort{bp} may sound complicated, one can think of this algorithm as computing the marginal distribution of $x_r$ where each sum or integral is pushed in as far as possible to simplify calculations. By beginning with the inner-most integral, the marginalization boils down to recursively computing simple integrals or sums with only a small subset of the variables. A \acrshort{pgm} with a chain structure is used as an example to show the rather simple concept behind \acrshort{bp}.
+While \acrshort{bp} may sound complicated, one can think of this algorithm as computing the marginal distribution of $x_r$ where each sum or integral is pushed in as far as possible to simplify calculations. By beginning with the inner-most integral, the marginalization boils down to recursively computing simple integrals or sums with only a small subset of the variables. This idea is called \textit{variable elimination} in some litterature \cite{murphy}. A \acrshort{pgm} with a chain structure is used as an example to show the rather simple concept behind \acrshort{bp}.
 
 \begin{subequations}
 \begin{align}
@@ -44,11 +45,11 @@ The top-down messages $m_{t \to s}^+$ can be computed by combining all the evid
 \begin{subequations}
 \begin{align}
     m_{t \to s}^+(x_s) &\triangleq p(x_s | \mathbf{v}_{st}^+) = \int_{x_t}\psi_{st}(x_s, x_t)\frac{bel_t(x_t)}{m_{s \to t}^-(x_t)}dx_t \label{eq:bp_belief_updating}\\
-    &= \int_{x_t} \psi_{st}(x_s, x_t)\psi_t(x_t) \prod_{c \in ch(t), c \neq s} m_{c \to t}^-(x_t) \prod_{p \in pa(t)} m_{p \to t}^+(x_t)dx_t\label{eq:bp_sum_product}
+    &= \int_{x_t} \psi_{st}(x_s, x_t)\psi_t(x_t) \prod_{c \in ch(t), c \neq s} m_{c \to t}^-(x_t) \prod_{p \in pa(t)} m_{p \to t}^+(x_t) \; dx_t\label{eq:bp_sum_product}
 \end{align}
 \end{subequations}
 
-\cref{eq:bp_sum_product} is found by inserting the equation for $bel_t(x_t)$, \cref{eq:bp_belief_top_down}, into \cref{eq:bp_belief_updating}, and is called the \textit{sum-product} algorithm as it multiplies all-but-one message. 
+\cref{eq:bp_sum_product} is found by inserting the equation for $bel_t(x_t)$, \cref{eq:bp_belief_top_down}, into \cref{eq:bp_belief_updating}, and is called the \textit{sum-product} algorithm as it multiplies all-but-one message and marginalizes (summing) out variables. 
 
 
 
