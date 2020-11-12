@@ -1,3 +1,23 @@
 \chapter{Introduction}
 
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \node[const] (pa) {$\bar{\alpha}$};
+        \factor[below=of pa]{fa}{left:Dir}{}{};
+        \node[latent, below=of fa] (a) {$\boldsymbol{\alpha}$};
+        \factoredge[]{pa}{fa}{a};
+
+        \factor[below=of a, yshift=-0.5cm]{pd}{}{}{};
+        \node[obs, left=of pd] (theta) {$\theta_n$};
+        \node[latent, right=of pd] (pi) {$p_n$};
+        \factoredge[]{a, theta}{pd}{pi};
+        \factor[right=of pi]{fi}{above:Cat}{}{};
+        \node[obs, right= of fi] (i) {$i_n$};
+        \factoredge[]{pi}{fi}{i};
+        \plate {} {(theta)(pd)(pi)(fi)(i)} {$\forall n \in \{0, 1, 2, \dots, N-1\}$};
+    \end{tikzpicture}
+\end{figure}
+
+
 \section{The Probabilistic World View}

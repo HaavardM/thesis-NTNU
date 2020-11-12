@@ -23,7 +23,7 @@ Assuming the belief $bel_s^-(x_s)$ for a children $s$ of node $t$ has been calcu
 \end{equation}
 where $\psi_{st}(x_s, x_t)$ is the edge potential %TODO Expalin further
 
-While \acrshort{bp} may sound complicated, one can think of this algorithm as computing the marginal distribution of $x_r$ where each sum or integral is pushed in as far as possible to simplify calculations. By beginning with the inner-most integral, the marginalization boils down to recursively computing simple integrals or sums with only a small subset of the variables. This idea is called \textit{variable elimination} in some litterature \cite{murphy}. A \acrshort{pgm} with a chain structure is used as an example to show the rather simple concept behind \acrshort{bp}.
+While \acrshort{bp} may sound complicated, one can think of this algorithm as computing the marginal distribution of $x_r$ where each sum or integral is pushed in as far as possible to simplify calculations. By beginning with the inner-most integral, the marginalization boils down to recursively computing simple integrals or sums with only a small subset of the variables. This general method is called \textit{variable elimination}\cite{murphy}. \acrshort{bp} extends this idea by also utilizing the graph structure to reduce the computational complexity. A \acrshort{pgm} with a chain structure is used as an example to show the rather simple concept behind variable elimination and \acrshort{bp}.
 
 \begin{subequations}
 \begin{align}
@@ -66,5 +66,42 @@ The top-down messages $m_{t \to s}^+$ can be computed by combining all the evid
 Another approach is to approximate the target distribution $p^*(\mathbf{x} | \mathbf{v})$ with another distribution $q(\mathbf{x})$ constructed using conjugate priors to allow for exact inference. If $p^*(\cdot)$ and $q(\cdot)$ are similar, then \acrshort{bp} can be used on $q(\cdot)$ to do approximate inference.
 
 \subsection{Kullback-Liebler divergence}
+The \textit{\acrfull{kl}}  is used as a measure of difference between two probability distributions \cite{kullback1951,murphy}.
+
+\begin{equation}\label{eq:kl}
+    \mathbb{KL}(p^* | q) = \int_\mathbf{x} p^*(\mathbf{x}) \log \frac{p^*(\mathbf{x})}{q(\mathbf{x})} d\mathbf{x}
+\end{equation}
+The \acrshort{kl} divergence boils down to the expected difference between $p^*(\cdot)$ and $q(\cdot)$ over $p^*(\cdot)$.
+In this case $p^*(\cdot)$ is assumed unknown, making \cref{eq:kl} intractable to compute. Instead, the reverse \acrshort{kl} divergence can be used 
+\begin{equation}\label{eq:reverse_kl}
+    \mathbb{KL}(q | p^*) = \int_\mathbf{x} q(\mathbf{x}) \log \frac{q(\mathbf{x})}{p^*(\mathbf{x})} d\mathbf{x}
+\end{equation}
+
+\subsection{Mean Field}
+The simplest method for variational inference is assuming independent distributions for $q(\cdot)$.
+\begin{equation}
+    q(\mathbf{x}) = \prod_i q_i(x_i)
+\end{equation}
+
+\newtheorem{meanfield}{Lemma}[section]
+\begin{meanfield}
+The marginal distribution $q_i(x_i)$ can easily be found when using a mean-field approximation by removing all other factors $q_{j}(\cdot) \; \forall \; j \neq i$.
+\end{meanfield}
+
+\begin{proof}
+    Since the distributions for each variables are assumed to be independent, the factors for all other variables will simply integrate to $1$. 
+    \begin{subequations}
+    \begin{align}
+        g_i(x_i) &= \int_{\mathbf{x}_{j \neq i}} g(\mathbf{x}) d\mathbf{x}_{j \neq i}\\ 
+        &= q_i(x_i) \int_{x_1} q_1(x_1)\int_{x_2}q_2(x2) \; \;  \dots \int_{x_k} q_k(x_k) \, dx_1 \dots dx_k\\ 
+        &= q_i(x_i)
+    \end{align}
+    \end{subequations}
+\end{proof}
+
+
+\subsection{Variational Message Passing}
+
+
 
 \subsection{Calculus of Variation}

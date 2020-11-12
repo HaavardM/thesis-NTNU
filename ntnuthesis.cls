@@ -151,7 +151,7 @@
 \RequirePackage{geometry}                   % page layout
 \RequirePackage{enumitem}                   % customising list appearance
 \RequirePackage{graphicx}                   % including figures
-\RequirePackage{amsmath}                    % advanced math typesetting
+\RequirePackage{amsmath, amsthm}            % advanced math typesetting
 \RequirePackage[                            % subfigures with captions within figures
     font=small,                             % and customisation of captions
     labelfont=bf,

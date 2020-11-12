@@ -162,11 +162,13 @@ where is $\mathcal{C}$ is the set of all \textit{maximal cliques}, i.e. largest,
 \end{equation}
 is a normalization constant so that $p(\mathbf{x}) \in [0, 1]$. The potential functions $\psi_c(\cdot)$ can therefore be arbitrary non-negative functions. 
 
-\acrshort{mrf}'s can in some ways be seen as a generalization of \acrshort{dgm}'s by creating potential factors for all the conditional distributions in \cref{eq:dgm_factorization} and create a graph with corresponding cliques. \acrshort{mrf}'s are therefore more powerful than \acrshort{dgm}, but are also more computationally challenging to work with. 
+\acrshort{dgm}'s can be converted into \acrshort{mrf}'s through \textit{\gls{moralization}}. \Gls{moralization} is performed by making all edges undirected and add new edges between variables sharing a child. Some independence information is lost in the process, but it represent the same factorization of the joint distribution \cite{murphy}. Inference methods for \acrshort{mrf}'s can therefore also be used on \acrshort{dgm}'s by first moralizing.
 
 
 \subsection{Factor Graphs}
-Factor Graphs unifies the concept of directed (\acrshort{dgm}) and undirected graphical models (\acrshort{mrf}). A factor graph is an undirected bipartite graph. Bipartite graphs are graphs with two different types of nodes. All variables are represented by round nodes and all factors are square nodes. Each factor is connected to all variables it references through undirected edges. Both \acrshort{mrf}'s and \acrshort{dgm}'s can be converted to factor graphs. Factor graphs is not really intended for modelling independence, but rather visualize how the joint distribution can be factorized to allow for efficient computations. \cref{fig:factor} shows a factor graph for the \acrshort{mrf} in \cref{fig:mrf}.
+Factor Graphs unifies the concept of directed (\acrshort{dgm}) and undirected graphical models (\acrshort{mrf}). A factor graph is an undirected bipartite graph. Bipartite graphs are graphs with two different types of nodes, factors and variables. All variables are represented by round nodes and all factors are square nodes. Each factor is connected to all variables it references through undirected edges. Both \acrshort{mrf}'s and \acrshort{dgm}'s can be converted to factor graphs. Factor graphs is not really intended for modelling independence, but rather visualize how the joint distribution can be factorized to allow for efficient computations. \cref{fig:factor} shows a factor graph for the \acrshort{mrf} in \cref{fig:mrf}.
+
+For generative models, an extension to factor graph notation is proposed in \cite{dietz} to allow for a more inutitive reasoning about the model. The directed edges in \cref{fig:factor_directed} contains additional information about how realizations of the random variables are generated, similar to the \acrshort{dgm} in \cref{fig:dgm}. The factors can the be viewed intuitively as generative processes, with input and output variables. It otherwise contain the excact same functional representation as the normal factor graph in \cref{fig:factor}. 
 
 \begin{figure}[h]
 \centering
@@ -200,7 +202,7 @@ Factor Graphs unifies the concept of directed (\acrshort{dgm}) and undirected gr
 \caption{\acrfull{dgm}}
 \label{fig:dgm}
 \end{subfigure}
-\begin{subfigure}{0.5\textwidth}
+\begin{subfigure}{0.49\textwidth}
 \centering
 \begin{tikzpicture}
     \node[latent] (A) {$A$};
@@ -216,6 +218,24 @@ Factor Graphs unifies the concept of directed (\acrshort{dgm}) and undirected gr
 \end{tikzpicture}
 \caption{Factor Graph}
 \label{fig:factor}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\centering
+\begin{tikzpicture}
+    \node[latent] (A) {$A$};
+    \node[latent, right=of A] (B) {$B$};
+    \node[latent, right=of B] (C) {$C$};
+    \node[latent, right=of C] (D) {$D$};
+    \factor[below=of A] {ba-factor} {} {} {};
+    \factor[below=of B] {ca-factor} {} {} {};
+    \factor[below=of C] {dbc-factor} {} {} {};
+    \factoredge{A}{ba-factor}{B}
+    \factoredge{A}{ca-factor}{C}
+    \factoredge{B}{dbc-factor}{D}
+    \factoredge{C}{dbc-factor}{D}
+\end{tikzpicture}
+\caption{Factor Graph for generative model}
+\label{fig:factor_directed}
 \end{subfigure}
 
 \caption{\acrshort{pgm} representations of a probabilistic models with $4$ variables.}
