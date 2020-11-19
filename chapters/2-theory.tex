@@ -162,7 +162,7 @@ where is $\mathcal{C}$ is the set of all \textit{maximal cliques}, i.e. largest,
 \end{equation}
 is a normalization constant so that $p(\mathbf{x}) \in [0, 1]$. The potential functions $\psi_c(\cdot)$ can therefore be arbitrary non-negative functions. 
 
-\acrshort{dgm}'s can be converted into \acrshort{mrf}'s through \textit{\gls{moralization}}. \Gls{moralization} is performed by making all edges undirected and add new edges between variables sharing a child. Some independence information is lost in the process, but it represent the same factorization of the joint distribution \cite{murphy}. Inference methods for \acrshort{mrf}'s can therefore also be used on \acrshort{dgm}'s by first moralizing.
+\acrshort{dgm}'s can be converted into \acrshort{mrf}'s through \textit{\gls{moralization}}. \Gls{moralization} is performed by making all edges undirected and add new edges between variables sharing a child. Some independence information is lost in the process, but it represent the same factorization of the joint distribution. The computational complexity of inference on \acrshort{dgm}s and \acrshort{mrf}s are, generally speaking, the same  \cite{murphy}. Inference methods for \acrshort{mrf}'s can therefore also be used on \acrshort{dgm}'s by first moralizing.
 
 
 \subsection{Factor Graphs}
@@ -270,6 +270,6 @@ If the posterior distribution is in the same family as the prior, then the poste
 \subsection{The Exponential Family}
 The Exponential Family is a family of distribution for which the \acrshort{pdf} or \acrshort{pmf} can be expressed on the from
 \begin{equation}
-    p(x | \theta) = h(x) \exp[\eta(\theta) T(x) - A(\theta)]
+    p(\mathbf{x} | \boldsymbol{\theta}) = h(\mathbf{x}) \exp[\eta(\boldsymbol{\theta}) T(\mathbf{x}) - A(\boldsymbol{\theta})]
 \end{equation}
-All the distributions methioned so far are part of the Exponential Family. Distributions in the exponental family always have a conjugate priors, however they may not always be standard, well-known distributions. %TODO CITE
+All the distributions methioned so far are part of the Exponential Family. Distributions in the exponental family always have conjugate priors, however they may not always be standard, well-known distributions. %TODO CITE
