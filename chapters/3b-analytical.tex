@@ -52,12 +52,11 @@ The top-down messages $m_{t \to s}^+$ can be computed by combining all the evid
 
 \cref{eq:bp_sum_product} is found by inserting the equation for $bel_t(x_t)$, \cref{eq:bp_belief_top_down}, into \cref{eq:bp_belief_updating}, and is called the \textit{sum-product} algorithm as it multiplies all-but-one messages and marginalizes (summing) out variables. 
 
+\subsection{Belief Propagation on arbitrary graphs}
 
 
-
-
-
-
+\subsection{Limitations of analytical methods}
+The methods described so far in this chapter generally applies to both discrete and continous random variables by replacing integrals with sums for discrete variables. However, in practice, continous random variables quickly becomes intractable unless each parent-child in the graph are conjugate priors. Assuming conjugate priors severly limits the ability to describe the data-generating process, leaving only a few types of networks feasible. Looking back at \cref{table:conjugate_priors} for common conjugate priors, only a mix of gaussians, gamma and discrete distributions allow for multiple levels in a hierical model. For all other distributions, one quickly ends up in a situation where no standard conjugate exist \cite{winnbishop}. A common solution to this problem is to 
 % TODO Cite. 
 \subsection{Factor Graphs}
 \section{Variational Bayes}
@@ -83,11 +82,6 @@ The simplest method for variational inference is assuming independent distributi
     q(\mathbf{x}) = \prod_i q_i(x_i)
 \end{equation}
 
-\newtheorem{meanfield}{Lemma}[section]
-\begin{meanfield}
-The marginal distribution $q_i(x_i)$ can easily be found when using a mean-field approximation by removing all other factors $q_{j}(\cdot) \; \forall \; j \neq i$.
-\end{meanfield}
-
 \begin{proof}
     Since the distributions for each variables are assumed to be independent, the factors for all other variables will simply integrate to $1$. 
     \begin{subequations}
@@ -98,7 +92,6 @@ The marginal distribution $q_i(x_i)$ can easily be found when using a mean-field
     \end{align}
     \end{subequations}
 \end{proof}
-
 
 \subsection{Variational Message Passing}
 

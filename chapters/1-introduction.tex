@@ -3,15 +3,19 @@
 \begin{figure}[h]
     \centering
     \begin{tikzpicture}
-        \node[const] (pa) {$\bar{\alpha}$};
+        \node[const] (pa) {$\bar{\boldsymbol{\alpha}}$};
         \factor[below=of pa]{fa}{left:Dir}{}{};
         \node[latent, below=of fa] (a) {$\boldsymbol{\alpha}$};
+        \node[const, right=of pa, xshift=0.5cm] (pc) {$\bar{\boldsymbol{c}}$};
+        \factor[below=of pc]{fc}{right:Gam}{}{};
+        \node[latent, right=of a] (c) {$c$};
         \factoredge[]{pa}{fa}{a};
+        \factoredge[]{pc}{fc}{c};
 
-        \factor[below=of a, yshift=-0.5cm]{pd}{}{}{};
+        \factor[below=of a, yshift=-0.5cm, xshift=0.8cm]{pd}{}{}{};
         \node[obs, left=of pd] (theta) {$\theta_n$};
-        \node[latent, right=of pd] (pi) {$p_n$};
-        \factoredge[]{a, theta}{pd}{pi};
+        \node[latent, right=of pd] (pi) {$\boldsymbol{p}_n$};
+        \factoredge[]{a, theta, c}{pd}{pi};
         \factor[right=of pi]{fi}{above:Cat}{}{};
         \node[obs, right= of fi] (i) {$i_n$};
         \factoredge[]{pi}{fi}{i};

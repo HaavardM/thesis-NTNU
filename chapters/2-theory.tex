@@ -243,10 +243,33 @@ For generative models, an extension to factor graph notation is proposed in \cit
 
 \section{Probability Distributions}
 \subsection{Conjugate Priors}\label{sec:theory_conjugate_priors}
-If the posterior distribution is in the same family as the prior, then the posterior is called the \textit{conjugate distribution} and the prior is called the \textit{conjugate prior}. Using conjugate priors in Bayesian Statistics, allows for analytically tractable inference as the posterior becomes a well known probability distribution.
+If the posterior distribution is in the same family as the prior, then the posterior is called the \textit{conjugate distribution} and the prior is called the \textit{conjugate prior}. Using conjugate priors in Bayesian Statistics, allows for analytically tractable inference as the posterior becomes a well known probability distribution. \cref{table:conjugate_priors} summarizes the conjugate priors for a few common distribution.
+
+
+\begin{table}[h]
+\begin{tabular}{lllll}
+\hline
+\multicolumn{1}{|l|}{\textbf{Distribution}} & \multicolumn{1}{l|}{\textbf{1st Parent}}        & \multicolumn{1}{l|}{\textbf{Conjugate}} & \multicolumn{1}{l|}{\textbf{2nd Parent}} & \multicolumn{1}{l|}{\textbf{Conjugate}} \\ \hline
+\multicolumn{1}{|l|}{Gaussian}              & \multicolumn{1}{l|}{mean $\mu$}                 & \multicolumn{1}{l|}{Gaussian}           & \multicolumn{1}{l|}{precision $\gamma$}  & \multicolumn{1}{l|}{Gamma}              \\ \hline
+\multicolumn{1}{|l|}{Gamma}                 & \multicolumn{1}{l|}{shape $\alpha$}             & \multicolumn{1}{l|}{none}               & \multicolumn{1}{l|}{scale $b$}           & \multicolumn{1}{l|}{Gamma}              \\ \hline
+\multicolumn{1}{|l|}{Discrete}              & \multicolumn{1}{l|}{probabilities $\mathbf{p}$} & \multicolumn{1}{l|}{Dirichlet}          & \multicolumn{1}{l|}{parents $\{x_i\}$}   & \multicolumn{1}{l|}{Discrete}           \\ \hline
+\multicolumn{1}{|l|}{Dirichlet}             & \multicolumn{1}{l|}{pseudo-counts $\bf a$}      & \multicolumn{1}{l|}{none}               & \multicolumn{1}{l|}{}                    & \multicolumn{1}{l|}{}                   \\ \hline
+\multicolumn{1}{|l|}{Exponential}           & \multicolumn{1}{l|}{scale $\alpha$}             & \multicolumn{1}{l|}{Gamma}              & \multicolumn{1}{l|}{}                    & \multicolumn{1}{l|}{}                   \\ \hline
+\multicolumn{1}{|l|}{Poisson}               & \multicolumn{1}{l|}{mean $\lambda$}             & \multicolumn{1}{l|}{Gamma}              & \multicolumn{1}{l|}{}                    & \multicolumn{1}{l|}{}                   \\ \hline
+\end{tabular}
+\caption{Table of conjugate priors for common, standard distributions. For cells with \textit{none}, there exist no standard distribution as a conjugate prior. \cite[p.~676]{winnbishop}}
+\label{table:conjugate_priors}
+\end{table}
+
 
 \subsection{Beta \& Dirichlet Distributions}
 \subsection{Binomial \& Multinomial Distributions}
 \subsection{Dirichlet-Multinomial Distribution}
 \subsection{Bernouilli \& Categorial Distributions}
 \subsection{Normal Distribution}
+\subsection{The Exponential Family}
+The Exponential Family is a family of distribution for which the \acrshort{pdf} or \acrshort{pmf} can be expressed on the from
+\begin{equation}
+    p(x | \theta) = h(x) \exp[\eta(\theta) T(x) - A(\theta)]
+\end{equation}
+All the distributions methioned so far are part of the Exponential Family. Distributions in the exponental family always have a conjugate priors, however they may not always be standard, well-known distributions. %TODO CITE
