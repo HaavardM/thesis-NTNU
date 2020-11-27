@@ -3,25 +3,26 @@
 \begin{figure}[h]
     \centering
     \begin{tikzpicture}
-        \node[const] (pa) {$\bar{\boldsymbol{\alpha}}$};
-        \factor[below=of pa]{fa}{left:Dir}{}{};
-        \node[latent, below=of fa] (a) {$\boldsymbol{\alpha}$};
-        \node[const, right=of pa, xshift=0.5cm] (pc) {$\bar{\boldsymbol{c}}$};
-        \factor[below=of pc]{fc}{right:Gam}{}{};
-        \node[latent, right=of a] (c) {$c$};
-        \factoredge[]{pa}{fa}{a};
-        \factoredge[]{pc}{fc}{c};
-
-        \factor[below=of a, yshift=-0.5cm, xshift=0.8cm]{pd}{}{}{};
-        \node[obs, left=of pd] (theta) {$\theta_n$};
-        \node[latent, right=of pd] (pi) {$\boldsymbol{p}_n$};
-        \factoredge[]{a, theta, c}{pd}{pi};
-        \factor[right=of pi]{fi}{above:Cat}{}{};
-        \node[obs, right= of fi] (i) {$i_n$};
-        \factoredge[]{pi}{fi}{i};
-        \plate {} {(theta)(pd)(pi)(fi)(i)} {$\forall n \in \{0, 1, 2, \dots, N-1\}$};
+        % NODES
+        \node[latent] (I) {$I$};
+        \node[obs, right=of I, yshift=0.85cm] (theta) {$\theta$};
+        \node[latent, left=of I] (PI){$P_I$};
+        \node[obs, below=of theta] (V) {$V$};
+        \node[latent, left=of PI, yshift=0.85cm] (R) {$R$};
+        \node[latent, above=of R] (RR) {$\bar{R}$};
+        \node[latent, below= of R] (S) {$S$};
+        
+        % FACTORS
+        \factor[above=of I] {theta-f}{$\mathcal{N}_{mix}$}{}{};
+        \factor[below=of I]{v-f}{below:$\mathcal{N}_{mix}$}{}{};
+        \factor[left=of I]{I-f}{Cat}{}{};
+        
+        \factoredge {I} {theta-f} {theta};
+        \factoredge {I} {v-f} {V};
+        \factoredge{PI}{I-f}{I};
+        \plate {ship}{(I)(theta)(V)}{$t \in T$};
+        \plate {}{(I)(theta)(V)(R)(S)(ship)}{$s \in S$};
+        
+        
     \end{tikzpicture}
 \end{figure}
-
-
-\section{The Probabilistic World View}
