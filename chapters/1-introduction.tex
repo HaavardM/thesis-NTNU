@@ -16,10 +16,17 @@
         \factor[above=of I] {theta-f}{$\mathcal{N}_{mix}$}{}{};
         \factor[below=of I]{v-f}{below:$\mathcal{N}_{mix}$}{}{};
         \factor[left=of I]{I-f}{Cat}{}{};
+        \factor[above=of PI]{PI-f}{left:Dir}{}{};
+
+        \node[const, above=of PI-f] (a) {$a$};
         
         \factoredge {I} {theta-f} {theta};
         \factoredge {I} {v-f} {V};
         \factoredge{PI}{I-f}{I};
+        \factoredge{a}{PI-f}{PI};
+
+        \edge{S}{PI};
+
         \plate {ship}{(I)(theta)(V)}{$t \in T$};
         \plate {}{(I)(theta)(V)(R)(S)(ship)}{$s \in S$};
         

@@ -148,7 +148,7 @@ The stationary distribution may not be unique, and whether a unique stationary d
 \end{equation}
 where $\mathcal{V}$ is all the nodes in the graph and $\mathbf{pa}(v)$ is the parent's for node $v$. 
 
-\subsection{\acrfull{mrf}}
+\subsection{\acrfull{mrf}} \label{sec:mrf}
 
 \acrshort{mrf}'s are undirected graphical models, and offers a more general specification of independence assumptions. They are in some domains, such as relational or spatial data , more natural than \acrshort{dgm}'s as they are symmetric, i.e. the information flows both ways \cite{murphy}. The \acrshort{mrf} in \cref{fig:mrf} shows that $B$ and $C$ is only independent if both $A$ and $D$ is observed, i.e. $B \perp C | \; A, D$. The important thing to notice is that the \acrshort{mrf} makes vastly different assumptions than the \acrshort{dgm}, even though the structure is similar.
 
@@ -242,6 +242,9 @@ For generative models, an extension to factor graph notation is proposed in \cit
 \end{figure}
 
 \section{Probability Distributions}
+
+\subsection{Transformations}
+
 \subsection{Conjugate Priors}\label{sec:theory_conjugate_priors}
 If the posterior distribution is in the same family as the prior, then the posterior is called the \textit{conjugate distribution} and the prior is called the \textit{conjugate prior}. Using conjugate priors in Bayesian Statistics, allows for analytically tractable inference as the posterior becomes a well known probability distribution. \cref{table:conjugate_priors} summarizes the conjugate priors for a few common distribution.
 
@@ -263,6 +266,7 @@ If the posterior distribution is in the same family as the prior, then the poste
 
 
 \subsection{Beta \& Dirichlet Distributions}
+The Beta distribution is a distribution with support between $0$ and $1$, and is therefore well suited to model probabilities. The Dirichlet distribution is a multivariate generalization of the Beta distribution. 
 \subsection{Binomial \& Multinomial Distributions}
 \subsection{Dirichlet-Multinomial Distribution}
 \subsection{Bernouilli \& Categorial Distributions}
