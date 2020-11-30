@@ -33,7 +33,7 @@ p(x_r) &= \idotsint_V p(x_r, x_1,\dots,x_k) \,dx_1 \dots dx_k\\
 \end{align}
 \end{subequations}
 
-Computing all messages from leaf nodes towards the top is called the \textbf{collecting evidence}-phase and yields the marginal distribution for the root node. However, the marginal distribution for all other nodes can easily be calculated by calculating messages from the root node and move distribute messages downward towards the leaf nodes. This is called the \textbf{distribute evidence}-phase. 
+Computing all messages from leaf nodes towards the top is called the \textbf{collecting evidence}-phase and yields the marginal distribution for the root node. However, the marginal distribution for all other nodes can easily be calculated by calculating messages from the root node and distribute messages downward towards the leaf nodes. This is called the \textbf{distribute evidence}-phase. 
 
 The belief state for nodes $s$ other than the root, can in the distribute evidence-phase be updated using
 \begin{equation}\label{eq:bp_belief_top_down}
