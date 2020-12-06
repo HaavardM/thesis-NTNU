@@ -38,22 +38,22 @@ $I_t=2$ & The obstacle intends a portside turn            \\ \hline
 \end{table}
 
 
-The mixture components for $\theta_t$ when $D_t=0$ are Gaussian Distributions with unknown mean and variance. The mean and variance for component $I=i$ is 
+The mixture components for $\theta_t$ when $D_t=0$ are Gaussian Distributions. For $I=0$, the mean is zero with unknown variance. For $I \in \{1, 2\}$ the means have equal absolute value, but opposite sign. The absolute value and variance $\sigma^2$ are unknown. The variance is assumed equal for all intentions. 
 \begin{align}
-    \mu_{i} &\sim \text{Gaussian} & \sigma_i &\sim \text{Inv-Gamma}
+    \mu_0 &= 0 &  \mu_{1} = - \mu_{2} &\sim \text{Gaussian} & \sigma &\sim \text{Inv-Gamma}
 \end{align}
 When $D=0$ and $I_t=i$, the angle is distributed according to
 \begin{equation}\label{eq:theta_intention_mixture}
-    p(\theta_t | D=0, I_t=i) = \mathcal{N}(\mu_i, \sigma_i^2), \quad \theta_t \in \mathcal{R}
+    p(\theta_t | D=0, I_t=i) = \mathcal{N}(\mu_i, \sigma^2), \quad \theta_t \in \mathcal{R}
 \end{equation}
 
 The distribution of $\theta_t$ when $D_t=0$ becomes the Gaussian mixture model in \cref{eq:angle_gauss_mixture}.
 
 \begin{align}\label{eq:angle_gauss_mixture}
 \begin{split}
-    p(\theta_t | \boldsymbol{\mu}, \boldsymbol{\sigma}, D=0) = &\Pr\{I_t=0\}\mathcal{N}(\theta_t | \mu_0, \sigma_0)\\
-    &+ \Pr\{I_t=1\}\mathcal{N}(\theta_t | \mu_1, \sigma_1)\\
-    &+ \Pr\{I_t=2\}\mathcal{N}(\theta_t | \mu_2, \sigma_2)
+    p(\theta_t | \boldsymbol{\mu}, \sigma, D=0) = &\Pr\{I_t=0\}\mathcal{N}(\theta_t | \mu_0, \sigma^2)\\
+    &+ \Pr\{I_t=1\}\mathcal{N}(\theta_t | \mu_1, \sigma^2)\\
+    &+ \Pr\{I_t=2\}\mathcal{N}(\theta_t | \mu_2, \sigma^2)
 \end{split}
 \end{align}
 
@@ -67,12 +67,13 @@ When the obstacles target destination is invalid, $D=1$, the angle $\theta$ is d
     p(\theta_t | D=1) = \text{Uniform}(-\pi, \pi)
 \end{equation}
 
-The overall distribution for $\theta_t$ becomes a mixture between the Gaussian Mixture in \cref{eq:angle_gauss_mixture} and the uniform distribution in  \cref{eq:angle_uniform} as expressed in \cref{eq:angle_complete_mixture}.
+The distribution for $\theta_t$ becomes a mixture between the Gaussian Mixture in \cref{eq:angle_gauss_mixture} and the uniform distribution in  \cref{eq:angle_uniform} as expressed in \cref{eq:angle_complete_mixture} by the law of total probability.
 
 \begin{align}\label{eq:angle_complete_mixture}
 \begin{split}
-     &p(\theta_t | I_t=i, D_t=d, \boldsymbol{\mu}, \boldsymbol{\sigma})\\
-     &= \Pr\{D_t = 0\} p^{(D=0)}(\theta_t | \boldsymbol{\mu}, \boldsymbol{\sigma}) + \Pr\{D_t=1\}p^{(D=1)}(\theta_t)
+     p(\theta_t | \boldsymbol{\mu}, \sigma)
+     &= \sum_D \Pr\{D=d\} p(\theta_t | D=d, \boldsymbol{\mu}, \sigma)\\
+     &= \Pr\{D_t = 0\} \underbrace{p(\theta_t | \boldsymbol{\mu}, \sigma, D_t=0)}_{\text{\cref{eq:angle_gauss_mixture}}} + \Pr\{D_t=1\}\underbrace{p(\theta_t | D_t=1)}_{\text{\cref{eq:angle_uniform}}}
 \end{split}
 \end{align}
 
@@ -91,8 +92,8 @@ The resulting joint distribution can then be factored into \cref{eq:example_join
 
 \begin{align}\label{eq:example_joint}
 \begin{split}
-    &p(\theta_t, I_t=i, D_t=d, \boldsymbol{\mu}, \boldsymbol{\sigma}, p_D, \boldsymbol{\alpha})\\
-    &= \underbrace{p(\theta_t | I_t=i, D_t=d, \boldsymbol{\mu}, \boldsymbol{\sigma})}_{\text{\cref{eq:angle_complete_mixture}}}\underbrace{p(I_t=i | \boldsymbol{\alpha})}_{\text{Categorical}}\underbrace{p(D_t=d)}_{\text{Bernoulli}}\underbrace{p(\boldsymbol{\alpha})}_{\text{Dirichlet}}\underbrace{p(p_D)}_{\text{Beta}}\underbrace{p(\boldsymbol{\mu})}_{\mathcal{N}} \underbrace{p(\boldsymbol{\sigma})}_{\text{Inv-Gamma}}
+    &p(\theta_t, I_t=i, D_t=d, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})\\
+    &= \underbrace{p(\theta_t | I_t=i, D_t=d, \boldsymbol{\mu}, \sigma)}_{\text{\cref{eq:angle_complete_mixture}}}\underbrace{p(I_t=i | \boldsymbol{\alpha})}_{\text{Categorical}}\underbrace{p(D_t=d)}_{\text{Bernoulli}}\underbrace{p(\boldsymbol{\alpha})}_{\text{Dirichlet}}\underbrace{p(p_D)}_{\text{Beta}}\underbrace{p(\boldsymbol{\mu})}_{\mathcal{N}} \underbrace{p(\sigma)}_{\text{Inv-Gamma}}
 \end{split}
 \end{align}
 
@@ -106,8 +107,36 @@ The resulting joint distribution can then be factored into \cref{eq:example_join
 
 \subsection{Priors}
 \subsubsection{Prior for $p_D$}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/priors.png}
+    \caption{Model priors for $\boldsymbol{\alpha}$, $p_D$, $\sigma$ and $\boldsymbol{\mu}$. The contour plot for $\boldsymbol{\alpha}$ shows $\alpha_1$ and $\alpha_2$, but $\alpha_0$ is implicitly included by the constraint $\alpha_0 = 1 - \alpha_1 - \alpha_2$. The priors for $\boldsymbol{\alpha}$ and $p_D$ are non-informative priors, while the priors for $\mu_1 = -\mu_2$ and $\sigma$ are informative priors selected by intuitive reasoning.}
+    \label{fig:priors}
+\end{figure}
+
+\section{Implementation}
+Both \acrshort{mcmc} and \acrshort{vi} were implemented using Tensorflow Probability, as it has great support for both methods as well as utilizing Tensorflows automatic differentiation to avoid dealing with error-prone calculations \cite{tensorflow2015-whitepaper}. The joint distribution in \cref{eq:example_joint} was implemented using the \texttt{JointDistributionSequential} distribution in TFP. (TODO: Add code in appendix)
 
 
 \section{Dataset \& Benchmark}
+The dataset was generated from $N=100$ samples $\mathcal{D}$ from \cref{eq:angle_complete_mixture} with fixed parameters. The amount of samples was intentionally kept low, as the need for Bayesian methods usually arise when the amount of data is sparse. A successful inference should be able to regain the parameters $\boldsymbol{\alpha}$, $p_D$, $\mu_1 = -\mu_2$ and $\sigma$ from $\mathcal{D}$.
+
 \section{Markov Chain Monte Carlo}
+Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The model was specified according to \cref{eq:example_joint} in a  TFP distribution. The posterior target density was specified as 
+\begin{equation}
+    ll = \sum_{t=1}^{N}\log p(I_t=i, D_t=d, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha} | \theta_t = \mathcal{D}_t)
+\end{equation}
+
+The proposal distribution were transformed using the following transformations (Bijectors)
+
+\begin{itemize}
+\item SoftmaxCentered was used to achieve unconstrained sampling for $\boldsymbol{\alpha} \in (0, 1)^3$.
+\item Sigmoid was used to achieve unconstrained sampling for $p_D \in (0, 1)$
+\item Softplus was used to achieve unconstrained sampling for $\sigma > 0$
+\end{itemize}
+
 \section{Variational Inference}
+
+\acrshort{vi} was implemented using a transformed Gaussian mean-field approximation. Each variable is approximated using an independent, transformed Gaussian distribution as surrogate density. Specifying this model was easily achieved by passing a list of Bijectors to \texttt{tfp.experimental.vi.build\_factored\_surrogate\_posterior}. 
+
+The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the KL divergence by passing it to \texttt{tfp.vi.fit\_surrogate\_posterior} \cite{tensorflow2015-whitepaper}. 
