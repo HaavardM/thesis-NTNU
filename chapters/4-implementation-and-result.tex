@@ -151,7 +151,10 @@ The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was 
 
 \section{Results}
 
-\subsection{Case 1}
+\subsection{Observation One: More data yields better results}
+Two datasets were randomly generated using the same fixed parameters in \cref{tbl:example_case_1_params}, but with different number of samples. The first dataset consists of $N_1=500$ samples, while the second contains twice as many with $N_2=1000$ samples. 
+
+The
 \begin{table}[h]
 \centering
 \begin{tabular}{lllll}
@@ -159,17 +162,19 @@ The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was 
 \textbf{True value:} & $[0.7, 0.3, 0.1]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$
 \end{tabular}
 \caption{True values used to generate the dataset for example case 1.}
+\label{tbl:example_case_1_params}
 \end{table}
 
-\subsubsection{VI}
 \begin{figure}[h]
     \centering
     \begin{subfigure}{\textwidth}
     \includegraphics[width=\textwidth]{figures/example_1_vi_posterior.png}
+    \caption{\acrshort{vi}}
     \end{subfigure}
     \begin{subfigure}{\textwidth}
     \includegraphics[width=\textwidth]{figures/example_1_mcmc_posterior.png}
+    \caption{\acrshort{mcmc}}
     \end{subfigure}
-    \caption{Posterior Distribution using \acrshort{vi} as inference method.}
+    \caption{Posterior Distribution for example case 1 using \acrshort{vi} and \acrshort{mcmc} methods for inference}
     \label{fig:example_case_1_vi}
 \end{figure}
