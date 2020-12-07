@@ -55,6 +55,8 @@ If the proposal density $q(\cdot)$ is independent of the current state, i.e. $$q
 
 \subsection{MCMC in practice}
 
+\subsection{Convergence Guarantees}
+
 \subsection{Bijectors}
 Sampling from a constrained distribution (i.e. a Beta distribution which only offer support on $x \in (0, 1)$) using an unconstrained proposal distribution can quickly take a long time as many of the proposal will be rejected. A solution to this problem is to transform the proposal distribution such that the MCMC algorithm can sample in an unconstrained space \cite{Parno_2018, tensorflow2015-whitepaper}. 
 

@@ -7,6 +7,8 @@ As the context of this paper is intention inference for autonomous ferries, it s
 
 The angle $\theta_t$ is defined to be the angle between the obstacles current course and the predicted course given the obstacles final destination. If the obstacles reported final destination is correct, $D_t=0$, the angle should be closely related to the obstacles intention and can be generated from a Gaussian selected by the intention $I_t$ (i.e. a mixture of Gaussians weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta_t$ is independent of intention.
 
+This example model is intentionally not identifiable only from observing the angles $\theta_t$. However, through the use of informative priors, the model is still able to learn from data. 
+
 Whether or not the final destination is valid is modelled using a Bernoulli variable $D_t$ which takes the value $1$ if the destinations is \textbf{invalid}. A Beta distribution is used to model the prior probability of $D=1$, i.e. the destination being invalid.  
 
 \begin{equation}
@@ -38,7 +40,8 @@ $I_t=2$ & The obstacle intends a portside turn            \\ \hline
 \end{table}
 
 
-The mixture components for $\theta_t$ when $D_t=0$ are Gaussian Distributions. For $I=0$, the mean is zero with unknown variance. For $I \in \{1, 2\}$ the means have equal absolute value, but opposite sign. The absolute value and variance $\sigma^2$ are unknown. The variance is assumed equal for all intentions. 
+The mixture components for $\theta_t$ when $D_t=0$ are Gaussian Distributions. For $I=0$, the mean is zero with unknown variance. For $I \in \{1, 2\}$ the means have equal absolute value, but opposite sign. The absolute value for $\mu_2 = -\mu_1$ and the variance $\sigma^2$ are unknown. The variance is assumed equal for all intentions. 
+Learning the mean $\mu_2 = -\mu_1$ from data allows the model to adapt to different types of ships. A small fishing vessel might rapidly change course (i.e. large $\theta_t$), while a large oil-tanker has limited ability to turn due to its size (i.e. smaller $\theta_t$). 
 \begin{align}
     \mu_0 &= 0 &  \mu_{1} = - \mu_{2} &\sim \text{Gaussian} & \sigma &\sim \text{Inv-Gamma}
 \end{align}
@@ -101,7 +104,7 @@ The resulting joint distribution can then be factored into \cref{eq:example_join
 \begin{figure}
     \centering
     \includegraphics[width=0.7\textwidth]{figures/intention_angle.png}
-    \caption{Normalized likelihood of different angles under different intention hypotheses. This is a polar plot where the angle represent $\theta_t^{(I=i)}$, the radius represent the probability. This is generated from \cref{eq:theta_intention_mixture} with $\mu_0=0$, $\mu_1 = \frac{\pi}{2}$, $\mu_2=-\frac{\pi}{2}$ and $\sigma_i=\frac{\pi}{8}$}
+    \caption{Normalized likelihood of different angles under different intention hypotheses. This is a polar plot where the angle represent $\theta_t^{(I=i)}$, the radius represent the probability. This is generated from \cref{eq:theta_intention_mixture} with $\mu_0=0$, $\mu_1 = -\frac{\pi}{2}$, $\mu_2=\frac{\pi}{2}$ and $\sigma_i=\frac{\pi}{8}$}
     \label{fig:intention_angle}
 \end{figure}
 
@@ -110,7 +113,7 @@ The priors are shown in \cref{fig:priors}.
 \begin{figure}
     \centering
     \includegraphics[width=1\textwidth]{figures/priors.png}
-    \caption{Model priors for $\boldsymbol{\alpha}$, $p_D$, $\sigma$ and $\boldsymbol{\mu}$. The contour plot for $\boldsymbol{\alpha}$ shows $\alpha_1$ and $\alpha_2$, but $\alpha_0$ is implicitly included by the constraint $\alpha_0 = 1 - \alpha_1 - \alpha_2$. The priors for $\boldsymbol{\alpha}$ and $p_D$ are non-informative priors, while the priors for $\mu_1 = -\mu_2$ and $\sigma$ are informative priors selected by intuitive reasoning.}
+    \caption{Model priors for $\boldsymbol{\alpha}$, $p_D$, $\sigma$ and $\boldsymbol{\mu}$. The contour plot for $\boldsymbol{\alpha}$ shows $\alpha_1$ and $\alpha_2$, but $\alpha_0$ is implicitly included by the constraint $\alpha_0 = 1 - \alpha_1 - \alpha_2$. The priors for $\boldsymbol{\alpha}$ and $p_D$ are non-informative priors, while the priors for $\mu_2 = -\mu_1$ and $\sigma$ are informative priors selected by intuitive reasoning.}
     \label{fig:priors}
 \end{figure}
 
@@ -119,13 +122,16 @@ Both \acrshort{mcmc} and \acrshort{vi} were implemented using Tensorflow Probabi
 
 
 \section{Dataset \& Benchmark}
-The dataset was generated from $N=100$ samples $\boldsymbol{\mathcal{D}}$ from \cref{eq:angle_complete_mixture} with fixed parameters. The amount of samples was intentionally kept low, as the need for Bayesian methods usually arise when the amount of data is sparse. A successful inference should be able to regain the parameters $\boldsymbol{\alpha}$, $p_D$, $\mu_1 = -\mu_2$ and $\sigma$ from $\mathcal{D}$.
+The dataset was generated from $N=100$ samples $\boldsymbol{\mathcal{D}}$ from \cref{eq:angle_complete_mixture} with fixed parameters. The amount of samples was intentionally kept low, as the need for Bayesian methods usually arise when the amount of data is sparse. A successful inference should be able to regain the parameters $\boldsymbol{\alpha}$, $p_D$, $\mu_2 = -\mu_1$ and $\sigma$ from $\mathcal{D}$.
 
 \section{Markov Chain Monte Carlo}
-Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The posterior target density was specified as 
-\begin{equation}
-    ll = \sum_{t=1}^{N}\log p(I_t=i, D_t=d, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha} | \theta_t = \mathcal{D}_t)
-\end{equation}
+Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The log posterior target density was specified as 
+\begin{align}\label{eq:example_ll}
+\begin{split}
+    ll &= \sum_{t=1}^N \log p(I_t, D_t, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha} | \theta_t = \mathcal{D}_t)\\
+    &\propto \sum_{t=1}^{N}\log p(\theta_t = \mathcal{D}_t, I_t, D_t, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})
+\end{split}
+\end{align}
 
 The proposal distribution were transformed using the following transformations (Bijectors)
 
@@ -135,10 +141,35 @@ The proposal distribution were transformed using the following transformations (
 \item Softplus was used to achieve unconstrained sampling for $\sigma > 0$
 \end{itemize}
 
+$100$ chains were randomly initialized using samples from the prior and then sampled independently in parallel. Each chain consists of $2500$ samples, where the first $500$ samples are discarded due to burn-in. This results in $2000 \cdot 100 = 200000$ samples in total. 
+
 \section{Variational Inference}
 
 \acrshort{vi} was implemented using a transformed Gaussian mean-field approximation. Each variable is approximated using an independent, transformed Gaussian distribution as surrogate density. Specifying this model was easily achieved by passing a list of Bijectors to \texttt{tfp.experimental.vi.build\_factored\_surrogate\_posterior}. 
 
-The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the KL divergence by passing it to \texttt{tfp.vi.fit\_surrogate\_posterior} \cite{tensorflow2015-whitepaper}. 
+The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the KL divergence by passing it to \texttt{tfp.vi.fit\_surrogate\_posterior} along with the same log posterior density used for \acrshort{mcmc}, expressed in \cref{eq:example_ll} \cite{tensorflow2015-whitepaper}. 
 
 \section{Results}
+
+\subsection{Case 1}
+\begin{table}[h]
+\centering
+\begin{tabular}{lllll}
+\textbf{Variable:}   & $\boldsymbol{\alpha}$ & $p_D$ & $\boldsymbol{\mu}$                  & $\sigma$         \\ \hline
+\textbf{True value:} & $[0.7, 0.3, 0.1]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$
+\end{tabular}
+\caption{True values used to generate the dataset for example case 1.}
+\end{table}
+
+\subsubsection{VI}
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{\textwidth}
+    \includegraphics[width=\textwidth]{figures/example_1_vi_posterior.png}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+    \includegraphics[width=\textwidth]{figures/example_1_mcmc_posterior.png}
+    \end{subfigure}
+    \caption{Posterior Distribution using \acrshort{vi} as inference method.}
+    \label{fig:example_case_1_vi}
+\end{figure}
