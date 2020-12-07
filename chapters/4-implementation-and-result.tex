@@ -122,7 +122,7 @@ Both \acrshort{mcmc} and \acrshort{vi} were implemented using Tensorflow Probabi
 
 
 \section{Dataset \& Benchmark}
-The dataset was generated from $N=100$ samples $\boldsymbol{\mathcal{D}}$ from \cref{eq:angle_complete_mixture} with fixed parameters. The amount of samples was intentionally kept low, as the need for Bayesian methods usually arise when the amount of data is sparse. A successful inference should be able to regain the parameters $\boldsymbol{\alpha}$, $p_D$, $\mu_2 = -\mu_1$ and $\sigma$ from $\mathcal{D}$.
+The dataset was generated from $N=1000$ samples $\boldsymbol{\mathcal{D}}$ from \cref{eq:angle_complete_mixture} with fixed parameters. A successful inference should be able to regain the parameters $\boldsymbol{\alpha}$, $p_D$, $\mu_2 = -\mu_1$ and $\sigma$ from $\mathcal{D}$.
 
 \section{Markov Chain Monte Carlo}
 Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The log posterior target density was specified as 
@@ -150,31 +150,67 @@ $100$ chains were randomly initialized using samples from the prior and then sam
 The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the KL divergence by passing it to \texttt{tfp.vi.fit\_surrogate\_posterior} along with the same log posterior density used for \acrshort{mcmc}, expressed in \cref{eq:example_ll} \cite{tensorflow2015-whitepaper}. 
 
 \section{Results}
-
-\subsection{Observation One: More data yields better results}
-Two datasets were randomly generated using the same fixed parameters in \cref{tbl:example_case_1_params}, but with different number of samples. The first dataset consists of $N_1=500$ samples, while the second contains twice as many with $N_2=1000$ samples. 
-
-The
+Multiple datasets from different simulations were used to observe how well \acrshort{vi} and \acrshort{mcmc} are able to learn from data. The parameters used to generate the datasets are summarized in \cref{tbl:example_params}.
 \begin{table}[h]
 \centering
 \begin{tabular}{lllll}
-\textbf{Variable:}   & $\boldsymbol{\alpha}$ & $p_D$ & $\boldsymbol{\mu}$                  & $\sigma$         \\ \hline
-\textbf{True value:} & $[0.7, 0.3, 0.1]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$
+\textbf{Case \textbackslash Variable:}   & $\boldsymbol{\alpha}$ & $p_D$ & $\boldsymbol{\mu}$                  & $\sigma$         \\ \hline
+Case 1 & $[0.5, 0.3, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$ \\
+Case 2 & $[0.2, 0.6, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$ \\
+Case 3 & $[0.5, 0.3, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{3}, \frac{\pi}{3}]$ & $\bf\frac{\pi}{16}$ \\
 \end{tabular}
 \caption{True values used to generate the dataset for example case 1.}
-\label{tbl:example_case_1_params}
+\label{tbl:example_params}
 \end{table}
+
+\subsection{Observation 0: Both VI and MCMC allows for modelling under uncertainty}
+More data give better results. TODO: Add simulation with different amounts of data.
+\subsection{Observation 1: VI tends to be overly confident}
+\cref{fig:example_case_1}
+\subsection{Observation 2: The model is not identifiable}
+From \cref{fig:example_case_1}, \cref{fig:example_case_2} and \cref{fig:example_case_3}, it becomes apparent that the probability of invalid destination, $p_D$ is consistently underestimated while the standard deviation $\sigma$ is overestimated. The model prefer to explain outliers by increasing the variance of the Gaussian mixture components, rather than using Uniform distribution. 
+\subsection{Observation 3: VI give comparable results to MCMC}
+\cref{fig:example_case_1}, \cref{fig:example_case_2}, \cref{fig:example_case_3}
+
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/example_1_vi_posterior.png}
+    \includegraphics[width=\textwidth]{figures/example_1b_vi_posterior.png}
     \caption{\acrshort{vi}}
     \end{subfigure}
     \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/example_1_mcmc_posterior.png}
+    \includegraphics[width=\textwidth]{figures/example_1b_mcmc_posterior.png}
     \caption{\acrshort{mcmc}}
     \end{subfigure}
     \caption{Posterior Distribution for example case 1 using \acrshort{vi} and \acrshort{mcmc} methods for inference}
-    \label{fig:example_case_1_vi}
+    \label{fig:example_case_1}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{\textwidth}
+    \includegraphics[width=\textwidth]{figures/example_2_vi_posterior.png}
+    \caption{\acrshort{vi}}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+    \includegraphics[width=\textwidth]{figures/example_2_mcmc_posterior.png}
+    \caption{\acrshort{mcmc}}
+    \end{subfigure}
+    \caption{Posterior Distribution for example case 2 using \acrshort{vi} and \acrshort{mcmc} methods for inference}
+    \label{fig:example_case_2}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{\textwidth}
+    \includegraphics[width=\textwidth]{figures/example_3_vi_posterior.png}
+    \caption{\acrshort{vi}}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+    \includegraphics[width=\textwidth]{figures/example_3_mcmc_posterior.png}
+    \caption{\acrshort{mcmc}}
+    \end{subfigure}
+    \caption{Posterior Distribution for example case 3 using \acrshort{vi} and \acrshort{mcmc} methods for inference}
+    \label{fig:example_case_3}
 \end{figure}
