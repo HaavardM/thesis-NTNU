@@ -106,7 +106,7 @@ The resulting joint distribution can then be factored into \cref{eq:example_join
 \end{figure}
 
 \subsection{Priors}
-\subsubsection{Prior for $p_D$}
+The priors are shown in \cref{fig:priors}.
 \begin{figure}
     \centering
     \includegraphics[width=1\textwidth]{figures/priors.png}
@@ -115,14 +115,14 @@ The resulting joint distribution can then be factored into \cref{eq:example_join
 \end{figure}
 
 \section{Implementation}
-Both \acrshort{mcmc} and \acrshort{vi} were implemented using Tensorflow Probability, as it has great support for both methods as well as utilizing Tensorflows automatic differentiation to avoid dealing with error-prone calculations \cite{tensorflow2015-whitepaper}. The joint distribution in \cref{eq:example_joint} was implemented using the \texttt{JointDistributionSequential} distribution in TFP. (TODO: Add code in appendix)
+Both \acrshort{mcmc} and \acrshort{vi} were implemented using Tensorflow Probability, as it has great support for both methods as well as it utilizes Tensorflows automatic differentiation to avoid dealing with error-prone calculations \cite{tensorflow2015-whitepaper}. The joint distribution in \cref{eq:example_joint} was implemented using the \texttt{JointDistributionSequential} distribution in TFP. (TODO: Add code in appendix)
 
 
 \section{Dataset \& Benchmark}
-The dataset was generated from $N=100$ samples $\mathcal{D}$ from \cref{eq:angle_complete_mixture} with fixed parameters. The amount of samples was intentionally kept low, as the need for Bayesian methods usually arise when the amount of data is sparse. A successful inference should be able to regain the parameters $\boldsymbol{\alpha}$, $p_D$, $\mu_1 = -\mu_2$ and $\sigma$ from $\mathcal{D}$.
+The dataset was generated from $N=100$ samples $\boldsymbol{\mathcal{D}}$ from \cref{eq:angle_complete_mixture} with fixed parameters. The amount of samples was intentionally kept low, as the need for Bayesian methods usually arise when the amount of data is sparse. A successful inference should be able to regain the parameters $\boldsymbol{\alpha}$, $p_D$, $\mu_1 = -\mu_2$ and $\sigma$ from $\mathcal{D}$.
 
 \section{Markov Chain Monte Carlo}
-Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The model was specified according to \cref{eq:example_joint} in a  TFP distribution. The posterior target density was specified as 
+Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The posterior target density was specified as 
 \begin{equation}
     ll = \sum_{t=1}^{N}\log p(I_t=i, D_t=d, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha} | \theta_t = \mathcal{D}_t)
 \end{equation}
@@ -140,3 +140,5 @@ The proposal distribution were transformed using the following transformations (
 \acrshort{vi} was implemented using a transformed Gaussian mean-field approximation. Each variable is approximated using an independent, transformed Gaussian distribution as surrogate density. Specifying this model was easily achieved by passing a list of Bijectors to \texttt{tfp.experimental.vi.build\_factored\_surrogate\_posterior}. 
 
 The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the KL divergence by passing it to \texttt{tfp.vi.fit\_surrogate\_posterior} \cite{tensorflow2015-whitepaper}. 
+
+\section{Results}
