@@ -47,11 +47,23 @@ A common proposal density is a symmetric Gaussian distribution centered at the c
 \subsection{Independence Sampling}
 If the proposal density $q(\cdot)$ is independent of the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = q(\mathbf{x'})$$ then the MH algorithm boils down to the \textit{independence sampler}, which is similar to importance sampling as described in \cref{sec:theory_importance_sampling} \cite{murphy}.
 
-\subsection{Gibbs sampling}
-
 \subsection{Hamiltonian MCMC}
 
+Sampling in a continous state-space using \cref{alg:metropolis_hastings} with a simple proposal distribution can be slow. If the gradients of the (unnormalized) target distribution is known, other methods such as Hamiltonian MCMC can be used to drastically speed up the sampling process by proposing new states with increased likelihood of acceptance. In Hamiltonian MCMC (HMC) the parameters of the model are viewed as the position $\bf q$ of a physical particle. Auxiliary variables are added to describe the momentum $\bf p$. The Hamiltonian Dynamics in \cref{eq:hamiltonian_dynamics} are then simulated and used to propose new states with high acceptance probability \cite{neal2012mcmc,murphy,hoffman2011nouturn}. HMC requires a few parameters to be specified. The number of \textbf{leapfrog step} describes how many steps should be simulated for each proposal, while the \textbf{step size} is the size of the discretization used when simulating the Hamiltonian Dynamics. Especcially the number of leapfrog step can be difficult to tune, as too many leads to unceccessary computations while too few leads to random walk behaviour \cite{hoffman2011nouturn}. 
+
+\begin{align}\label{eq:hamiltonian_dynamics}
+    \frac{d q_i}{dt} &= \frac{\partial H}{\partial p_i} & \frac{d p_i}{dt} &= -\frac{\partial H}{\partial q_i}
+\end{align}
+
+An extension to HMC, the \textbf{No-U-Turn sampler} (NUTS), is proposed in \cite{hoffman2011nouturn}. It eliminates the need for manual tuning of leapfrog steps and it is shown empirically to perform comparably to well tuned HMC method \cite{hoffman2011nouturn} without any manual intervention. Further details of the HMC and NUTS sampler are outside the scope of this thesis.   
+
+
+
 \subsection{Burn-in}
+The samples from the Markov Chain are not from the target distribution until the chain reaches its stationary distribution. A (potentially large) number of samples on the beginning of the chain are therefore invalid and are usually discarded. This is called the \textbf{burn-in phase} and is one of the major weaknesses of \acrshort{mcmc} \cite{murphy}. Convergence of a Markov Chain is difficult to detect and in practice a fixed, large number of samples are discarded.   
+
+It can be shown that if the stationary distribution of a Markov Chain exists, it will be independent of starting state \cite{murphy}. Initializing the chain at different points will not affect the stationary distribution and convergence can be verfied by comparing independently sampled chains, initialized with different values. If all chains have converged toward the same value, the burn-in phase is complete.    
+%TODO Add trace plot
 
 \subsection{MCMC in practice}
 

@@ -157,20 +157,16 @@ Multiple datasets from different simulations were used to observe how well \acrs
 \textbf{Case \textbackslash Variable:}   & $\boldsymbol{\alpha}$ & $p_D$ & $\boldsymbol{\mu}$                  & $\sigma$         \\ \hline
 Case 1 & $[0.5, 0.3, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$ \\
 Case 2 & $[0.2, 0.6, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$ \\
-Case 3 & $[0.5, 0.3, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{3}, \frac{\pi}{3}]$ & $\bf\frac{\pi}{16}$ \\
+Case 3 & $[0.5, 0.3, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{3}, \frac{\pi}{3}]$ & $\frac{\pi}{16}$ \\
 \end{tabular}
 \caption{True values used to generate the dataset for example case 1.}
 \label{tbl:example_params}
 \end{table}
 
-\subsection{Observation 0: Both VI and MCMC allows for modelling under uncertainty}
-More data give better results. TODO: Add simulation with different amounts of data.
-\subsection{Observation 1: VI tends to be overly confident}
-\cref{fig:example_case_1}
-\subsection{Observation 2: The model is not identifiable}
-From \cref{fig:example_case_1}, \cref{fig:example_case_2} and \cref{fig:example_case_3}, it becomes apparent that the probability of invalid destination, $p_D$ is consistently underestimated while the standard deviation $\sigma$ is overestimated. The model prefer to explain outliers by increasing the variance of the Gaussian mixture components, rather than using Uniform distribution. 
-\subsection{Observation 3: VI give comparable results to MCMC}
-\cref{fig:example_case_1}, \cref{fig:example_case_2}, \cref{fig:example_case_3}
+\subsection{Observation 1: Both VI and MCMC are able to learn from data}
+\subsection{Observation 2: VI tends to be overly confident}
+\subsection{Observation 3: The model is not identifiable}
+\subsection{Observation 4: VI runs fast}
 
 
 \begin{figure}[h]
