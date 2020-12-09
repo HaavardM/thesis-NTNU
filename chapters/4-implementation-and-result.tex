@@ -1,15 +1,15 @@
 \chapter{Implementation and Results}
 
-This chapter focuses on comparing the performance between \acrshort{mcmc} and \acrshort{vi} methods for performing inference in a \acrshort{pgm}. Each method have their strengths and weaknesses for different types of problems. As a compromise, this chapter will focus on comparing the performance of a fictitious model in order to discuss a concrete example.  
+This chapter focuses on comparing the performance between \acrshort{mcmc} and \acrshort{vi} methods for performing inference in a \acrshort{pgm}. Each method have their strengths and weaknesses for different types of problems. As a compromise, this chapter will focus on comparing the performance of a fictitious model in order to discuss a concrete example and to show how \acrshort{mcmc} and \acrshort{vi} can be used in practice.  
 
 \section{The model}
 As the context of this paper is intention inference for autonomous ferries, it seems fit that a similar example is used. A simple intention model is therefore proposed as an example, which relates steering angle to an intention through a mixture model. 
 
-The angle $\theta_t$ is defined to be the angle between the obstacles current course and the predicted course given the obstacles final destination. If the obstacles reported final destination is correct, $D_t=0$, the angle should be closely related to the obstacles intention and can be generated from a Gaussian selected by the intention $I_t$ (i.e. a mixture of Gaussians weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta_t$ is independent of intention.
+The angle $\theta_t$ is defined to be the angle between the obstacles current course and the predicted course given the obstacles final destination. The vessels are required to report their final destination, but in some cases there may be user-errors where invalid destinations are transmitted to nearby vessels. If the obstacles report the final destination is correcly, $D_t=0$, the angle should be closely related to the obstacles intention and can be generated from a Gaussian selected by the intention $I_t$ (i.e. a mixture of Gaussians weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta_t$ is independent of intention as the obstacle may he headed in a completely different direction.
 
-This example model is intentionally not identifiable only from observing the angles $\theta_t$. However, through the use of informative priors, the model is still able to learn from data. 
+This example model is intentionally not identifiable when observing only the angles $\theta_t$. This example will show how the choice of priors affect the learning process, especcially when parameters are not identifiable. Through the use of informative priors the model should still be able to learn what it can from available data.   
 
-Whether or not the final destination is valid is modelled using a Bernoulli variable $D_t$ which takes the value $1$ if the destinations is \textbf{invalid}. A Beta distribution is used to model the prior probability of $D=1$, i.e. the destination being invalid.  
+Whether or not the final destination is valid is modelled using a Bernoulli variable $D_t$ which takes the value $1$ if the destinations is \textbf{invalid}. A Beta distribution is used to model the prior probability $p_D$ of $D=1$, i.e. the destination being invalid.  
 
 \begin{equation}
     p_D \sim \text{Beta}, \quad p_D \in (0, 1)
@@ -40,7 +40,7 @@ $I_t=2$ & The obstacle intends a portside turn            \\ \hline
 \end{table}
 
 
-The mixture components for $\theta_t$ when $D_t=0$ are Gaussian Distributions. For $I=0$, the mean is zero with unknown variance. For $I \in \{1, 2\}$ the means have equal absolute value, but opposite sign. The absolute value for $\mu_2 = -\mu_1$ and the variance $\sigma^2$ are unknown. The variance is assumed equal for all intentions. 
+The mixture components for $\theta_t$ when $D_t=0$ are Gaussian Distributions. For $I=0$, the mean is zero with unknown variance. For $I \in \{1, 2\}$ the means are assumed to have equal absolute value, but opposite sign. The value for $\mu_2 = -\mu_1$ is unknown and distributed according to a Gaussian variable. The standard deviation is assumed equal for all intentions and is distributed according to an inverse Gamma distribution. In other words, the mixture components are assumed to have the same variance and they should be symmetrical around $\theta_t=0$.
 Learning the mean $\mu_2 = -\mu_1$ from data allows the model to adapt to different types of ships. A small fishing vessel might rapidly change course (i.e. large $\theta_t$), while a large oil-tanker has limited ability to turn due to its size (i.e. smaller $\theta_t$). 
 \begin{align}
     \mu_0 &= 0 &  \mu_{1} = - \mu_{2} &\sim \text{Gaussian} & \sigma &\sim \text{Inv-Gamma}
@@ -50,13 +50,14 @@ When $D=0$ and $I_t=i$, the angle is distributed according to
     p(\theta_t | D=0, I_t=i) = \mathcal{N}(\mu_i, \sigma^2), \quad \theta_t \in \mathcal{R}
 \end{equation}
 
-The distribution of $\theta_t$ when $D_t=0$ becomes the Gaussian mixture model in \cref{eq:angle_gauss_mixture}.
+The marginal distribution of $\theta_t$ when $D_t=0$ becomes the Gaussian mixture model in \cref{eq:angle_gauss_mixture}.
 
 \begin{align}\label{eq:angle_gauss_mixture}
 \begin{split}
-    p(\theta_t | \boldsymbol{\mu}, \sigma, D=0) = &\Pr\{I_t=0\}\mathcal{N}(\theta_t | \mu_0, \sigma^2)\\
-    &+ \Pr\{I_t=1\}\mathcal{N}(\theta_t | \mu_1, \sigma^2)\\
-    &+ \Pr\{I_t=2\}\mathcal{N}(\theta_t | \mu_2, \sigma^2)
+    p(\theta_t | \boldsymbol{\mu}, \sigma, D=0, \boldsymbol{\alpha}) &= \sum_{i=0}^2 \Pr\{I_t=i\}\mathcal{N}(\theta_t | \mu_i, \sigma^2) \\
+    &=\Pr\{I_t=0 | \alpha_0\}\mathcal{N}(\theta_t | \mu_0, \sigma^2)\\
+    &\quad+\Pr\{I_t=1 | \alpha_1\}\mathcal{N}(\theta_t | \mu_1, \sigma^2)\\
+    &\quad+\Pr\{I_t=2 | \alpha_2\}\mathcal{N}(\theta_t | \mu_2, \sigma^2)
 \end{split}
 \end{align}
 
@@ -74,9 +75,10 @@ The distribution for $\theta_t$ becomes a mixture between the Gaussian Mixture i
 
 \begin{align}\label{eq:angle_complete_mixture}
 \begin{split}
-     p(\theta_t | \boldsymbol{\mu}, \sigma)
-     &= \sum_D \Pr\{D=d\} p(\theta_t | D=d, \boldsymbol{\mu}, \sigma)\\
-     &= \Pr\{D_t = 0\} \underbrace{p(\theta_t | \boldsymbol{\mu}, \sigma, D_t=0)}_{\text{\cref{eq:angle_gauss_mixture}}} + \Pr\{D_t=1\}\underbrace{p(\theta_t | D_t=1)}_{\text{\cref{eq:angle_uniform}}}
+     p(\theta_t | \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})
+     &= \sum_D \Pr\{D_t=d | p_D\} p(\theta_t | D_t=d, \boldsymbol{\mu}, \sigma, \boldsymbol{\alpha})\\
+     &= \Pr\{D_t = 0 | p_D\} \underbrace{p(\theta_t | \boldsymbol{\mu}, \sigma, D_t=0, \boldsymbol{\alpha})}_{\text{\cref{eq:angle_gauss_mixture}}}\\
+     &+ \Pr\{D_t=1 | p_D\}\underbrace{p(\theta_t | D_t=1)}_{\text{\cref{eq:angle_uniform}}}
 \end{split}
 \end{align}
 
@@ -95,8 +97,14 @@ The resulting joint distribution can then be factored into \cref{eq:example_join
 
 \begin{align}\label{eq:example_joint}
 \begin{split}
-    &p(\theta_t, I_t=i, D_t=d, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})\\
-    &= \underbrace{p(\theta_t | I_t=i, D_t=d, \boldsymbol{\mu}, \sigma)}_{\text{\cref{eq:angle_complete_mixture}}}\underbrace{p(I_t=i | \boldsymbol{\alpha})}_{\text{Categorical}}\underbrace{p(D_t=d)}_{\text{Bernoulli}}\underbrace{p(\boldsymbol{\alpha})}_{\text{Dirichlet}}\underbrace{p(p_D)}_{\text{Beta}}\underbrace{p(\boldsymbol{\mu})}_{\mathcal{N}} \underbrace{p(\sigma)}_{\text{Inv-Gamma}}
+    p(\boldsymbol{\theta}, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha}) =\underbrace{p(\boldsymbol{\alpha})}_{\text{Dirichlet}}\underbrace{p(p_D)}_{\text{Beta}}\underbrace{p(\boldsymbol{\mu})}_{\mathcal{N}} \underbrace{p(\sigma)}_{\text{Inv-Gamma}} \prod_t \underbrace{p(\theta_t | \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})}_{\text{\cref{eq:angle_complete_mixture}}}
+\end{split}
+\end{align}
+
+The unnormalized posterior distribution then becomes
+\begin{align}\label{eq:example_unnormalized_posterior}
+\begin{split}
+    \tilde{p}(\boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha}) =  p(\boldsymbol{\theta} = \mathcal{D}, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha}) \propto p(\boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha} | \boldsymbol{\theta}= \mathcal{D})
 \end{split}
 \end{align}
 
@@ -108,14 +116,14 @@ The resulting joint distribution can then be factored into \cref{eq:example_join
     \label{fig:intention_angle}
 \end{figure}
 
-\subsection{Priors}
-The priors are shown in \cref{fig:priors}.
 \begin{figure}
     \centering
     \includegraphics[width=1\textwidth]{figures/priors.png}
     \caption{Model priors for $\boldsymbol{\alpha}$, $p_D$, $\sigma$ and $\boldsymbol{\mu}$. The contour plot for $\boldsymbol{\alpha}$ shows $\alpha_1$ and $\alpha_2$, but $\alpha_0$ is implicitly included by the constraint $\alpha_0 = 1 - \alpha_1 - \alpha_2$. The priors for $\boldsymbol{\alpha}$ and $p_D$ are non-informative priors, while the priors for $\mu_2 = -\mu_1$ and $\sigma$ are informative priors selected by intuitive reasoning.}
     \label{fig:priors}
 \end{figure}
+
+The purpose of this chapter is to learn as much about the parameters $\boldsymbol{\alpha}$, $\boldsymbol{\mu}$, $\sigma$ and $p_D$ from available observations, in this case only the angles $\theta_t$. 
 
 \section{Implementation}
 Both \acrshort{mcmc} and \acrshort{vi} were implemented using Tensorflow Probability, as it has great support for both methods as well as it utilizes Tensorflows automatic differentiation to avoid dealing with error-prone calculations \cite{tensorflow2015-whitepaper}. The joint distribution in \cref{eq:example_joint} was implemented using the \texttt{JointDistributionSequential} distribution in TFP. (TODO: Add code in appendix)
@@ -125,11 +133,10 @@ Both \acrshort{mcmc} and \acrshort{vi} were implemented using Tensorflow Probabi
 The dataset was generated from $N=1000$ samples $\boldsymbol{\mathcal{D}}$ from \cref{eq:angle_complete_mixture} with fixed parameters. A successful inference should be able to regain the parameters $\boldsymbol{\alpha}$, $p_D$, $\mu_2 = -\mu_1$ and $\sigma$ from $\mathcal{D}$.
 
 \section{Markov Chain Monte Carlo}
-Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The log posterior target density was specified as 
+Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The log posterior target density was then defined using \cref{eq:example_unnormalized_posterior} as 
 \begin{align}\label{eq:example_ll}
 \begin{split}
-    ll &= \sum_{t=1}^N \log p(I_t, D_t, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha} | \theta_t = \mathcal{D}_t)\\
-    &\propto \sum_{t=1}^{N}\log p(\theta_t = \mathcal{D}_t, I_t, D_t, \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})
+    ll &= \log \tilde{p}(\boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})
 \end{split}
 \end{align}
 
@@ -141,72 +148,82 @@ The proposal distribution were transformed using the following transformations (
 \item Softplus was used to achieve unconstrained sampling for $\sigma > 0$
 \end{itemize}
 
-$100$ chains were randomly initialized using samples from the prior and then sampled independently in parallel. Each chain consists of $2500$ samples, where the first $500$ samples are discarded due to burn-in. This results in $2000 \cdot 100 = 200000$ samples in total. 
+$20$ chains were randomly initialized using samples from the prior and then sampled independently in parallel. Each chain consists of $2500$ samples, where the first $500$ samples are discarded due to burn-in. This results in $2000 \cdot 20 = 40000$ usable samples in total. 
 
 \section{Variational Inference}
 
-\acrshort{vi} was implemented using a transformed Gaussian mean-field approximation. Each variable is approximated using an independent, transformed Gaussian distribution as surrogate density. Specifying this model was easily achieved by passing a list of Bijectors to \texttt{tfp.experimental.vi.build\_factored\_surrogate\_posterior}. 
+\acrshort{vi} was implemented using an independent, transformed Gaussian distribution as surrogate density for each variable. Specifying this model was easily achieved by passing a list of Bijectors to \texttt{tfp.experimental.vi.build\_factored\_surrogate\_posterior}. 
 
-The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the KL divergence by passing it to \texttt{tfp.vi.fit\_surrogate\_posterior} along with the same log posterior density used for \acrshort{mcmc}, expressed in \cref{eq:example_ll} \cite{tensorflow2015-whitepaper}. 
+The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the reverse KL divergence by passing it to \texttt{tfp.vi.fit\_surrogate\_posterior} along with the same log posterior density used for \acrshort{mcmc}, expressed in \cref{eq:example_ll} \cite{tensorflow2015-whitepaper}. 
 
 \section{Results}
-Multiple datasets from different simulations were used to observe how well \acrshort{vi} and \acrshort{mcmc} are able to learn from data. The parameters used to generate the datasets are summarized in \cref{tbl:example_params}.
+A dataset of $N=1000$ samples were used to observe how well \acrshort{vi} and \acrshort{mcmc} are able to learn from data. The true parameters used to generate the datasets are summarized in \cref{tbl:example_params}.
 \begin{table}[h]
 \centering
 \begin{tabular}{lllll}
-\textbf{Case \textbackslash Variable:}   & $\boldsymbol{\alpha}$ & $p_D$ & $\boldsymbol{\mu}$                  & $\sigma$         \\ \hline
-Case 1 & $[0.5, 0.3, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$ \\
-Case 2 & $[0.2, 0.6, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$ \\
-Case 3 & $[0.5, 0.3, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{3}, \frac{\pi}{3}]$ & $\frac{\pi}{16}$ \\
+\textbf{Variable:}   & $\boldsymbol{\alpha}$ & $p_D$ & $\boldsymbol{\mu}$                  & $\sigma$         \\ \hline
+\textbf{Value:} & $[0.5, 0.3, 0.2]$     & $0.3$ & $[0, -\frac{\pi}{2}, \frac{\pi}{2}]$ & $\frac{\pi}{16}$ \\
 \end{tabular}
 \caption{True values used to generate the dataset for example case 1.}
 \label{tbl:example_params}
 \end{table}
 
-\subsection{Observation 1: Both VI and MCMC are able to learn from data}
-\subsection{Observation 2: VI tends to be overly confident}
-\subsection{Observation 3: The model is not identifiable}
-\subsection{Observation 4: VI runs fast}
+On this model, \acrshort{vi} and \acrshort{mcmc} have very similar results as seen in \cref{fig:example_mcmc_vi_alphas}. The figures shows the posterior $\boldsymbol{\alpha}$ and $\mu_2=-\mu_1$ plotted by method in order to highlight the differences. Both methods approaches the same expectations, but differs slightly on the uncertianty. Similar results were shown for the other parameters. 
 
+The posterior distribution when using \acrshort{mcmc} is shown in \cref{fig:example_mcmc_posterior} and shows how it is able to correctly infer the intetion probabilities from data as well as the correct mean for the Gaussian mixture components. However, it it unable to distinguish the standard deviation $\sigma$ from the invalid destination probability $p_D$. Due to the lack of identifiability, both $\sigma$ and $p_D$ can be used to explain any outlier datapoints. The model falls back to using the maximum prior likelihood value for $\sigma$ and selects $p_D$ accordingly. Multiple simulation with different values for $\sigma$ and $p_D$ shows similar results, where $\sigma$ remains fixed and $p_D$ varies.
+
+\cref{fig:example_vi_posterior} show very similar results for \acrshort{vi} where the intetion probabilities and means $\mu_2 = -\mu_1$ are infered from data, while the standard deviation $\sigma$ and $p_D$ are incorrect. The key observation is however that \acrshort{vi} and \acrshort{mcmc} give almost identical results even if the results are not the ones used to generate the dataset. The models lack of identifiability is not really something the methods can do anything about.
+
+Another dataset with only $N=50$ samples was then generated to see how the methods behave will low amounts of data. \cref{fig:example_mcmc_vi_low_N} show how \acrshort{vi} is a bit overconfident on the intetion probabilities and underestimate the uncertianty when compared to \acrshort{mcmc}. The results are otherwise very similar as shown in \cref{fig:example_mcmc_low_N} and \cref{fig:example_vi_low_N} for \acrshort{mcmc} and \acrshort{vi} respectively.
+
+The number of burn-in samples were somewhat arbitrarily chosen. However, by inspecting the individual chains in \cref{fig:example_mcmc_trace}, the individual chains appear to have reached the same stationary distribution and $500$ burn-in samples are assumed to be enough for this specific problem. 
 
 \begin{figure}[h]
     \centering
-    \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/example_1b_vi_posterior.png}
-    \caption{\acrshort{vi}}
-    \end{subfigure}
-    \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/example_1b_mcmc_posterior.png}
-    \caption{\acrshort{mcmc}}
-    \end{subfigure}
-    \caption{Posterior Distribution for example case 1 using \acrshort{vi} and \acrshort{mcmc} methods for inference}
-    \label{fig:example_case_1}
+    \includegraphics[width=\textwidth]{figures/example_vi_mcmc_comparison.png}
+    \caption{The posterior distribution for intention probabilities and Gaussian mixture component means, found using MCMC and VI and plotted together to show how the methods give very comparable results. Note that all three intetion probabilities are plotted together with the same color to hightlight the differences between MCMC and VI. }
+    \label{fig:example_mcmc_vi_alphas}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/example_2_vi_posterior.png}
-    \caption{\acrshort{vi}}
-    \end{subfigure}
-    \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/example_2_mcmc_posterior.png}
-    \caption{\acrshort{mcmc}}
-    \end{subfigure}
-    \caption{Posterior Distribution for example case 2 using \acrshort{vi} and \acrshort{mcmc} methods for inference}
-    \label{fig:example_case_2}
+    \includegraphics[width=\textwidth]{figures/example_mcmc.png}
+    \caption{The posterior distribution for all variables using MCMC. The method is able to find the correct intetion probabilities and the correct means for the Gaussian mixture components. However, the method is unable to distinguish the standard deviation and the invalid destionation probability due to the lack of identifiability.}
+    \label{fig:example_mcmc_posterior}
+\end{figure}
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{figures/example_vi.png}
+    \caption{The posterior distribution for all variables using VI. The method is able to find the correct intetion probabilities and the correct means for the Gaussian mixture components. However, the method is unable to distinguish the standard deviation and the invalid destionation probability due to the lack of identifiability.}
+    \label{fig:example_vi_posterior}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/example_3_vi_posterior.png}
-    \caption{\acrshort{vi}}
-    \end{subfigure}
-    \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/example_3_mcmc_posterior.png}
-    \caption{\acrshort{mcmc}}
-    \end{subfigure}
-    \caption{Posterior Distribution for example case 3 using \acrshort{vi} and \acrshort{mcmc} methods for inference}
-    \label{fig:example_case_3}
+    \includegraphics[width=\textwidth]{figures/example_vi_mcmc_comparison_low_N.png}
+    \caption{Comparison of MCMC and VI for the parameters $\boldsymbol{\alpha}$ and $\mu_2 = -\mu_1$ with only $N=50$ datapoints.}
+    \label{fig:example_mcmc_vi_low_N}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{figures/example_mcmc_low_N.png}
+    \caption{Posterior distribution approximated using \acrshort{mcmc} with only $N=50$ samples.}
+    \label{fig:example_mcmc_low_N}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{figures/example_vi_low_N.png}
+    \caption{Posterior distribution approximated using \acrshort{vi} with only $N=50$ samples.}
+    \label{fig:example_vi_low_N}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{figures/example_mcmc_trace.png}
+    \caption{Traceplot of the different chains. The chains appear to have reached a stationary distribution, and the current burn-in period of $500$ samples are likely sufficient for this problem.}
+    \label{fig:example_mcmc_trace}
 \end{figure}
