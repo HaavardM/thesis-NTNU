@@ -5,9 +5,9 @@ This chapter focuses on comparing the performance between \acrshort{mcmc} and \a
 \section{The model}
 As the context of this paper is intention inference for autonomous ferries, it seems fit that a similar example is used. A simple intention model is therefore proposed as an example, which relates steering angle to an intention through a mixture model. 
 
-The angle $\theta_t$ is defined to be the angle between the obstacles current course and the predicted course given the obstacles final destination. The vessels are required to report their final destination, but in some cases there may be user-errors where invalid destinations are transmitted to nearby vessels. If the obstacles report the final destination is correcly, $D_t=0$, the angle should be closely related to the obstacles intention and can be generated from a Gaussian selected by the intention $I_t$ (i.e. a mixture of Gaussians weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta_t$ is independent of intention as the obstacle may he headed in a completely different direction.
+The angle $\theta_t$ is defined to be the angle between the obstacles current course and the predicted course given the obstacles final destination. The vessels are required to report their final destination, but in some cases there may be user-errors where invalid destinations are transmitted to nearby vessels. If the obstacles report the final destination is correctly, $D_t=0$, the angle should be closely related to the obstacles intention and can be generated from a Gaussian selected by the intention $I_t$ (i.e. a mixture of Gaussians weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta_t$ is independent of intention as the obstacle may he headed in a completely different direction.
 
-This example model is intentionally not identifiable when observing only the angles $\theta_t$. This example will show how the choice of priors affect the learning process, especcially when parameters are not identifiable. Through the use of informative priors the model should still be able to learn what it can from available data.   
+This example model is intentionally not identifiable when observing only the angles $\theta_t$. This example will show how the choice of priors affect the learning process, especially when parameters are not identifiable. Through the use of informative priors the model should still be able to learn what it can from available data.   
 
 Whether or not the final destination is valid is modelled using a Bernoulli variable $D_t$ which takes the value $1$ if the destinations is \textbf{invalid}. A Beta distribution is used to model the prior probability $p_D$ of $D=1$, i.e. the destination being invalid.  
 
@@ -33,7 +33,7 @@ The intention in a situation $I_t$ is modelled by a Categorical discrete variabl
 \hline
 $I_t=0$ & The obstacle intends to keep its current course \\ \hline
 $I_t=1$ & The obstacle intends a starboard turn           \\ \hline
-$I_t=2$ & The obstacle intends a portside turn            \\ \hline
+$I_t=2$ & The obstacle intends a port-side turn            \\ \hline
 \end{tabular}
 \caption{Possible realizations of the intention $I_t$}
 \label{tbl:intentions}
@@ -168,27 +168,27 @@ A dataset of $N=1000$ samples were used to observe how well \acrshort{vi} and \a
 \label{tbl:example_params}
 \end{table}
 
-On this model, \acrshort{vi} and \acrshort{mcmc} have very similar results as seen in \cref{fig:example_mcmc_vi_alphas}. The figures shows the posterior $\boldsymbol{\alpha}$ and $\mu_2=-\mu_1$ plotted by method in order to highlight the differences. Both methods approaches the same expectations, but differs slightly on the uncertianty. Similar results were shown for the other parameters. 
+On this model, \acrshort{vi} and \acrshort{mcmc} have very similar results as seen in \cref{fig:example_mcmc_vi_alphas}. The figures shows the posterior $\boldsymbol{\alpha}$ and $\mu_2=-\mu_1$ plotted by method in order to highlight the differences. Both methods approaches the same expectations, but differs slightly on the uncertainty. Similar results were shown for the other parameters. 
 
-The posterior distribution when using \acrshort{mcmc} is shown in \cref{fig:example_mcmc_posterior} and shows how it is able to correctly infer the intetion probabilities from data as well as the correct mean for the Gaussian mixture components. However, it it unable to distinguish the standard deviation $\sigma$ from the invalid destination probability $p_D$. Due to the lack of identifiability, both $\sigma$ and $p_D$ can be used to explain any outlier datapoints. The model falls back to using the maximum prior likelihood value for $\sigma$ and selects $p_D$ accordingly. Multiple simulation with different values for $\sigma$ and $p_D$ shows similar results, where $\sigma$ remains fixed and $p_D$ varies.
+The posterior distribution when using \acrshort{mcmc} is shown in \cref{fig:example_mcmc_posterior} and shows how it is able to correctly infer the intention probabilities from data as well as the correct mean for the Gaussian mixture components. However, it it unable to distinguish the standard deviation $\sigma$ from the invalid destination probability $p_D$. Due to the lack of identifiability, both $\sigma$ and $p_D$ can be used to explain any outlier datapoints. The model falls back to using the maximum prior likelihood value for $\sigma$ and selects $p_D$ accordingly. Multiple simulation with different values for $\sigma$ and $p_D$ shows similar results, where $\sigma$ remains fixed and $p_D$ varies.
 
-\cref{fig:example_vi_posterior} show very similar results for \acrshort{vi} where the intetion probabilities and means $\mu_2 = -\mu_1$ are infered from data, while the standard deviation $\sigma$ and $p_D$ are incorrect. The key observation is however that \acrshort{vi} and \acrshort{mcmc} give almost identical results even if the results are not the ones used to generate the dataset. The models lack of identifiability is not really something the methods can do anything about.
+\cref{fig:example_vi_posterior} show very similar results for \acrshort{vi} where the intetion probabilities and means $\mu_2 = -\mu_1$ are inferred from data, while the standard deviation $\sigma$ and $p_D$ are incorrect. The key observation is however that \acrshort{vi} and \acrshort{mcmc} give almost identical results even if the results are not the ones used to generate the dataset. The models lack of identifiability is not really something the methods can do anything about.
 
-Another dataset with only $N=50$ samples was then generated to see how the methods behave will low amounts of data. \cref{fig:example_mcmc_vi_low_N} show how \acrshort{vi} is a bit overconfident on the intetion probabilities and underestimate the uncertianty when compared to \acrshort{mcmc}. The results are otherwise very similar as shown in \cref{fig:example_mcmc_low_N} and \cref{fig:example_vi_low_N} for \acrshort{mcmc} and \acrshort{vi} respectively.
+Another dataset with only $N=50$ samples was then generated to see how the methods behave will low amounts of data. \cref{fig:example_mcmc_vi_low_N} show how \acrshort{vi} is a bit overconfident on the intention probabilities and underestimate the uncertainty when compared to \acrshort{mcmc}. The results are otherwise very similar as shown in \cref{fig:example_mcmc_low_N} and \cref{fig:example_vi_low_N} for \acrshort{mcmc} and \acrshort{vi} respectively.
 
 The number of burn-in samples were somewhat arbitrarily chosen. However, by inspecting the individual chains in \cref{fig:example_mcmc_trace}, the individual chains appear to have reached the same stationary distribution and $500$ burn-in samples are assumed to be enough for this specific problem. 
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/example_vi_mcmc_comparison.png}
-    \caption{The posterior distribution for intention probabilities and Gaussian mixture component means, found using MCMC and VI and plotted together to show how the methods give very comparable results. Note that all three intetion probabilities are plotted together with the same color to hightlight the differences between MCMC and VI. }
+    \caption{The posterior distribution for intention probabilities and Gaussian mixture component means, found using MCMC and VI and plotted together to show how the methods give very comparable results. Note that all three intention probabilities are plotted together with the same color to highlight the differences between MCMC and VI. }
     \label{fig:example_mcmc_vi_alphas}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/example_mcmc.png}
-    \caption{The posterior distribution for all variables using MCMC. The method is able to find the correct intetion probabilities and the correct means for the Gaussian mixture components. However, the method is unable to distinguish the standard deviation and the invalid destionation probability due to the lack of identifiability.}
+    \caption{The posterior distribution for all variables using MCMC. The method is able to find the correct intention probabilities and the correct means for the Gaussian mixture components. However, the method is unable to distinguish the standard deviation and the invalid destination probability due to the lack of identifiability.}
     \label{fig:example_mcmc_posterior}
 \end{figure}
 
@@ -196,7 +196,7 @@ The number of burn-in samples were somewhat arbitrarily chosen. However, by insp
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/example_vi.png}
-    \caption{The posterior distribution for all variables using VI. The method is able to find the correct intetion probabilities and the correct means for the Gaussian mixture components. However, the method is unable to distinguish the standard deviation and the invalid destionation probability due to the lack of identifiability.}
+    \caption{The posterior distribution for all variables using VI. The method is able to find the correct intention probabilities and the correct means for the Gaussian mixture components. However, the method is unable to distinguish the standard deviation and the invalid destination probability due to the lack of identifiability.}
     \label{fig:example_vi_posterior}
 \end{figure}
 
