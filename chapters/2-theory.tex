@@ -244,10 +244,37 @@ For generative models, an extension to factor graph notation is proposed in \cit
 \caption{\acrshort{pgm} representations of a probabilistic models with $4$ variables.}
 \end{figure}
 
+
+\section{Some useful functions}
+\subsection{Sigmoid}
+The sigmoid is used to map $\mathcal{R}$ to $(0, 1)$.
+\begin{equation}\label{eq:sigmoid}
+    f(x) = \frac{1}{1 + e^{-x}}
+\end{equation}
+
+\subsection{Softmax}
+The softmax is a useful transformation from $\mathcal{R}^N$ to $\{\mathbf{x} \in (0,1)^N | \sum x_i = 1\}$. It can be viewed as a multivariate generalization of the sigmoid function. 
+\begin{equation}\label{eq:softmax}
+    f(\mathbf{x})_i = \frac{e^{x_i}}{\sum_j e^{x_j}}
+\end{equation}
+
+\subsection{Sigmoid}
+
+\subsection{Softplus}
+The \textit{softplus} function is useful for mapping $\mathcal{R}$ to the positive real line $\{x \in \mathcal{R} | x \leq 0\}$. It is in some cases called \textit{SmoothReLu} as it approximates the Relu function $\max(0, x)$ for large negative or positive values \cite{tensorflow2015-whitepaper}.
+\begin{equation}\label{eq:softplus}
+    f(x) = \ln (1 + e^x)
+\end{equation}
+
+
 \section{Probability Distributions}
 
 \subsection{Transformations}
-TODO: Add equation
+Given a (possibly nonlinear) transformation $\mathbf{y} = f(\mathbf{x})$, the probability distribution $p(\mathbf{y})$ can be expressed in terms of the $p(\mathbf{x})$ through a change of variables. The formula for a change of variables is expressed in \cref{eq:change_of_variable} where $\boldsymbol{J}$ is the Jacobian of $f(\mathbf{x})$.
+
+\begin{equation}\label{eq:change_of_variable}
+    p(\mathbf{y}) = p(\mathbf{x}) | \det (\mathbf{J}) | = p_{\mathbf{x}}(f^{-1}(\mathbf{y})) | \det (\mathbf{J}) |  
+\end{equation}
 
 \subsection{Conjugate Priors}\label{sec:theory_conjugate_priors}
 If the posterior distribution is in the same family as the prior, then the posterior is called the \textit{conjugate distribution} and the prior is called the \textit{conjugate prior}. Using conjugate priors in Bayesian Statistics, allows for analytically tractable inference as the posterior becomes a well known probability distribution. \cref{table:conjugate_priors} summarizes the conjugate priors for a few common distribution.
