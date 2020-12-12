@@ -5,7 +5,7 @@ This chapter focuses on comparing the performance between \acrshort{mcmc} and \a
 \section{The model}
 As the context of this paper is intention inference for autonomous ferries, it seems fit that a similar example is used. A simple intention model is therefore proposed as an example, which relates steering angle to an intention through a mixture model. 
 
-The angle $\theta_t$ is defined to be the angle between the obstacles current course and the predicted course given the obstacles final destination. The vessels are required to report their final destination, but in some cases there may be user-errors where invalid destinations are transmitted to nearby vessels. If the obstacles report the final destination is correctly, $D_t=0$, the angle should be closely related to the obstacles intention and can be generated from a Gaussian selected by the intention $I_t$ (i.e. a mixture of Gaussians weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta_t$ is independent of intention as the obstacle may he headed in a completely different direction.
+The angle $\theta_t$ is defined to be the angle between the obstacles current course and the predicted course given the obstacles final destination. The vessels are required to report their final destination, but in some cases there may be user-errors where invalid destinations are transmitted to nearby vessels. If the obstacles report the final destination is correctly, $D_t=0$, the angle should be closely related to the obstacles intention and can be generated from a Gaussian selected by the intention $I_t$ (i.e. a mixture of Gaussian's weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta_t$ is independent of intention as the obstacle may he headed in a completely different direction.
 
 This example model is intentionally not identifiable when observing only the angles $\theta_t$. This example will show how the choice of priors affect the learning process, especially when parameters are not identifiable. Through the use of informative priors the model should still be able to learn what it can from available data.   
 
@@ -13,7 +13,7 @@ Whether or not the final destination is valid is modelled using a Bernoulli vari
 
 \begin{description}
     \item[Assumption 1] The angles $\{\theta_1, \theta_2, \dots, \theta_t\}$ are independent
-    \item[Assumption 2] The ship has equal turning characteristics for portside and starboard turns. The intention probabilities are from this assumed symmetrical about $\theta=0$. 
+    \item[Assumption 2] The ship has equal turning characteristics for port and starboard turns. The intention probabilities are from this assumed symmetrical about $\theta=0$. 
     \item[Assumption 3] Port and starboard turns are defined to be turns where $\theta \in (0, \pi)$ and $\theta \in (-\pi, 0)$ respectively.  
 \end{description}
 
@@ -213,7 +213,7 @@ $20$ individual chains were randomly initialized by sampling from the prior. $30
 \item Softplus \eqref{eq:softplus} to achieve unimodal distribution of $\mu \in \mathcal{R}$
 \end{itemize}
 
-The last Softplus Bijector is especcially important for \acrshort{vi} and deserves further explaination. As the intention probabilities for $I=1$ and $I=2$ are symmetrical around $\theta=0$ and the Gaussain distribution offer support on the entire real line $\mathcal{R}$, the resulting marginal distribution for $\mu$ becomes bimodal. As the model is not identifiable from $\boldsymbol{\theta}$ alone, the data supports both modes. The prior do prioritize the positive values, but still offers support for negative values as well.  Using \acrshort{vi} with reverse \acrshort{kl} may therefore result in fitting the wrong mode, unless $\mu > 0$ is explicitly enforced by using a Softplus transformation to remove support for negative values. 
+The last Softplus Bijector is especially important for \acrshort{vi} and deserves further explanation. As the intention probabilities for $I=1$ and $I=2$ are symmetrical around $\theta=0$ and the Gaussian distribution offer support on the entire real line $\mathcal{R}$, the resulting marginal distribution for $\mu$ becomes bimodal. As the model is not identifiable from $\boldsymbol{\theta}$ alone, the data supports both modes. The prior do prioritize the positive values, but still offers support for negative values as well.  Using \acrshort{vi} with reverse \acrshort{kl} may therefore result in fitting the wrong mode, unless $\mu > 0$ is explicitly enforced by using a Softplus transformation to remove support for negative values. 
 
 The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the reverse KL divergence by passing it to \texttt{tfp.vi.fit\_surrogate\_posterior} along with the same log posterior density used for \acrshort{mcmc}, expressed in \cref{eq:example_ll} \cite{tensorflow2015-whitepaper}. 
 
@@ -232,7 +232,7 @@ A dataset of $N=1000$ samples were used to observe how well \acrshort{vi} and \a
 
 The posterior distribution when using \acrshort{mcmc} is shown in \cref{fig:example_mcmc_posterior} and shows how it is able to infer the intention probabilities $\boldsymbol{\alpha}$ from data, with the MAP estimates being pretty much spot-on. The uncertainty for the different intentions are however rather high, as multiple combinations of parameter values are able to explain the data rather well. The probability of invalid destination $p_D$ is also successfully reconstructed from observations, with rather low uncertainty. However, it it unable to distinguish between the mean $\mu$ and the standard deviation $\sigma$, resulting in high uncertainty and incorrect MAP estimates. The sampling took over 8 minutes in total for this dataset. 
 
-\cref{fig:example_vi_posterior} show the performance of \acrshort{vi} on the same dataset. The marginal intention probability distribution for $p(\boldsymbol{\alpha} | \mathcal{D})$ are surrounding the true values, but the MAP estimates are off with around $10\%$ and $5\%$ for $p(I=0)$ and $p(I=1)$ respectively. \acrshort{vi} also severely underestimate the true uncertainty. For the invalid destionation probability, the results are however much better with very similar results as \acrshort{mcmc}. For the mean $\mu$ and standard deviation $\sigma$, the results are comparable to \acrshort{mcmc}, though with less uncertainty. However, considering the optimization only used 22 seconds on the same computer, these results are quite impressive when compared to \acrshort{mcmc}.
+\cref{fig:example_vi_posterior} show the performance of \acrshort{vi} on the same dataset. The marginal intention probability distribution for $p(\boldsymbol{\alpha} | \mathcal{D})$ are surrounding the true values, but the MAP estimates are off with around $10\%$ and $5\%$ for $p(I=0)$ and $p(I=1)$ respectively. \acrshort{vi} also severely underestimate the true uncertainty. For the invalid destination probability, the results are however much better with very similar results as \acrshort{mcmc}. For the mean $\mu$ and standard deviation $\sigma$, the results are comparable to \acrshort{mcmc}, though with less uncertainty. However, considering the optimization only used 22 seconds on the same computer, these results are quite impressive when compared to \acrshort{mcmc}.
 
 Another dataset with only $N=50$ samples was generated to see how the methods behave will low amounts of data. \cref{fig:example_mcmc_vi_low_N} show how \acrshort{vi} is a bit overconfident on the intention probabilities and underestimate the uncertainty when compared to \acrshort{mcmc}. The results are otherwise very similar as shown in \cref{fig:example_mcmc_low_N} and \cref{fig:example_vi_low_N} for \acrshort{mcmc} and \acrshort{vi} respectively. Both methods are able to express the high uncertainty due to the limited amount of data available. 
 
@@ -258,7 +258,7 @@ The number of burn-in samples were somewhat arbitrarily chosen. However, by insp
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/example_vi.png}
-    \caption{The posterior distribution for all variables using VI. The results are comparable to \acrshort{mcmc}, with very similar MAP estimates. The low uncertainty are however indicating overconfidence, especcially when compared to \acrshort{mcmc}.}
+    \caption{The posterior distribution for all variables using VI. The results are comparable to \acrshort{mcmc}, with very similar MAP estimates. The low uncertainty are however indicating overconfidence, especially when compared to \acrshort{mcmc}.}
     \label{fig:example_vi_posterior}
 \end{figure}
 
@@ -281,7 +281,7 @@ The number of burn-in samples were somewhat arbitrarily chosen. However, by insp
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/example_vi_mcmc_comparison_low_N.png}
-    \caption{Comparison of MCMC and VI for the parameters $\boldsymbol{\alpha}$ and $\mu$ with only $N=50$ datapoints. Both methods are able to express uncertianty due to low amount of data.}
+    \caption{Comparison of MCMC and VI for the parameters $\boldsymbol{\alpha}$ and $\mu$ with only $N=50$ samples. Both methods are able to express uncertainty due to low amount of data.}
     \label{fig:example_mcmc_vi_low_N}
 \end{figure}
 

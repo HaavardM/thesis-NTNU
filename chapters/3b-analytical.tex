@@ -58,7 +58,7 @@ While \acrshort{bp} may sound complicated, one can think of this algorithm as co
 
 
 \subsection{Limitations of analytical methods}
-The methods described so far in this chapter generally applies to both discrete and continous random variables by replacing integrals with sums for discrete variables. However, in practice, continous random variables quickly becomes intractable unless each parent-child in the graph are conjugate priors. Assuming conjugate priors severly limits the ability to describe the data-generating process, leaving only a few types of networks feasible. Looking back at \cref{table:conjugate_priors} for common conjugate priors, only a mix of gaussians, gamma and discrete distributions allow for multiple levels in a hierical model. For all other distributions, one quickly ends up in a situation where no standard conjugate exist \cite{winnbishop}. 
+The methods described so far in this chapter generally applies to both discrete and continuous random variables by replacing integrals with sums for discrete variables. However, in practice, continuous random variables quickly becomes intractable unless each parent-child in the graph are conjugate priors. Assuming conjugate priors severely limits the ability to describe the data-generating process, leaving only a few types of networks feasible. Looking back at \cref{table:conjugate_priors} for common conjugate priors, only a mix of gaussians, gamma and discrete distributions allow for multiple levels in a hierarchical model. For all other distributions, one quickly ends up in a situation where no standard conjugate exist \cite{winnbishop}. 
 % TODO Cite. 
 \section{Variational Bayes}
 \acrshort{bp} allows for exact inference of \acrshort{pgm}'s when there exists closed-form solutions of the integrals. This is however rarely the case and is only true for carefully chosen distributions. Requiring all combination of nodes to be conjugate priors (\cref{sec:theory_conjugate_priors}) can severely limit the expressibility of a \acrshort{pgm} and is not a viable solution. 
@@ -89,7 +89,7 @@ In the case of variational inference, the goal is usually to find an approximati
 \end{align}
 \end{subequations}
 
-As $p(\mathcal{D})$ is assumed intractable, the reverse \acrshort{kl} cannot be evaluated. However, since the surrogate density $q(\mathbf{x})$ only depend on $\mathbf{x}$, $\mathbb{KL}(q(\mathbf{x} || p^*(\mathbf{x} | \mathcal{D}))$ can still be optimized as $p(\mathcal{D})$ is constant. In other words, minimizing \cref{eq:negative_elbo} is equivalent to minimizng \cref{eq:elbo_kl}.
+As $p(\mathcal{D})$ is assumed intractable, the reverse \acrshort{kl} cannot be evaluated. However, since the surrogate density $q(\mathbf{x})$ only depend on $\mathbf{x}$, $\mathbb{KL}(q(\mathbf{x} || p^*(\mathbf{x} | \mathcal{D}))$ can still be optimized as $p(\mathcal{D})$ is constant. In other words, minimizing \cref{eq:negative_elbo} is equivalent to minimizing \cref{eq:elbo_kl}.
 
 This problem is usually phrased as a maximization problem, and the objective function to be \textbf{maximized} is called the \textit{\acrfull{elbo}} \cite{Blei_2017}.
 \begin{equation}
@@ -106,7 +106,7 @@ Variational Inference then boils down to finding the best surrogate posterior $q
 
 \subsection{I or M mode projection}
 
-Forward KL is also known as \textbf{moment-projection} (M-projection)  as it will attempt to match the moments of $q(\cdot)$ with $p^*(\cdot)$. In the case of a multimodal $p^*(\cdot)$ and unimodal $q(\cdot)$, this may not be desirable as the mean is placed inbetween regions of high probability. Looking at \cref{eq:kl}, the KL divergence is infinite when $p(\cdot) > 0$ and $q(\cdot) = 0$. M-projection is therefore said to be \textbf{zero avoiding} as optimizing \cref{eq:kl} needs to ensure $q(\mathbf{x}) > 0$ when $p(\mathbf{x}) > 0$. M-projection therefore tends to over-estimate the support of $p^*(\cdot)$.
+Forward KL is also known as \textbf{moment-projection} (M-projection)  as it will attempt to match the moments of $q(\cdot)$ with $p^*(\cdot)$. In the case of a multimodal $p^*(\cdot)$ and unimodal $q(\cdot)$, this may not be desirable as the mean is placed in between regions of high probability. Looking at \cref{eq:kl}, the KL divergence is infinite when $p(\cdot) > 0$ and $q(\cdot) = 0$. M-projection is therefore said to be \textbf{zero avoiding} as optimizing \cref{eq:kl} needs to ensure $q(\mathbf{x}) > 0$ when $p(\mathbf{x}) > 0$. M-projection therefore tends to over-estimate the support of $p^*(\cdot)$.
 
 Reverse KL is known as \textbf{information-projection} (I-projection). As \cref{eq:reverse_kl} is infinite when $p^*(\cdot) = 0$ and $q(\cdot) > 0$, optimizing reverse KL therefore needs to ensure $q(\cdot) = 0$ when $p^*(\cdot)=0$. I-projection is therefore said to be \textbf{zero forcing} and tends to underestimate the support for $p^*(\cdot)$ \cite{murphy}. 
 
@@ -115,7 +115,7 @@ The simplest method for variational inference is assuming independent variables 
 \begin{equation}\label{eq:mean_field}
     q(\mathbf{x}) = \prod_i q_i(x_i)
 \end{equation}
-However, this is in many cases a very strong assumption which may lead to poor results in the case of strong interactions in the posterior distribution. An extenstion called \textbf{structured mean field} can in some cases be used if the posterior has a tractable substructures (i.e. subgraphs which can be described using "simple" distributions). The variables forming tractable substructures can then be combined into "mega-variables" and \cref{eq:mean_field} can be used as an approximation.   
+However, this is in many cases a very strong assumption which may lead to poor results in the case of strong interactions in the posterior distribution. An extension called \textbf{structured mean field} can in some cases be used if the posterior has a tractable substructures (i.e. sub graphs which can be described using "simple" distributions). The variables forming tractable substructures can then be combined into "mega-variables" and \cref{eq:mean_field} can be used as an approximation.   
 
 \subsection{Variational Message Passing}
 
