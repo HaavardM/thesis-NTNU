@@ -81,6 +81,9 @@ Many software packages are available for \acrshort{mcmc}, such as:
 
 In practice, these packages can handle much of the complexity performing MCMC based inference, leaving only the model specification and a few parameters to the user. These packages also handles implementation details such as efficient utilization of available hardware (GPU and CPU) and automatic differentiation. Accelerated sampling methods such as HMC and NUTS are also easy to use in these software packages.   
 
+\subsection{Thinning}
+As new states are proposed from previous states, the samples are naturally highly autocorrelated. This results in a lot of samples which provide little additional information about the true distribution. A simple method to reduce the autocorrelation and thereby improve the information the samples is to use \textbf{thinning}, were only the n'th samples are kept. This can save a lot fo storage \cite{murphy}.
+
 \subsection{Convergence Guarantees}
 
 \subsection{Bijectors}

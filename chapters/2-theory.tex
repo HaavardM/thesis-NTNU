@@ -253,12 +253,10 @@ The sigmoid is used to map $\mathcal{R}$ to $(0, 1)$.
 \end{equation}
 
 \subsection{Softmax}
-The softmax is a useful transformation from $\mathcal{R}^N$ to $\{\mathbf{x} \in (0,1)^N | \sum x_i = 1\}$. It can be viewed as a multivariate generalization of the sigmoid function. 
+The softmax is a useful transformation from $\mathcal{R}^N$ to $\{\mathbf{x} \in (0,1)^N | \sum x_i = 1\}$ \cite{murphy, tensorflow2015}. It can be viewed as a multivariate generalization of the sigmoid function. 
 \begin{equation}\label{eq:softmax}
     f(\mathbf{x})_i = \frac{e^{x_i}}{\sum_j e^{x_j}}
 \end{equation}
-
-\subsection{Sigmoid}
 
 \subsection{Softplus}
 The \textit{softplus} function is useful for mapping $\mathcal{R}$ to the positive real line $\{x \in \mathcal{R} | x \leq 0\}$. It is in some cases called \textit{SmoothReLu} as it approximates the Relu function $\max(0, x)$ for large negative or positive values \cite{tensorflow2015-whitepaper}.
@@ -269,6 +267,17 @@ The \textit{softplus} function is useful for mapping $\mathcal{R}$ to the positi
 
 \section{Probability Distributions}
 
+\subsection{Support}
+The \textit{set-theoretic support} of a function $f: X \to \mathcal{R}$, denoted $supp(f)$ is the elements which do not map to zero.
+\begin{equation}
+    \text{supp}(f) = \{x \in X | f(x) \neq 0\}
+\end{equation}
+
+For a probability distribution $p: X \to (0, 1)$, it can be rewritten as \cref{eq:supp_p}. It can be interpreted as the subset of possible events, i.e. the subset of events with non-zero probability. 
+\begin{equation}\label{eq:supp_p}
+    \text{supp}(p) = \{ x \in X | p(x) > 0 \}
+\end{equation}
+
 \subsection{Transformations}
 Given a (possibly nonlinear) transformation $\mathbf{y} = f(\mathbf{x})$, the probability distribution $p(\mathbf{y})$ can be expressed in terms of the $p(\mathbf{x})$ through a change of variables. The formula for a change of variables is expressed in \cref{eq:change_of_variable} where $\boldsymbol{J}$ is the Jacobian of $f(\mathbf{x})$.
 
@@ -277,7 +286,7 @@ Given a (possibly nonlinear) transformation $\mathbf{y} = f(\mathbf{x})$, the pr
 \end{equation}
 
 \subsection{Conjugate Priors}\label{sec:theory_conjugate_priors}
-If the posterior distribution is in the same family as the prior, then the posterior is called the \textit{conjugate distribution} and the prior is called the \textit{conjugate prior}. Using conjugate priors in Bayesian Statistics, allows for analytically tractable inference as the posterior becomes a well known probability distribution. \cref{table:conjugate_priors} summarizes the conjugate priors for a few common distribution.
+If the posterior distribution is in the same family as the prior, then the posterior is called the \textit{conjugate distribution} and the prior is called the \textit{conjugate prior}. Using conjugate priors in Bayesian Statistics, allows for analytically tractable inference as the posterior becomes a well known probability distribution. \cref{table:conjugate_priors} summarizes the conjugate priors for a few common distribution. Non-standard distribution may still exist as conjugate distributions, such as the \textit{conjugate Dirichlet}
 
 
 \begin{table}[h]
@@ -307,4 +316,4 @@ The Exponential Family is a family of distribution for which the \acrshort{pdf} 
 \begin{equation}
     p(\mathbf{x} | \boldsymbol{\theta}) = h(\mathbf{x}) \exp[\eta(\boldsymbol{\theta}) T(\mathbf{x}) - A(\boldsymbol{\theta})]
 \end{equation}
-All the distributions mentioned so far are part of the Exponential Family. Distributions in the exponential family always have conjugate priors, however they may not be standard, well-known distributions. %TODO CITE
+All the continious distributions mentioned so far are part of the Exponential Family. Distributions in the exponential family always have conjugate priors, however they may not be standard, well-known distributions \cite{murphy}. 
