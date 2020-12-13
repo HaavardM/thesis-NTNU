@@ -1,4 +1,4 @@
-\chapter{Neccessary Theoretical Background}
+\chapter{Neccessary Theoretical Background}\label{chap:theory}
 
 \section{Useful Results From Probability Theory}
 
@@ -51,7 +51,7 @@ For notational simplicity the integral operator is used for marginalization of b
 \begin{equation}
     p(X) = \int_{\boldsymbol{Y}} p(X, \boldsymbol{Y}) d\boldsymbol{Y} = \int_{\boldsymbol{Y}} p(X | \boldsymbol{Y}) p(\boldsymbol{Y}) d\boldsymbol{Y}
 \end{equation}
-The last equality is by the \textit{Law of total probability}, which relates marginal probabilities to conditional probabilities.
+The last equality is by the \textit{Law of total probability}, which relates marginal probabilities to conditional probabilities. This is a highly useful result which allow modelling complex distributions $p(X)$ by introducing auxiliary variables which often drastically simplifies calculations.
 
 \subsection{Independence \& Conditional Independence}
 If the joint probability of two variables $X$ and $Y$ can be expressed as a product of two marginals, then they are \textit{marginally independent}.
@@ -77,7 +77,7 @@ While the differences between the Frequentist and Bayesian interpretations are m
 
 
 \section{Identifiability}
-
+A model is said to be \textit{identifiable} if it is theoretically possible to learn the true parameters after an infinite number of observations. This implies that no two set of parameters can generate the same probability distribution. As an illustrative example, lets say one observe sum $y$ of two real random variables $x_1 + x_2 = y$. By only observing $y$, it is not possible to uniquely determine the distributions of $x_1$ and $x_2$ as there exist infinitely many combinations of $x_1$ and $x_2$ that could sum to $y$. 
 
 
 \section{Bayesian Statistics}
@@ -253,7 +253,7 @@ The sigmoid is used to map $\mathcal{R}$ to $(0, 1)$.
 \end{equation}
 
 \subsection{Softmax}
-The softmax is a useful transformation from $\mathcal{R}^N$ to $\{\mathbf{x} \in (0,1)^N | \sum x_i = 1\}$ \cite{murphy, tensorflow2015}. It can be viewed as a multivariate generalization of the sigmoid function. 
+The softmax is a useful transformation from $\mathcal{R}^N$ to $\{\mathbf{x} \in (0,1)^N | \sum x_i = 1\}$ \cite{murphy,tensorflow2015-whitepaper}. It can be viewed as a multivariate generalization of the sigmoid function. 
 \begin{equation}\label{eq:softmax}
     f(\mathbf{x})_i = \frac{e^{x_i}}{\sum_j e^{x_j}}
 \end{equation}
@@ -266,6 +266,8 @@ The \textit{softplus} function is useful for mapping $\mathcal{R}$ to the positi
 
 
 \section{Probability Distributions}
+
+This section will introduce a few useful probability distributions that may be unfamiliar to some readers. The reader is assumed to already be familiar with probability distributions introduced in most university-level statistic courses, such as the Normal (Gaussian), Exponential, Poisson etc. 
 
 \subsection{Support}
 The \textit{set-theoretic support} of a function $f: X \to \mathcal{R}$, denoted $supp(f)$ is the elements which do not map to zero.
@@ -295,7 +297,7 @@ If the posterior distribution is in the same family as the prior, then the poste
 \multicolumn{1}{|l|}{\textbf{Distribution}} & \multicolumn{1}{l|}{\textbf{1st Parent}}        & \multicolumn{1}{l|}{\textbf{Conjugate}} & \multicolumn{1}{l|}{\textbf{2nd Parent}} & \multicolumn{1}{l|}{\textbf{Conjugate}} \\ \hline
 \multicolumn{1}{|l|}{Gaussian}              & \multicolumn{1}{l|}{mean $\mu$}                 & \multicolumn{1}{l|}{Gaussian}           & \multicolumn{1}{l|}{precision $\gamma$}  & \multicolumn{1}{l|}{Gamma}              \\ \hline
 \multicolumn{1}{|l|}{Gamma}                 & \multicolumn{1}{l|}{shape $\alpha$}             & \multicolumn{1}{l|}{none}               & \multicolumn{1}{l|}{scale $b$}           & \multicolumn{1}{l|}{Gamma}              \\ \hline
-\multicolumn{1}{|l|}{Discrete}              & \multicolumn{1}{l|}{probabilities $\mathbf{p}$} & \multicolumn{1}{l|}{Dirichlet}          & \multicolumn{1}{l|}{parents $\{x_i\}$}   & \multicolumn{1}{l|}{Discrete}           \\ \hline
+\multicolumn{1}{|l|}{Categorical}              & \multicolumn{1}{l|}{probabilities $\mathbf{p}$} & \multicolumn{1}{l|}{Dirichlet}          & \multicolumn{1}{l|}{parents $\{x_i\}$}   & \multicolumn{1}{l|}{Categorical}           \\ \hline
 \multicolumn{1}{|l|}{Dirichlet}             & \multicolumn{1}{l|}{pseudo-counts $\bf a$}      & \multicolumn{1}{l|}{none}               & \multicolumn{1}{l|}{}                    & \multicolumn{1}{l|}{}                   \\ \hline
 \multicolumn{1}{|l|}{Exponential}           & \multicolumn{1}{l|}{scale $\alpha$}             & \multicolumn{1}{l|}{Gamma}              & \multicolumn{1}{l|}{}                    & \multicolumn{1}{l|}{}                   \\ \hline
 \multicolumn{1}{|l|}{Poisson}               & \multicolumn{1}{l|}{mean $\lambda$}             & \multicolumn{1}{l|}{Gamma}              & \multicolumn{1}{l|}{}                    & \multicolumn{1}{l|}{}                   \\ \hline
@@ -305,12 +307,19 @@ If the posterior distribution is in the same family as the prior, then the poste
 \end{table}
 
 
-\subsection{Beta \& Dirichlet Distributions}
-The Beta distribution is a distribution with support between $0$ and $1$, and is therefore well suited to model probabilities. The Dirichlet distribution is a multivariate generalization of the Beta distribution. 
-\subsection{Binomial \& Multinomial Distributions}
-\subsection{Dirichlet-Multinomial Distribution}
 \subsection{Bernouilli \& Categorial Distributions}
-\subsection{Normal Distribution}
+The Bernouilli Distribution is a discrete distribution modelling the probability of a single event occurring. The Categorial distribution is a generalization of the Bernouilli distribution, where each outcome can take $K \geq 2$ different values. The output of the Categorical distribution, $x \sim \text{Cat}(\boldsymbol{\alpha})$, is usually a single integer $x \in \{0, 1, \dots, K-1\}$, but can also be one-hot encoded as a $K$ dimentional vector $\mathbf{y}$ with elements $$y_i = \begin{cases}
+    1 & \text{if} \; x = i\\ 0 & \text{otherwise}
+\end{cases}$$
+\subsection{Beta \& Dirichlet Distributions}
+The Beta distribution is a distribution with support between $0$ and $1$, and is therefore well suited to model probabilities. The Dirichlet distribution is a multivariate generalization of the Beta distribution. The Dirichlet distribution support vectors of probabilities which sum to $1$.
+\begin{equation}
+    \text{supp}(Dir) = \{\boldsymbol{\alpha} \in (0, 1)^K | \sum_{i=0}^{K-1} \alpha_i = 1\} 
+\end{equation} 
+\subsection{Binomial \& Multinomial Distributions}
+The Binomial distribution is useful to model counting processes, such as "After N independent Bernoulli trials, how many times did $X$ occur?". The Multinomial distribution is a multivariate generalization of the Binomial distribution, where each trial can have $K \geq 2$ outcomes. 
+
+
 \subsection{The Exponential Family}
 The Exponential Family is a family of distribution for which the \acrshort{pdf} or \acrshort{pmf} can be expressed on the from
 \begin{equation}

@@ -1,4 +1,4 @@
-\chapter{Analytical Methods \& Variational Inference}
+\chapter{Analytical Methods \& Variational Inference}\label{chap:analytical}
 For some \acrshort{pgm}'s the joint distribution may have a functional form which allow marginalization using analytical methods, i.e. directly evaluating the integrals and sums. When applicable, analytical methods allow for exact inference and avoid the randomness introduced by sampling methods. %TODO Cite or explain further 
 
 
@@ -55,7 +55,7 @@ The top-down messages $m_{t \to s}^+$ can be computed by combining all the evid
 While \acrshort{bp} may sound complicated, one can think of this algorithm as computing the marginal distribution of $x_r$ where each sum or integral is pushed in as far as possible to simplify calculations. By beginning with the inner-most integral, the marginalization boils down to recursively computing simple integrals or sums with only a small subset of the variables. This general method is called \textit{variable elimination}\cite{murphy}. \acrshort{bp} extends this idea by also utilizing the graph structure to reduce the computational complexity. A \acrshort{pgm} with a chain structure is used as an example to show the rather simple concept behind variable elimination and \acrshort{bp}.
 
 \subsection{Belief Propagation on arbitrary graphs}
-
+\acrshort{bp} can even for \acrshort{mrf}'s without tree structure, but then it becomes an approximate inference algorithm as convergence to the true state is no longer guaranteed. It is then called \textit{loopy belief propagation}, and works by running \acrshort{bp} until convergence, i.e. until the changes in belief state do not change significantly.  In practice, the method is effecient and simple, and often outperforms other approximate methods \cite{murphy}.
 
 \subsection{Limitations of analytical methods}
 The methods described so far in this chapter generally applies to both discrete and continuous random variables by replacing integrals with sums for discrete variables. However, in practice, continuous random variables quickly becomes intractable unless each parent-child in the graph are conjugate priors. Assuming conjugate priors severely limits the ability to describe the data-generating process, leaving only a few types of networks feasible. Looking back at \cref{table:conjugate_priors} for common conjugate priors, only a mix of gaussians, gamma and discrete distributions allow for multiple levels in a hierarchical model. For all other distributions, one quickly ends up in a situation where no standard conjugate exist \cite{winnbishop}. 
