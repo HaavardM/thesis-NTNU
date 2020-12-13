@@ -49,7 +49,7 @@ If the proposal density $q(\cdot)$ is independent of the current state, i.e. $$q
 
 \subsection{Hamiltonian MCMC}
 
-Sampling in a continuous state-space using \cref{alg:metropolis_hastings} with a simple proposal distribution can be slow. If the gradients of the (unnormalized) target distribution is known, other methods such as \textit{\acrfull{hmc}} can be used to drastically speed up the sampling process by proposing new states with increased likelihood of acceptance. In addition to the model parameters $\mathbf{q}$, auxiliary momentum variables $\bf p$ are sampled and used to simulate the state as a particle moving around in space. The Hamiltonian Dynamics in \cref{eq:hamiltonian_dynamics} are simulated and used to propose new states with high acceptance probability \cite{neal2012mcmc,murphy,hoffman2011nouturn,robert2018accelerating}. \acrshort{hmc} requires a few parameters to be specified. The number of \textbf{leapfrog step} describes how many steps should be simulated for each proposal, while the \textbf{step size} is the size of the discretization used when simulating the Hamiltonian Dynamics. Especially the number of leapfrog step can be difficult to tune, as too many leads to unnecessary computations while too few leads to random walk behaviour \cite{hoffman2011nouturn}. 
+Sampling in a continuous state-space using \cref{alg:metropolis_hastings} with a simple proposal distribution can be slow. If the gradients of the (unnormalized) target distribution is known, other methods such as \textit{\acrfull{hmc}} can be used to drastically speed up the sampling process by proposing new states with increased likelihood of acceptance. In addition to the model parameters $\mathbf{q}$, auxiliary momentum variables $\bf p$ are sampled and used to simulate the state as a particle moving around in space. The Hamiltonian Dynamics in \cref{eq:hamiltonian_dynamics} are simulated and used to propose new states with high acceptance probability \cite{neal2012mcmc,murphy,hoffman2011nouturn,robert2018accelerating}. \acrshort{hmc} requires a few parameters to be specified. The number of \textit{leapfrog step} describes how many steps should be simulated for each proposal, while the \textit{step size} is the size of the discretization used when simulating the Hamiltonian Dynamics. Especially the number of leapfrog step can be difficult to tune, as too many leads to unnecessary computations while too few leads to random walk behaviour \cite{hoffman2011nouturn}. 
 
 Hamilton's equations is given by \cref{eq:hamiltonian_dynamics}. $H$ is the Hamiltonian representing the total energy of the system as a function of position and momentum, usually in the form of the potential energy $U(\mathbf{q})$ and the kinetic energy as expressed in \cref{eq:hamiltonian}. In \acrshort{hmc} the potential energy $U(\mathbf{q})$ is selected to be the negative log likelihood of the (unnormalized) target distribution and $M$ is a positive definite mass matrix, typically diagonal or a scalar multiple of the identity matrix \cite{neal2012mcmc}. 
 \begin{align}\label{eq:hamiltonian_dynamics}
@@ -60,12 +60,12 @@ Hamilton's equations is given by \cref{eq:hamiltonian_dynamics}. $H$ is the Hami
     H(\mathbf{q}, \mathbf{p}) &= U(\mathbf{q}) + \frac{1}{2} \mathbf{p}^\intercal M^{-1} \mathbf{p} & U(\mathbf{q}) = - \ln p^*(\mathbf{q})
 \end{align}
 
-An extension to \acrshort{hmc}, the \textbf{No-U-Turn sampler} (NUTS), is proposed in \cite{hoffman2011nouturn}. It eliminates the need for manual tuning of leapfrog steps and it is shown empirically to perform comparably to well tuned \acrshort{hmc} method without any manual intervention \cite{hoffman2011nouturn}.
+An extension to \acrshort{hmc}, the \textit{\acrfull{nuts}} is proposed in \cite{hoffman2011nouturn}. It eliminates the need for manual tuning of leapfrog steps and it is shown empirically to perform comparably to well tuned \acrshort{hmc} method without any manual intervention \cite{hoffman2011nouturn}.
 
 
 
 \subsection{Burn-in}
-The samples from the Markov Chain are not from the target distribution until the chain reaches its stationary distribution. A (potentially large) number of samples on the beginning of the chain are therefore invalid and are usually discarded. This is called the \textbf{burn-in phase} and is one of the major weaknesses of \acrshort{mcmc} \cite{murphy}. Convergence of a Markov Chain is difficult to detect and in practice a fixed, large number of samples are discarded.   
+The samples from the Markov Chain are not from the target distribution until the chain reaches its stationary distribution. A (potentially large) number of samples on the beginning of the chain are therefore invalid and are usually discarded. This is called the \textit{burn-in phase} and is one of the major weaknesses of \acrshort{mcmc} \cite{murphy}. Convergence of a Markov Chain is difficult to detect and in practice a fixed, large number of samples are discarded.   
 
 It can be shown that if the stationary distribution of a Markov Chain exists, it will be independent of starting state \cite{murphy}. Initializing the chain at different points will not affect the stationary distribution and convergence can be verified by comparing independently sampled chains, initialized with different values. If all chains have converged toward the same value, the burn-in phase is complete.    
 %TODO Add trace plot
@@ -79,10 +79,10 @@ Many software packages are available for \acrshort{mcmc}, such as:
     \item PyMC3 \cite{pymc3}
 \end{enumerate}
 
-In practice, these packages can handle much of the complexity performing MCMC based inference, leaving only the model specification and a few parameters to the user. These packages also handles implementation details such as efficient utilization of available hardware (GPU and CPU) and automatic differentiation. Accelerated sampling methods such as HMC and NUTS are also easy to use in these software packages.   
+In practice, these packages can handle much of the complexity performing MCMC based inference, leaving only the model specification and a few parameters to the user. These packages also handles implementation details such as efficient utilization of available hardware (GPU and CPU) and automatic differentiation. Accelerated sampling methods such as \acrshort{hmc} and \acrshort{nuts} are also easy to use in these software packages.   
 
 \subsection{Thinning}
-As new states are proposed from previous states, the samples are naturally highly auto-correlated. This results in a lot of samples which provide little additional information about the true distribution. A simple method to reduce the auto-correlation and thereby improve the information the samples is to use \textbf{thinning}, were only the nth samples are kept. This can save a lot of storage \cite{murphy}.
+As new states are proposed from previous states, the samples are naturally highly auto-correlated. This results in a lot of samples which provide little additional information about the true distribution. A simple method to reduce the auto-correlation and thereby improve the information the samples is to use \textit{thinning}, were only every nth sample are kept. This can save a lot of storage \cite{murphy}.
 
 \subsection{Convergence Guarantees}
 

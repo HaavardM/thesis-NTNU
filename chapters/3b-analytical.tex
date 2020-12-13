@@ -33,7 +33,7 @@ p(x_r) &= \idotsint_V p(x_r, x_1,\dots,x_k) \,dx_1 \dots dx_k\\
 \end{align}
 \end{subequations}
 
-Computing all messages from leaf nodes towards the top is called the \textbf{collecting evidence}-phase and yields the marginal distribution for the root node. However, the marginal distribution for all other nodes can easily be calculated by calculating messages from the root node and distribute messages downward towards the leaf nodes. This is called the \textbf{distribute evidence}-phase. 
+Computing all messages from leaf nodes towards the top is called the \textit{collecting evidence}-phase and yields the marginal distribution for the root node. However, the marginal distribution for all other nodes can easily be calculated by calculating messages from the root node and distribute messages downward towards the leaf nodes. This is called the \textit{distribute evidence}-phase. 
 
 The belief state for nodes $s$ other than the root, can in the distribute evidence-phase be updated using
 \begin{equation}\label{eq:bp_belief_top_down}
@@ -63,7 +63,7 @@ The methods described so far in this chapter generally applies to both discrete 
 \section{Variational Bayes}
 \acrshort{bp} allows for exact inference of \acrshort{pgm}'s when there exists closed-form solutions of the integrals. This is however rarely the case and is only true for carefully chosen distributions. Requiring all combination of nodes to be conjugate priors (\cref{sec:theory_conjugate_priors}) can severely limit the expressibility of a \acrshort{pgm} and is not a viable solution. 
 
-Another approach is to approximate the target distribution $p^*(\mathbf{x} | \mathbf{v})$ with a \textbf{surrogate distribution} $q(\mathbf{x})$ constructed using conjugate priors to allow for exact inference. If $p^*(\cdot)$ and $q(\cdot)$ are similar, then \acrshort{bp} can be used on $q(\cdot)$ to do approximate inference.
+Another approach is to approximate the target distribution $p^*(\mathbf{x} | \mathbf{v})$ with a \textit{surrogate distribution} $q(\mathbf{x})$ constructed using conjugate priors to allow for exact inference. If $p^*(\cdot)$ and $q(\cdot)$ are similar, then \acrshort{bp} can be used on $q(\cdot)$ to do approximate inference.
 
 \subsection{Kullback-Liebler divergence}
 The \textit{\acrfull{kl}}  is used as a measure of difference between two probability distributions \cite{kullback1951,murphy}.
@@ -96,7 +96,7 @@ This problem is usually phrased as a maximization problem, and the objective fun
     \text{ELBO}(q) = E_q\big[\log p(\mathbf{x}, \mathcal{D})] - E_q\big[\log q(\mathbf{x}) \big]
 \end{equation}
 
-Variational Inference then boils down to finding the best surrogate posterior $q^*(\mathbf{x})$ which maximizes \acrshort{elbo} or minimizing \acrshort{kl} \cite{Blei_2017}.
+Variational Inference then boils down to finding the best surrogate posterior $q^*(\mathbf{x})$ which maximize \acrshort{elbo}, or equivalently minimize \acrshort{kl} \cite{Blei_2017}.
 
 \begin{equation}
     q^*(\mathbf{x}) = \arg \max_{q(\mathbf{x})} \text{ELBO}(q) = \arg \min_{q(\mathbf{x})} \mathbb{KL}(q(\mathbf{x}) || p^*(\mathbf{x} | \mathcal{D}))
@@ -106,20 +106,16 @@ Variational Inference then boils down to finding the best surrogate posterior $q
 
 \subsection{I or M mode projection}
 
-Forward KL is also known as \textbf{moment-projection} (M-projection)  as it will attempt to match the moments of $q(\cdot)$ with $p^*(\cdot)$. In the case of a multimodal $p^*(\cdot)$ and unimodal $q(\cdot)$, this may not be desirable as the mean is placed in between regions of high probability. Looking at \cref{eq:kl}, the KL divergence is infinite when $p(\cdot) > 0$ and $q(\cdot) = 0$. M-projection is therefore said to be \textbf{zero avoiding} as optimizing \cref{eq:kl} needs to ensure $q(\mathbf{x}) > 0$ when $p(\mathbf{x}) > 0$. M-projection therefore tends to over-estimate the support of $p^*(\cdot)$.
+Forward KL is also known as \textit{moment-projection} (M-projection)  as it will attempt to match the moments of $q(\cdot)$ with $p^*(\cdot)$. In the case of a multimodal $p^*(\cdot)$ and unimodal $q(\cdot)$, this may not be desirable as the mean is placed in between regions of high probability. Looking at \cref{eq:kl}, the KL divergence is infinite when $p(\cdot) > 0$ and $q(\cdot) = 0$. M-projection is therefore said to be \textit{zero avoiding} as optimizing \cref{eq:kl} needs to ensure $q(\mathbf{x}) > 0$ when $p(\mathbf{x}) > 0$. M-projection therefore tends to over-estimate the support of $p^*(\cdot)$.
 
-Reverse KL is known as \textbf{information-projection} (I-projection). As \cref{eq:reverse_kl} is infinite when $p^*(\cdot) = 0$ and $q(\cdot) > 0$, optimizing reverse KL therefore needs to ensure $q(\cdot) = 0$ when $p^*(\cdot)=0$. I-projection is therefore said to be \textbf{zero forcing} and tends to underestimate the support for $p^*(\cdot)$ \cite{murphy}. 
+Reverse KL is known as \textit{information-projection} (I-projection). As \cref{eq:reverse_kl} is infinite when $p^*(\cdot) = 0$ and $q(\cdot) > 0$, optimizing reverse KL therefore needs to ensure $q(\cdot) = 0$ when $p^*(\cdot)=0$. I-projection is therefore said to be \textit{zero forcing} and tends to underestimate the support for $p^*(\cdot)$ \cite{murphy}. 
 
 \subsection{Mean Field}
 The simplest method for variational inference is assuming independent variables for the surrogate distribution $q(\cdot)$. 
 \begin{equation}\label{eq:mean_field}
     q(\mathbf{x}) = \prod_i q_i(x_i)
 \end{equation}
-However, this is in many cases a very strong assumption which may lead to poor results in the case of strong interactions in the posterior distribution. An extension called \textbf{structured mean field} can in some cases be used if the posterior has a tractable substructures (i.e. sub graphs which can be described using "simple" distributions). The variables forming tractable substructures can then be combined into "mega-variables" and \cref{eq:mean_field} can be used as an approximation.   
+However, this is in many cases a very strong assumption which may lead to poor results in the case of strong interactions in the posterior distribution. An extension called \textit{structured mean field} can in some cases be used if the posterior has a tractable substructures (i.e. sub graphs which can be described using "simple" distributions). The variables forming tractable substructures can then be combined into "mega-variables" and \cref{eq:mean_field} can be used as an approximation \cite{murphy}.
 
 \subsection{Variational Message Passing}
 \subsection{Variational EM}
-
-
-
-\subsection{Calculus of Variation}
