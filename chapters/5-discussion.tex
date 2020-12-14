@@ -1,6 +1,6 @@
 \chapter{Discussion \& Conclusion}\label{chap:discussion}
 
-All of the methods described in this thesis so far have their strong advantages and disadvantages. 
+All of the methods described in this thesis have their strong advantages and disadvantages. 
 
 \section{When all variables are discrete}
 In the case of \acrshort{pgm}'s with only discrete variables, exact inference methods are often applicable. The challenges of Bayesian inference in such networks usually boils down to computational complexity when the number of variables increases and in which order the computations should be made. Exact methods such as \acrshort{bp} are in most cases the most appropriate choice, though some structures (in the case of loops) cannot guarantee an optimal solution. 
@@ -10,7 +10,7 @@ When some variables are continuous, the problem usually gets a bit more complica
 
 The most straight-forward approach will be to use \acrshort{mcmc} methods, due to their inherent simplicity. These methods allow sampling from arbitrarily complex models as long as the target probability can be evaluated. It can in most cases provide asymptotic guarantees that the samples is from the true posterior distribution, though only given a very large amount of samples. How many samples that are considered "enough" is difficult to say, and it usually require manual interpretations of the results in order to verify convergence. Using \acrshort{mcmc} in autonomous systems may therefore be challenging unless the model is sufficiently simple, in which case other methods may still be preferable. Due to the random nature of sampling methods, \acrshort{mcmc} is likely a poor choice for problems where deterministic behaviour is valued. 
 
-In the examples above, \acrshort{mcmc} used more than $8$ minutes sampling, compared to less $25$ seconds for \acrshort{vi} on the same model. Optimizations can most likely be made to significantly speed up both \acrshort{mcmc} and \acrshort{vi}, though the \acrshort{mcmc} will be limited to the large number of required samples needed for accurate results. 
+In the examples above, \acrshort{mcmc} used more than $8$ minutes sampling, compared to less than $25$ seconds for \acrshort{vi} on the same model. Optimizations can most likely be made to significantly speed up both \acrshort{mcmc} and \acrshort{vi}, though \acrshort{mcmc} will always be limited to the large number of required samples needed for accurate results. 
 
 
 
