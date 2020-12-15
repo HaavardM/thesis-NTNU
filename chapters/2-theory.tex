@@ -281,10 +281,10 @@ For a probability distribution $p: X \to (0, 1)$, it can be rewritten as \cref{e
 \end{equation}
 
 \subsection{Transformations}
-Given a (possibly nonlinear) transformation $\mathbf{y} = f(\mathbf{x})$, the probability distribution $p(\mathbf{y})$ can be expressed in terms of the $p(\mathbf{x})$ through a change of variables. The formula for a change of variables is expressed in \cref{eq:change_of_variable} where $\boldsymbol{J}(\mathbf{y})$ is the Jacobian of $f^{-1}(\mathbf{y})$.
+Given a (possibly nonlinear) transformation $\mathbf{y} = f(\mathbf{x})$, the probability distribution $p(\mathbf{y})$ can be expressed in terms of the $p(\mathbf{x})$ through a change of variables. The formula for a change of variables is expressed in \cref{eq:change_of_variable} where $\boldsymbol{F^{-1}}(\mathbf{y})$ is the Jacobian of $f^{-1}(\mathbf{y})$.
 
 \begin{equation}\label{eq:change_of_variable}
-    p(\mathbf{y}) = p(\mathbf{x}) | \det (\mathbf{J}) | = p_{\mathbf{x}}(f^{-1}(\mathbf{y})) | \det (\mathbf{J}(\mathbf{y})) |  
+    p(\mathbf{y}) = p(\mathbf{x}) | \det (\mathbf{J}) | = p_{\mathbf{x}}(f^{-1}(\mathbf{y})) | \det (\mathbf{F^{-1}}(\mathbf{y})) |  
 \end{equation}
 
 \subsection{Conjugate Priors}\label{sec:theory_conjugate_priors}
@@ -327,6 +327,5 @@ The Exponential Family is a family of distribution for which the \acrshort{pdf} 
 \end{equation}
 All the continuous distributions mentioned so far are part of the Exponential Family. Distributions in the exponential family always have conjugate priors, however they may not be standard, well-known distributions \cite{murphy}. 
 
-\subsection{Mixture Models}
 
 

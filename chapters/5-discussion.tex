@@ -1,25 +1,39 @@
 \chapter{Discussion \& Conclusion}\label{chap:discussion}
 
-All of the methods described in this thesis have their strong advantages and disadvantages. 
+\section{Assuming conjugate priors}
+The example in the previous chapter was only using fictitious model, but it still demonstrate the benefit of Bayesian Inference. The dataset available did not contain nearly enough data to fully identify all parameters, but through careful choice of prior distribution when designing the model, it was still able to learn from available observations. However, some of the modelling assumption were only possible when not assuming conjugate priors.
 
-\section{When all variables are discrete}
+The mean of the Gaussian mixture components were assumed a priori to be an angle between $(0, \pi)$. Using a scaled Beta distribution, it was easy to express that the mean should lie in $(0, \pi)$ and slightly prefer values closer to $\frac{pi}{2}$. Using the conjugate-prior Gaussian distribution would be challenging in this case, as the prior then would support values outside of $(0, \pi)$. This is where approximate methods such as $\acrshort{vi}$ and \acrshort{mcmc} really shine as they allow incorporation of prior knowledge using arbitrary distributions.  
+
+\section{Choice of surrogate density for \acrshort{vi}}
+It is important to emphasize that using a Gaussian mean-field approximation as surrogate density in the previous example is a strong assumption. As already discussed in \cref{chap:analytical}, these assumptions can be relaxed by more careful choice of surrogate densities. However, for a fictitious example the Gaussian distribution is still suited as a demonstration of the benefits and limitations of \acrshort{vi}.
+
+\section{Consistency}
+For use in a COLAV system, an important trait is consistency. An incorrect intention prediction could lead to dangerous situation, and it is important that the model never express certainty about incorrect values. The results from multiple simulations in \cref{fig:example_mc_mcmc} and \cref{fig:example_mc_vi} show how the results varies between different realizations of the dataset. While it is disappointing to see how bad some of the predictions are, it is more worrying how the uncertainty is low even if the predictions are off. These results would simply not be acceptable for real-world use, as the uncertainty do not reflect the true error. The results favors \acrshort{mcmc} over \acrshort{vi}, as it is able to better express the uncertainty.
+
+\section{Computational Complexity}
+The major drawback for \acrshort{mcmc} is the computational complexity. Each simulation in the previous chapter took more than 8 minutes to compute using \acrshort{mcmc}, making it slow and tedious to work with. While $N=30000$ samples for each chain may sound like a lot, it cannot guarantee that the chain actually has converged to the true posterior distribution, and the result may turn out to be invalid. Further, considering the $10000$ burn-in samples and thinning, each chain only result in $10000$ usable samples.
+
+\acrshort{vi} is a lot more efficient, and it scales well with the amount of data. In the examples, it took seconds to fit the surrogate density, and the results were usually comparable to \acrshort{mcmc}, especially if MAP predictions are considered. Looking back at \cref{fig:example_mc_vi}, the MAP predictions are rather evenly distributed around the true value and comparable to the much slower \acrshort{mcmc} method. It is however unable to accurately estimate the true uncertainty and is clearly limited by the Gaussian approximation.    
+
+
+\section{When to use which method?}
+
+\subsection{When all variables are discrete}
 In the case of \acrshort{pgm}'s with only discrete variables, exact inference methods are often applicable. The challenges of Bayesian inference in such networks usually boils down to computational complexity when the number of variables increases and in which order the computations should be made. Exact methods such as \acrshort{bp} are in most cases the most appropriate choice, though some structures (in the case of loops) cannot guarantee an optimal solution. 
 
-\section{When some variables are continuous}
+\subsection{When some variables are continuous}
 When some variables are continuous, the problem usually gets a bit more complicated. If all parent-child can be expressed using conjugate-priors, such as the case of Gaussian Belief Networks, exact methods can still be used. However, requiring the use of only conjugate-priors may in many cases be too restrictive as it limits the ability to express intuitive understanding of the data-generating process. 
 
 The most straight-forward approach will be to use \acrshort{mcmc} methods, due to their inherent simplicity. These methods allow sampling from arbitrarily complex models as long as the target probability can be evaluated. It can in most cases provide asymptotic guarantees that the samples is from the true posterior distribution, though only given a very large amount of samples. How many samples that are considered "enough" is difficult to say, and it usually require manual interpretations of the results in order to verify convergence. Using \acrshort{mcmc} in autonomous systems may therefore be challenging unless the model is sufficiently simple, in which case other methods may still be preferable. Due to the random nature of sampling methods, \acrshort{mcmc} is likely a poor choice for problems where deterministic behaviour is valued. 
 
-In the examples above, \acrshort{mcmc} used more than $8$ minutes sampling, compared to less than $25$ seconds for \acrshort{vi} on the same model. Optimizations can most likely be made to significantly speed up both \acrshort{mcmc} and \acrshort{vi}, though \acrshort{mcmc} will always be limited to the large number of required samples needed for accurate results. 
 
-
-
-Though it requires more work, \acrshort{vi} will in many cases be a better option. By posing the problem as a optimization problem rather than relying on sampling, variational inference can give deterministic behaviour as well as drastically speed up inference when compared to \acrshort{mcmc}. In the examples above, it took less than $25$ seconds to optimize with a fixed number of iterations, and by inspecting the ELBO it becomes obvious that the training time can be further reduced by early stopping when the learning rate start to diminish. 
+Though it requires more work, \acrshort{vi} will be a better option in cases where time is important. By posing the problem as a optimization problem rather than relying on sampling, variational inference can give deterministic behaviour as well as drastically speed up inference when compared to \acrshort{mcmc}. In the examples above, it took less than $8$ seconds to optimize with a fixed number of iterations, and by inspecting the ELBO it becomes obvious that the training time can be further reduced by early stopping when the learning rate start to diminish. 
 However, \acrshort{vi} requires manual selection of a good surrogate density, and the choice of a bad surrogate may lead to poor results due to invalid assumptions. \acrshort{vi} does therefore by itself not provide any guarantees on the correctness of the results as it will always be limited by the assumptions and approximations used by the surrogate density. In the case of complex posterior densities, it may also be challenging to find a proper functional representation of the distribution. As already seen in \cref{fig:example_mcmc_posterior}, the true posterior found by \acrshort{mcmc} does not resemble any known probability distribution. 
 
-A lot of research is currently focusing on how to apply \acrshort{vi} on more complicated models without the need of error-prone calculations or strict assumption. Methods such as variational message passing allows for more complicated surrogate densities in order to retain the interaction between variables in the model \cite{winnbishop}. 
+A lot of research is currently focusing on how to apply \acrshort{vi} on more complicated models without the need of error-prone calculations or strict assumption. Methods such as variational message passing allows for more complicated surrogate densities in order to retain the interaction between variables in the model, by combining \acrshort{bp} with \acrshort{vi} \cite{winnbishop}. 
 
-In practice, both methods are likely needed. \acrshort{mcmc} methods can be used to "blindly" sample from the true posterior in order to aid the selection of a proper surrogate density. \acrshort{vi} can then be used to approximate the true posterior without loosing information to invalid assumptions. 
+In practice, both methods are likely needed. During the design-phase, \acrshort{mcmc} methods can be used to "blindly" sample from the true posterior in order to aid the selection of a proper surrogate density. In a deployed system, \acrshort{vi} can then be used to approximate the true posterior without loosing too much information to invalid assumptions. 
 
 \section{Conclusion}
 

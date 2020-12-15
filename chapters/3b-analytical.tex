@@ -65,59 +65,66 @@ The methods described so far in this chapter generally applies to both discrete 
 \section{Variational Bayes}
 \acrshort{bp} allows for exact inference of \acrshort{pgm}'s when there exists closed-form solutions of the integrals. This is however rarely the case and is only true for carefully chosen distributions. Requiring all combination of nodes to be conjugate priors (\cref{sec:theory_conjugate_priors}) can severely limit the expressibility of a \acrshort{pgm} and is not a viable solution. 
 
-Another approach is to approximate the target distribution $p^*(\mathbf{x} | \mathcal{D})$ with a simpler \textit{surrogate distribution} $q(\mathbf{x})$. If the surrogate density is selected to be close to the true posterior $p^*(\mathbf{x} | \mathcal{D})$, it can be used for approximate inference. 
+Another approach is to approximate the target distribution $p(\mathbf{x} | \mathcal{D})$ with a simpler \textit{surrogate distribution} $q(\mathbf{x})$. If the surrogate density is selected to be close to the true posterior $p(\mathbf{x} | \mathcal{D})$, it can be used for approximate inference. 
 
 \subsection{Kullback-Liebler divergence}
 The \textit{\acrfull{kl}}  is used as a measure of difference between two probability distributions \cite{kullback1951,murphy}.
 
 \begin{equation}\label{eq:kl}
-    \mathbb{KL}(p^* || q) = \int_\mathbf{x} p^*(\mathbf{x}) \log \frac{p^*(\mathbf{x})}{q(\mathbf{x})} d\mathbf{x} = E_{p^*} \big[ \log \frac{p^*(\mathbf{x})}{q(\mathbf{x})} \big]
+    \mathbb{KL}(p || q) = \int_\mathbf{x} p(\mathbf{x}) \log \frac{p(\mathbf{x})}{q(\mathbf{x})} d\mathbf{x} = E_{p} \big[ \log \frac{p(\mathbf{x})}{q(\mathbf{x})} \big]
 \end{equation}
-The \acrshort{kl} divergence boils down to the expected difference between $p^*(\cdot)$ and $q(\cdot)$ over $p^*(\cdot)$.
-In this case $p^*(\cdot)$ is only assumed known up to a normalizing constant, making the expectation in \cref{eq:kl} intractable to compute. Instead, the reverse \acrshort{kl} divergence can be used as $q(\cdot)$ is assumed known.
+The \acrshort{kl} divergence boils down to the expected difference between $p(\cdot)$ and $q(\cdot)$ over $p(\cdot)$.
+In this case $p(\cdot)$ is only assumed known up to a normalizing constant, making the expectation in \cref{eq:kl} intractable to compute. Instead, the reverse \acrshort{kl} divergence can be used as $q(\cdot)$ is assumed known.
 \begin{equation}\label{eq:reverse_kl}
-    \mathbb{KL}(q || p^*) = \int_\mathbf{x} q(\mathbf{x}) \log \frac{q(\mathbf{x})}{p^*(\mathbf{x})} d\mathbf{x} = E_{q} \big[ \log \frac{q(\mathbf{x})}{p^*(\mathbf{x})} \big]
+    \mathbb{KL}(q || p) = \int_\mathbf{x} q(\mathbf{x}) \log \frac{q(\mathbf{x})}{p(\mathbf{x})} d\mathbf{x} = E_{q} \big[ \log \frac{q(\mathbf{x})}{p(\mathbf{x})} \big]
 \end{equation}
 
 \subsubsection{ELBO}
 In the case of variational inference, the goal is usually to find an approximation $q(\mathbf{x})$ for the posterior $p(\mathbf{x} | \mathcal{D})$. The reverse \acrshort{kl} can then be written as.
 \begin{subequations}
 \begin{align}
-    \mathbb{KL}(q(\mathbf{x}) || p^*(\mathbf{x} | \mathcal{D})) &= E_q\big[\log \frac{q(\mathbf{x})}{p^*(\mathbf{x} | \mathcal{D})} \big]\label{eq:elbo_kl}\\
-    &= E_q\big[\log \frac{q(\mathbf{x}) p^*(\mathcal{D})}{p^*(\mathbf{x}, \mathcal{D})} \big]\\
-    &= E_q\big[\log q(\mathbf{x}) \big] - E_q\big[\log p^*(\mathbf{x}, \mathcal{D})] + E_q\big[\log p^*(\mathcal{D}) \big]\\
-    &= E_q\big[\log q(\mathbf{x}) \big] - E_q\big[\log p^*(\mathbf{x}, \mathcal{D})] + \log p^*(\mathcal{D})\\
+    \mathbb{KL}(q(\mathbf{x}) || p(\mathbf{x} | \mathcal{D})) &= E_q\big[\log \frac{q(\mathbf{x})}{p(\mathbf{x} | \mathcal{D})} \big]\label{eq:elbo_kl}\\
+    &= E_q\big[\log \frac{q(\mathbf{x}) p(\mathcal{D})}{p(\mathbf{x}, \mathcal{D})} \big]\\
+    &= E_q\big[\log q(\mathbf{x}) \big] - E_q\big[\log p(\mathbf{x}, \mathcal{D})] + E_q\big[\log p(\mathcal{D}) \big]\\
+    &= E_q\big[\log q(\mathbf{x}) \big] - E_q\big[\log p(\mathbf{x}, \mathcal{D})] + \log p(\mathcal{D})\\
     &\leq E_q\big[\log q(\mathbf{x}) \big] - E_q\big[\log p(\mathbf{x}, \mathcal{D})]\label{eq:negative_elbo}
 \end{align}
 \end{subequations}
 
-As $p(\mathcal{D})$ is assumed intractable, the reverse \acrshort{kl} cannot be evaluated. However, since the surrogate density $q(\mathbf{x})$ only depend on $\mathbf{x}$, $\mathbb{KL}(q(\mathbf{x} || p^*(\mathbf{x} | \mathcal{D}))$ can still be optimized as $p(\mathcal{D})$ is constant. In other words, minimizing \cref{eq:negative_elbo} is equivalent to minimizing \cref{eq:elbo_kl}.
+As $p(\mathcal{D})$ is assumed intractable, the reverse \acrshort{kl} cannot be evaluated. However, since the surrogate density $q(\mathbf{x})$ only depend on $\mathbf{x}$, $\mathbb{KL}(q(\mathbf{x} || p(\mathbf{x} | \mathcal{D}))$ can still be optimized as $p(\mathcal{D})$ is constant. In other words, minimizing \cref{eq:negative_elbo} is equivalent to minimizing \cref{eq:elbo_kl}.
 
 This problem is usually phrased as a maximization problem, and the objective function to be \textbf{maximized} is called the \textit{\acrfull{elbo}} \cite{Blei_2017}.
 \begin{equation}
     \text{ELBO}(q) = E_q\big[\log p(\mathbf{x}, \mathcal{D})] - E_q\big[\log q(\mathbf{x}) \big]
 \end{equation}
 
-Variational Inference then boils down to finding the best surrogate density $q^*(\mathbf{x})$ which maximize \acrshort{elbo}, or equivalently minimize \acrshort{kl} \cite{Blei_2017}.
+Variational Inference then boils down to finding the best surrogate density $q^*(\mathbf{x})$ which maximize \acrshort{elbo}, or equivalently minimize \acrshort{kl} 
 
 \begin{equation}
-    q^*(\mathbf{x}) = \arg \max_{q(\mathbf{x})} \text{ELBO}(q) = \arg \min_{q(\mathbf{x})} \mathbb{KL}(q(\mathbf{x}) || p^*(\mathbf{x} | \mathcal{D}))
+    q^*(\mathbf{x}) = \arg \max_{q(\mathbf{x})} \text{ELBO}(q) = \arg \min_{q(\mathbf{x})} \mathbb{KL}(q(\mathbf{x}) || p(\mathbf{x} | \mathcal{D}))
 \end{equation}
 
 
 
 \subsection{I or M mode projection}\label{sec:im-mode}
 
-Forward KL is also known as \textit{moment-projection} (M-projection)  as it will attempt to match the moments of $q(\cdot)$ with $p^*(\cdot)$. In the case of a multimodal $p^*(\cdot)$ and unimodal $q(\cdot)$, this may not be desirable as the mean is placed in between regions of high probability. Looking at \cref{eq:kl}, the KL divergence is infinite when $p(\cdot) > 0$ and $q(\cdot) = 0$. M-projection is therefore said to be \textit{zero avoiding} as optimizing \cref{eq:kl} needs to ensure $q(\mathbf{x}) > 0$ when $p(\mathbf{x}) > 0$. M-projection therefore tends to over-estimate the support of $p^*(\cdot)$.
+Forward KL is also known as \textit{moment-projection} (M-projection)  as it will attempt to match the moments of $q(\cdot)$ with $p(\cdot)$. In the case of a multimodal $p(\cdot)$ and unimodal $q(\cdot)$, this may not be desirable as the mean is placed in between regions of high probability. Looking at \cref{eq:kl}, the KL divergence is infinite when $p(\cdot) > 0$ and $q(\cdot) = 0$. M-projection is therefore said to be \textit{zero avoiding} as optimizing \cref{eq:kl} needs to ensure $q(\mathbf{x}) > 0$ when $p(\mathbf{x}) > 0$. M-projection therefore tends to over-estimate the support of $p(\cdot)$.
 
-Reverse KL is known as \textit{information-projection} (I-projection). I-projection tends to converge toward a local mode, which may or may not be desired. In the case of multimodal distributions, reverse \acrshort{kl} can therefore converge toward a local mode, even if there exist modes with higher probability mass. As \cref{eq:reverse_kl} is infinite when $p^*(\cdot) = 0$ and $q(\cdot) > 0$, optimizing reverse KL therefore needs to ensure $q(\cdot) = 0$ when $p^*(\cdot)=0$. I-projection is therefore said to be \textit{zero forcing} and tends to underestimate the support for $p^*(\cdot)$ \cite{murphy}. 
+Reverse KL is known as \textit{information-projection} (I-projection). I-projection tends to converge toward a local mode, which may or may not be desired. In the case of multimodal distributions, reverse \acrshort{kl} can therefore converge toward a local mode, even if there exist modes with higher probability mass. As \cref{eq:reverse_kl} is infinite when $p(\cdot) = 0$ and $q(\cdot) > 0$, optimizing reverse KL therefore needs to ensure $q(\cdot) = 0$ when $p(\cdot)=0$. I-projection is therefore said to be \textit{zero forcing} and tends to underestimate the support for $p(\cdot)$ \cite{murphy}. 
 
-\subsection{Mean Field}
-The simplest method for variational inference is assuming independent variables for the surrogate distribution $q(\cdot)$. 
+\subsection{Selecting a good surrogate density}
+Finding a good surrogate density can be difficult. Perhaps the simplest method is to assume $q(\cdot)$ is to assume a specific parametrization and simply optimize over the parameters using numerical optimization techniques. 
+
+Another way to restrict the set of possible surrogate densities is to assume independent variables for the surrogate distribution $q(\cdot)$. This is called a \textit{mean-field} approximation.
 \begin{equation}\label{eq:mean_field}
     q(\mathbf{x}) = \prod_i q_i(x_i)
 \end{equation}
 However, this is in many cases a very strong assumption which may lead to poor results in the case of strong interactions in the posterior distribution. An extension called \textit{structured mean field} can in some cases be used if the posterior has tractable substructures (i.e. sub graphs which can be described using "simple" distributions). The variables forming tractable substructures can then be combined into "mega-variables" and \cref{eq:mean_field} can be used as an approximation \cite{murphy}.
 
+When assuming a mean field approximation, it can be shown that the optimal surrogate density $q_j^*(x_j)$ satisfies \cref{eq:optimal_mean_field}. The optimal unnormalized log surrogate density for variable $x_i$ is simply the expectation of the log joint density $\log p(\mathcal{D}, \boldsymbol{x})$ over all variables except $x_i$. If all nodes in the \acrshort{pgm} are conjugate-priors, the expectation can be expressed analytically, and the optimal surrogate distribution can be by found  by updating each $q_j$ one at a time, using the current estimate of all other $q_{j\neq i}$, and repeat until (guaranteed) convergence \cite{bishop2007}. If the expectation cannot be computed analytically, further assumptions or approximations need to be used when optimizing \acrshort{elbo}.
+\begin{equation}\label{eq:optimal_mean_field}
+    \log q_i^*(x_i) = E_{q_{j \neq i}}\big[\log p(\mathcal{D}, \mathbf{x}) \big] + const
+\end{equation}
+
 \subsection{Variational Message Passing}
-\subsection{Variational EM}
+\cite{winnbishop} introduces \textit{Variational Message Passing} (VMP) which combines \acrshort{bp} with \acrshort{vi} on conjugate-exponential models (i.e. models with conjugate priors and exponential family distributions). It propose a general framework for such models where a mean-field approximation is expressed as message-passing. The paper further propose extensions to VMP in order to relax the conjugacy constraints.
