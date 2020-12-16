@@ -3,109 +3,7 @@
 This chapter focuses on comparing the performance between \acrshort{mcmc} and \acrshort{vi} methods for performing inference in a \acrshort{pgm}. These methods allow inference in arbitrary models and can therefore be used with generative models designed independently of the inference method. At this point this is very beneficial, since a realistic intention model is not known. Each method have their strengths and weaknesses for different types of problems. As a compromise, this chapter will focus on comparing the performance of a fictitious model in order to discuss a concrete example and to show how \acrshort{mcmc} and \acrshort{vi} can be used in practice.
 
 \section{The model}
-As the context of this paper is intention inference for autonomous ferries, it seems fit that a similar example is used. A simple intention model is therefore proposed as an example, which relates steering angle to an intention through a mixture model. 
-
-The angle $\theta$ is defined to be the angle between the obstacle's current course and a simple predicted course given the obstacle's final destination. The vessels are required to report their final destination, but in some cases there may be user-errors where invalid destinations are transmitted to nearby vessels. If the obstacle's reported final destination is correct, $D=0$, the angle should be closely related to the obstacle's intention and can be generated from a Gaussian selected by the intention $I$ (i.e. a mixture of Gaussian's weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta$ is independent of intention as the obstacle may he headed in a completely different direction.
-
-This example model is intentionally not identifiable when observing only the angles $\boldsymbol{\theta}$. A key benefit of Bayesian model is that they are able to automatically handle low amount or sparse data, by relying on priors when the data is inconclusive. This example will show how the choice of priors affect the learning process, especially when parameters are not identifiable. Through the use of informative priors the model should still be able to learn what it can from available data, as well as express uncertainty when the data is inconclusive .   
-
-Whether or not the final destination is valid is modelled using a Bernoulli variable $D_t$ which takes the value $1$ if the destinations is \textbf{invalid}. A Beta distribution is used to model the prior probability $p_D = \Pr \{D=1\}$, i.e. the probability of the destination being invalid.  
-
-\subsubsection{Model Assumptions}
-The assumptions used when designing the model is summarized below:
-\begin{description}
-    \item[Assumption 1] The angles $\{\theta_1, \theta_2, \dots, \theta_t\}$ are independent
-    \item[Assumption 2] The ship has equal turning characteristics for port and starboard turns. The intention probabilities are from this assumed symmetrical about $\theta=0$. 
-    \item[Assumption 3] Port and starboard turns are defined to be turns where $\theta \in (0, \pi)$ and $\theta \in (-\pi, 0)$ respectively.  
-\end{description}
-
-\begin{equation}
-    p_D \sim \text{Beta}, \quad p_D \in (0, 1)
-\end{equation}
-\begin{equation}
-    D_t \sim \text{Bernoulli}(p_D), \quad D_t \in \{0, 1\}
-\end{equation}
-
-The intention in a situation $I_t$ is modelled by a Categorical discrete variable where the possible realizations are shown in \cref{tbl:intentions}. The intention probabilities $\boldsymbol{\alpha}$ are distributed according to a Dirichlet distribution.
-
-\begin{equation}
-    \boldsymbol{\alpha} \sim \text{Dirichlet}, \quad \boldsymbol{\alpha} \in \{\alpha_0, \alpha_1, \alpha_2 \in (0, 1) \; | \; \sum_i \alpha_i = 1 \}
-\end{equation}
-\begin{equation}
-    I_t \sim \text{Categorical}(\boldsymbol{\alpha}), \quad I_t \in \{0, 1, 2\}
-\end{equation}
-
-\begin{table}[h]
-\centering
-\begin{tabular}{|l|l|}
-\hline
-$I_t=0$ & The obstacle intends to keep its current course \\ \hline
-$I_t=1$ & The obstacle intends a starboard turn           \\ \hline
-$I_t=2$ & The obstacle intends a port-side turn            \\ \hline
-\end{tabular}
-\caption{Possible realizations of the intention $I_t$}
-\label{tbl:intentions}
-\end{table}
-
-
-The mixture components for $\theta_t$ when $D_t=0$ are Gaussian Distributions. For $I=0$, the mean is zero with unknown variance. For $I \in \{1, 2\}$ the means are unknown, but assumed to have equal absolute value $\mu$ with opposite sign. $\mu$ is by \textbf{Assumption 3} assumed to be in the range $(0, \pi)$. The value for $\mu = \mu_2 = -\mu_1$ is therefore distributed according to a scaled Beta distribution with support on $\mu \in (0, \pi)$.  Using \cref{eq:change_of_variable} for change of variable, the distribution of $\mu$ becomes 
-
-\begin{equation}\label{eq:prior_mu}
-    p(\mu) = \text{Beta}(f^{-1}(\mu)) \frac{1}{|f'(f^{-1}(\mu))|}  = \text{Beta}(\frac{\mu}{\pi}), \quad \mu = f(x) = \pi x
-\end{equation}
-
-The standard deviation is assumed equal for all intentions and is distributed according to an inverse Gamma distribution. In other words, the mixture components are assumed to have the same variance and they should be symmetrical around $\theta_t=0$.
-Learning the mean $\mu$ from data allows the model to adapt to different types of ships. A small fishing vessel might rapidly change course (i.e. large $\theta_t$), while a large oil-tanker has limited ability to turn due to its size (i.e. smaller $\theta_t$). It further allows the model to generalize some of what it learns from the different intentions and reuse the information, e.g. if the model only observe starboard turns, it could still generalize to port turns through \textbf{Assumption 2}. 
-
-\begin{align}
-     \frac{\mu}{\pi} &\sim \text{Beta} & \sigma &\sim \text{Inv-Gamma} \\
-     \mu_0 &= 0 & \mu_{2} &= -\mu_{1} = \mu
-\end{align}
-
-When $D=0$ and $I_t=i$, the angle is distributed according to
-\begin{equation}\label{eq:theta_intention_mixture}
-    p(\theta_t | D_t=0, I_t=i) = \mathcal{N}(\mu_i, \sigma^2), \quad \theta_t \in \mathcal{R}
-\end{equation}
-
-The marginal distribution of $\theta_t$ when $D_t=0$ becomes the Gaussian mixture model in \cref{eq:angle_gauss_mixture}.
-
-\begin{align}\label{eq:angle_gauss_mixture}
-\begin{split}
-    p(\theta_t | \boldsymbol{\mu}, \sigma, D=0, \boldsymbol{\alpha}) &= \sum_{i=0}^2 \Pr\{I_t=i\}\mathcal{N}(\theta_t | \mu_i, \sigma^2) \\
-    &=\Pr\{I_t=0 | \alpha_0\}\mathcal{N}(\theta_t | 0, \sigma^2)\\
-    &\quad+\Pr\{I_t=1 | \alpha_1\}\mathcal{N}(\theta_t | -\mu, \sigma^2)\\
-    &\quad+\Pr\{I_t=2 | \alpha_2\}\mathcal{N}(\theta_t | \mu, \sigma^2)
-\end{split}
-\end{align}
-
-One issue with using a Guassian distribution for angle information is that it has support on $\mathcal{R}$, while the angles $\theta$ should ideally only have support on $(-\pi, \pi)$. In practice, this may not be a big issue as long as the probability mass is mostly kept within $(-\pi, \pi)$. Another solution could be to use a nonlinear transformation to clamp $\mathcal{R}$ to $(-\pi, \pi)$.
-
-\cref{fig:intention_angle} shows the likelihood for different angles for the different intentions with fixed mean and variance. 
-
-When the obstacle's target destination is invalid, $D=1$, the angle $\theta$ is distributed according to a Uniform distribution over the range $(-\pi, \pi)$ to model how the angle contains no information about the obstacle in such a case. 
-
-\begin{equation}\label{eq:angle_uniform}
-    p(\theta_t | D=1) = \text{Uniform}(-\pi, \pi)
-\end{equation}
-
-The distribution for $\theta_t$ becomes a mixture between the Gaussian Mixture in \cref{eq:angle_gauss_mixture} and the uniform distribution in  \cref{eq:angle_uniform} as expressed in \cref{eq:angle_complete_mixture} by the law of total probability.
-
-\begin{align}\label{eq:angle_complete_mixture}
-\begin{split}
-     p(\theta_t | \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})
-     &= \sum_D \Pr\{D_t=d | p_D\} p(\theta_t | D_t=d, \mu, \sigma, \boldsymbol{\alpha})\\
-     &= \Pr\{D_t = 0 | p_D\} \underbrace{p(\theta_t | \mu, \sigma, D_t=0, \boldsymbol{\alpha})}_{\text{\cref{eq:angle_gauss_mixture}}}\\
-     &+ \Pr\{D_t=1 | p_D\}\underbrace{p(\theta_t | D_t=1)}_{\text{\cref{eq:angle_uniform}}}
-\end{split}
-\end{align}
-
-The data generating process for $\theta_t$ is shown in \cref{fig:example_pgm} then becomes:
-
-\begin{enumerate}
-    \item Draw priors $p_D$, $\boldsymbol{\alpha}$, $\mu$ and $\sigma$
-    \item For all $t \in \{1, \dots, N \}$, draw $D_t$ and $I_t$ conditional on $p_D$ and $\boldsymbol{\alpha}$
-    \item For all $t \in \{1, \dots, N\} $, if $D_t=1$, draw $\theta_t$ from Uniform distribution. If not, draw $\theta_t$ from $\mathcal{N}(\theta_t | \mu_i, \sigma)$ conditional on $I=i$, $\mu_i$ and $\sigma$. 
-\end{enumerate}
+As the context of this paper is intention inference for autonomous ships, it seems fit that such an example is used. A simple intention model is therefore proposed as an example, which relates steering angle to an intention through a mixture model. The data generating process for the observed angle $\theta$ is shown in \cref{fig:example_pgm} and will be explained further in this section.
 
 \begin{figure}[h]
     \centering
@@ -149,6 +47,113 @@ The data generating process for $\theta_t$ is shown in \cref{fig:example_pgm} th
     \label{fig:example_pgm}
 \end{figure}
 
+The angle $\theta$ is defined to be the angle between the obstacle's current course and a simple predicted course given the obstacle's final destination. The vessels are required to report their final destination, but in some cases there may be user-errors where invalid destinations are transmitted to nearby vessels. If the obstacle's reported final destination is correct, $D=0$, the angle should be closely related to the obstacle's intention and can be generated from a Gaussian selected by the intention $I$ (i.e. a mixture of Gaussian's weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta$ is independent of intention as the obstacle may he headed in a completely different direction.
+
+\subsection{Model Assumptions}
+The assumptions used when designing the model is summarized below:
+\begin{description}
+    \item[Assumption 1] The angles $\{\theta_1, \theta_2, \dots, \theta_t\}$ are independent
+    \item[Assumption 2] The ship has equal turning characteristics for port and starboard turns. The intention probabilities are from this assumed symmetrical about $\theta=0$. 
+    \item[Assumption 3] Port and starboard turns are defined to be turns where $\theta \in (0, \pi)$ and $\theta \in (-\pi, 0)$ respectively.
+\end{description}
+
+\subsection{Identifiabilty}
+This example model is intentionally not identifiable when observing only the angles $\boldsymbol{\theta}$. A key benefit of Bayesian model is that they are able to automatically handle low amount or sparse data, by relying on priors when the data is inconclusive. This example will show how the choice of priors affect the learning process, especially when parameters are not identifiable. Through the use of informative priors the model should still be able to learn what it can from available data, as well as express uncertainty when the data is inconclusive .   
+
+\subsection{Valid final destination}
+Whether or not the final destination is valid is modelled using a Bernoulli variable $D_t$ which takes the value $1$ if the destinations is \textbf{invalid}. A Beta distribution is used to model the prior probability $p_D = \Pr \{D=1\}$, i.e. the probability of the destination being invalid.  
+
+\begin{equation}
+    p_D \sim \text{Beta}, \quad p_D \in (0, 1)
+\end{equation}
+\begin{equation}
+    D_t \sim \text{Bernoulli}(p_D), \quad D_t \in \{0, 1\}
+\end{equation}
+
+\subsection{Intentions}
+The intention in a situation $I_t$ is modelled by a Categorical discrete variable where the possible realizations are shown in \cref{tbl:intentions}. The intention probabilities $\boldsymbol{\alpha}$ are distributed according to a Dirichlet distribution.
+
+\begin{equation}
+    \boldsymbol{\alpha} \sim \text{Dirichlet}, \quad \boldsymbol{\alpha} \in \{\alpha_0, \alpha_1, \alpha_2 \in (0, 1) \; | \; \sum_i \alpha_i = 1 \}
+\end{equation}
+\begin{equation}
+    I_t \sim \text{Categorical}(\boldsymbol{\alpha}), \quad I_t \in \{0, 1, 2\}
+\end{equation}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+$I_t=0$ & The obstacle intends to keep its current course \\ \hline
+$I_t=1$ & The obstacle intends a starboard turn           \\ \hline
+$I_t=2$ & The obstacle intends a port-side turn            \\ \hline
+\end{tabular}
+\caption{Possible realizations of the intention $I_t$}
+\label{tbl:intentions}
+\end{table}
+
+\subsection{Steering angle}
+The mixture components for $\theta_t$ when $D_t=0$ are Gaussian Distributions. For $I=0$, the mean is zero with unknown variance. For $I \in \{1, 2\}$ the means are unknown, but assumed, by \textbf{Assumption 2}, to have equal absolute value $\mu$ with opposite sign. This assumptions allows the model to generalize some of what it learns from the different intentions and reuse the information, e.g. if the model only observe starboard turns, it could still generalize to port turns.  $\mu$ is by \textbf{Assumption 3} assumed to be in the range $(0, \pi)$. The value for $\mu = \mu_2 = -\mu_1$ is therefore distributed according to a scaled Beta distribution with support on $\mu \in (0, \pi)$.  Using \cref{eq:change_of_variable} for change of variable, the distribution of $\mu$ becomes 
+
+\begin{equation}\label{eq:prior_mu}
+    p(\mu) = \text{Beta}(f^{-1}(\mu)) \frac{1}{|f'(f^{-1}(\mu))|}  = \frac{1}{\pi} \text{Beta}(\frac{\mu}{\pi}), \quad \mu = f(x) = \pi x
+\end{equation}
+
+The standard deviation is assumed equal for all intentions and is distributed according to an inverse Gamma distribution. In other words, the mixture components are assumed to have the same variance and they should be symmetrical around $\theta=0$.
+Learning the mean $\mu$ from data allows the model to adapt to different types of ships. A small fishing vessel might rapidly change course (i.e. large $\mu$), while a large oil-tanker has limited ability to turn due to its size (i.e. $\mu$). 
+
+\begin{align}
+     \frac{\mu}{\pi} &\sim \text{Beta} & \sigma &\sim \text{Inv-Gamma} \\
+     \mu_0 &= 0 & \mu_{2} &= -\mu_{1} = \mu
+\end{align}
+
+When $D=0$ and $I=i$, the angle is distributed according to
+\begin{equation}\label{eq:theta_intention_mixture}
+    p(\theta_t | D_t=0, I_t=i) = \mathcal{N}(\mu_i, \sigma^2), \quad \theta_t \in \mathcal{R}
+\end{equation}
+
+The marginal distribution of $\theta$ when $D=0$ becomes the Gaussian mixture model in \cref{eq:angle_gauss_mixture}.
+
+\begin{align}\label{eq:angle_gauss_mixture}
+\begin{split}
+    p(\theta_t | \boldsymbol{\mu}, \sigma, D=0, \boldsymbol{\alpha}) &= \sum_{i=0}^2 \Pr\{I_t=i\}\mathcal{N}(\theta_t | \mu_i, \sigma^2) \\
+    &=\Pr\{I_t=0 | \alpha_0\}\mathcal{N}(\theta_t | 0, \sigma^2)\\
+    &\quad+\Pr\{I_t=1 | \alpha_1\}\mathcal{N}(\theta_t | -\mu, \sigma^2)\\
+    &\quad+\Pr\{I_t=2 | \alpha_2\}\mathcal{N}(\theta_t | \mu, \sigma^2)
+\end{split}
+\end{align}
+
+One issue with using a Guassian distribution for angle information is that it has support on $\mathcal{R}$, while the angles $\theta$ should ideally only have support on $(-\pi, \pi)$. In practice, this may not be a big issue as long as the probability mass is mostly kept within $(-\pi, \pi)$. Another solution could be to use a nonlinear transformation to clamp $\mathcal{R}$ to $(-\pi, \pi)$.
+
+\cref{fig:intention_angle} shows the likelihood for different angles for the different intentions with fixed mean and variance. 
+
+When the obstacle's target destination is invalid, $D=1$, the angle $\theta$ is distributed according to a Uniform distribution over the range $(-\pi, \pi)$ to model how the angle contains no information about the obstacle in such a case. 
+
+\begin{equation}\label{eq:angle_uniform}
+    p(\theta_t | D=1) = \text{Uniform}(-\pi, \pi)
+\end{equation}
+
+The distribution for $\theta_t$ becomes a mixture between the Gaussian Mixture in \cref{eq:angle_gauss_mixture} and the uniform distribution in  \cref{eq:angle_uniform} as expressed in \cref{eq:angle_complete_mixture} by the law of total probability.
+
+\begin{align}\label{eq:angle_complete_mixture}
+\begin{split}
+     p(\theta_t | \boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})
+     &= \sum_D \Pr\{D_t=d | p_D\} p(\theta_t | D_t=d, \mu, \sigma, \boldsymbol{\alpha})\\
+     &= \Pr\{D_t = 0 | p_D\} \underbrace{p(\theta_t | \mu, \sigma, D_t=0, \boldsymbol{\alpha})}_{\text{\cref{eq:angle_gauss_mixture}}}\\
+     &+ \Pr\{D_t=1 | p_D\}\underbrace{p(\theta_t | D_t=1)}_{\text{\cref{eq:angle_uniform}}}
+\end{split}
+\end{align}
+
+\subsection{Data-generating process}
+The data-generating process for $\boldsymbol{\theta}$ becomes:
+\begin{enumerate}
+    \item Draw priors $p_D$, $\boldsymbol{\alpha}$, $\mu$ and $\sigma$
+    \item For all $t \in \{1, \dots, N \}$, draw $D_t$ and $I_t$ conditional on $p_D$ and $\boldsymbol{\alpha}$
+    \item For all $t \in \{1, \dots, N\} $, if $D_t=1$, draw $\theta_t$ from Uniform distribution. If not, draw $\theta_t$ from $\mathcal{N}(\theta_t | \mu_i, \sigma)$ conditional on $I=i$, $\mu_i$ and $\sigma$. 
+\end{enumerate}
+
+
+
 
 
 The resulting joint distribution  can then be factored into \cref{eq:example_joint}.
@@ -170,7 +175,7 @@ The unnormalized posterior distribution then becomes
 \begin{figure}
     \centering
     \includegraphics[width=0.7\textwidth]{figures/intention_angle.png}
-    \caption{Normalized likelihood of different angles under different intention hypotheses. This is a polar plot where the angle represent $\theta_t^{(I=i)}$, the radius represent the probability. This is generated from \cref{eq:theta_intention_mixture} with $\mu_0=0$, $\mu_1 = -\frac{\pi}{2}$, $\mu_2=\frac{\pi}{2}$ and $\sigma_i=\frac{\pi}{8}$}
+    \caption{Normalized likelihood of different angles under different intention hypotheses. This is a polar plot where the angle represent $\theta^{(I=i)}$, the radius represent the probability. This is generated from \cref{eq:theta_intention_mixture} with $\mu_0=0$, $\mu_1 = -\frac{\pi}{2}$, $\mu_2=\frac{\pi}{2}$ and $\sigma_i=\frac{\pi}{8}$}
     \label{fig:intention_angle}
 \end{figure}
 
@@ -285,7 +290,7 @@ The posterior distributions when using \acrshort{mcmc} are shown in \cref{fig:ex
 
 
 
-Another dataset with only $N=50$ samples was generated to see how the methods behave with low amounts of data. \cref{fig:example_mcmc_vi_low_N} show how \acrshort{vi} is a bit overconfident on the intention probabilities and underestimate the uncertainty when compared to \acrshort{mcmc}. The results are otherwise very similar as shown in \cref{fig:example_mcmc_low_N} and \cref{fig:example_vi_low_N} for \acrshort{mcmc} and \acrshort{vi} respectively. Both methods are able to express the high uncertainty due to the limited amount of data available. 
+Another dataset with only $N=50$ samples was generated to see how the methods behave with low amounts of data. \cref{fig:example_mcmc_vi_low_N} show how \acrshort{vi} is a bit overconfident and underestimate the uncertainty when compared to \acrshort{mcmc}. The results are otherwise very similar as seen from \cref{fig:example_mcmc_low_N} and \cref{fig:example_vi_low_N} for \acrshort{mcmc} and \acrshort{vi} respectively. Both methods are able to express the high uncertainty due to the limited amount of data available. 
 
 \begin{figure}[h]
     \centering
@@ -301,7 +306,7 @@ Another dataset with only $N=50$ samples was generated to see how the methods be
     \label{fig:example_mc_vi}
 \end{figure}
 
-When running the simulations with different realizations of the data, it was easy to see that the performance depend quite heavily on the data. 10 simulations with the parameters from \cref{tbl:example_params} and $N=1000$ samples were used. New datasets were generated for each simulation using different random seeds. The results in \cref{fig:example_mc_vi} demonstrate how \acrshort{vi} give very different results for different datasets. Some results do not even include the true values and \acrshort{vi} is simply not able to produce consistent results on this problem. 
+When running the simulations with different realizations of the data, it was easy to see that the results are rather inconsistent. 10 simulations with the parameters from \cref{tbl:example_params} and $N=1000$ samples were used. New datasets were generated for each simulation using different random seeds. The results in \cref{fig:example_mc_vi} demonstrate how \acrshort{vi} give very different results for different datasets. Some results do not even include the true values and \acrshort{vi} is simply not able to produce consistent results on this problem. 
 Similar results for \acrshort{mcmc} are shown in \cref{fig:example_mc_mcmc}, where there are some variations between the posterior densities. However, \acrshort{mcmc} is able to better express the uncertainty and most of the densities include the true parameters.
 
 

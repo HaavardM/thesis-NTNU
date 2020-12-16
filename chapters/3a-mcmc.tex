@@ -1,6 +1,5 @@
 
 \chapter{Monte Carlo Sampling}\label{chap:mcmc}
-\section{Importance Sampling}\label{sec:theory_importance_sampling}
 
 \section{Markov-Chain-Monte-Carlo}
 The main idea behind \acrfull{mcmc} algorithms is to construct Markov Chains whose stationary distribution is the desired target density. After drawing many correlated samples from such a chain, the fraction of time spent in each state will be proportional to the target density $p^*(\mathbf{x})$ \cite{murphy}. 
@@ -60,7 +59,7 @@ Hamilton's equations is given by \cref{eq:hamiltonian_dynamics}. $H$ is the Hami
     H(\mathbf{q}, \mathbf{p}) &= U(\mathbf{q}) + \frac{1}{2} \mathbf{p}^\intercal M^{-1} \mathbf{p} & U(\mathbf{q}) = - \ln p^*(\mathbf{q})
 \end{align}
 
-An extension to \acrshort{hmc}, the \textit{\acrfull{nuts}} is proposed in \cite{hoffman2011nouturn}. It eliminates the need for manual tuning of leapfrog steps and it is shown empirically to perform comparably to well tuned \acrshort{hmc} method without any manual intervention \cite{hoffman2011nouturn}.
+An extension to \acrshort{hmc}, the \textit{\acrfull{nuts}} is proposed in \cite{hoffman2011nouturn}. It eliminates the need for manual tuning of leapfrog steps and it is shown empirically to perform comparably to well tuned \acrshort{hmc} method without any manual intervention.
 
 
 
