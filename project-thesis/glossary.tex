@@ -1,0 +1,41 @@
+
+% From https://www.overleaf.com/learn/latex/Glossaries
+
+\makeglossaries % Prepare for adding glossary entries
+
+
+
+% --------------------
+% ----- Acronyms -----
+% --------------------
+
+\newacronym{mcmc}{MCMC}{Markov Chain Monte Carlo}
+\newacronym{pgm}{PGM}{Probabilistic Graphical Model}
+\newacronym{bp}{BP}{Belief Propagation}
+\newacronym{dgm}{DGM}{Directed Graphical Models}
+\newacronym{bn}{BN}{Bayesian Network}
+\newacronym{mrf}{MRF}{Markov Random Fields}
+\newacronym{kl}{KL}{Kullback-Liebler divergence}
+\newacronym{pdf}{PDF}{Probability Density Function}
+\newacronym{pmf}{PMF}{Probability Mass Function}
+\newacronym{vi}{VI}{Variational Inference}
+\newacronym{elbo}{ELBO}{Evidence Lower Bound}
+\newacronym{hmc}{HMC}{Hamiltonian Monte Carlo}
+\newacronym{nuts}{NUTS}{No-U-Turn sampler}
+\newacronym{colav}{COLAV}{Collision Avoidance}
+
+\newglossaryentry{moralization}
+{
+    name=moralization,
+    description={The process of converting Directed Graphical Models into Markov Random Fields}
+}
+
+\newglossaryentry{support}{
+    name=support,
+    description={The set of possible outcomes/values with a non-zero probability, i.e. all events that can happen. A Gaussian distribution for example have support for $x \in \mathcal{R}$ since it has a non-zero probability, $p(x) > 0$, for all real numbers $x \in \mathcal{R}$.}
+}
+
+\newglossaryentry{colregs}{
+    name=COLREGS,
+    description={International Regulations for Preventing Collisions at Sea, a set of rules for ships navigating at sea.}
+}

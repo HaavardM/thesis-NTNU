@@ -1,0 +1,42 @@
+\documentclass[british,titlepage]{ntnuthesis}
+
+\title{Bayesian Inference in Probabilistic Graphical Models for intention modelling }
+\shorttitle{Intent Inference}
+\author{Håvard Skåra Mellbye}
+\shortauthor{Mellbye}
+\date{CC-BY \ntnuthesisdate}
+
+\addbibresource{thesis.bib}
+
+\usepackage{tikz}
+\usetikzlibrary{bayesnet}
+\usepackage{ifthen}
+
+\input{glossary.tex} % add glossary and acronym lists before document
+
+\begin{document}
+
+\input{chapters/0a-abstract.tex}
+
+\tableofcontents
+\listoffigures
+\listoftables
+%\lstlistoflistings
+
+
+\printglossary[type=\acronymtype] % Print acronyms
+\printglossary                    % Print glossary
+
+\input{chapters/1-introduction.tex}
+\input{chapters/2-theory.tex}
+\input{chapters/4-implementation-and-result.tex}
+\input{chapters/5-discussion.tex}
+\input{chapters/6-conclusion.tex}
+
+\chapter*{\bibname}
+\printbibliography[heading=none]
+
+\appendix
+\input{appendices/a-appendix.tex}
+
+\end{document}

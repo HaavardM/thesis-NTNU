@@ -1,0 +1,30 @@
+\ifglsentryexists{pgm}{}%
+{%
+\gls@defglossaryentry{pgm}%
+{%
+name={PGM},%
+sort={PGM},%
+type={acronym},%
+first={Probabilistic Graphical Model\glsspace (PGM)},%
+firstplural={Probabilistic Graphical Models\glsspace (PGMs)},%
+text={PGM},%
+plural={PGMs},%
+description={Probabilistic Graphical Model},%
+descriptionplural={Probabilistic Graphical Model\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Probabilistic Graphical Model},%
+longplural={Probabilistic Graphical Models},%
+short={PGM},%
+shortplural={PGMs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
