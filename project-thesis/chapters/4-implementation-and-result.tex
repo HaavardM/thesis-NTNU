@@ -1,9 +1,11 @@
 \chapter{Implementation and Results}\label{chap:impl}
 
-This chapter focuses on comparing the performance between \acrshort{mcmc} and \acrshort{vi} methods for performing inference in a \acrshort{pgm}. These methods allow inference in arbitrary models and can therefore be used with generative models designed independently of the inference method. At this point this is very beneficial, since a realistic intention model is not known. Each method have their strengths and weaknesses for different types of problems. As a compromise, this chapter will focus on comparing the performance of a fictitious model in order to discuss a concrete example and to show how \acrshort{mcmc} and \acrshort{vi} can be used in practice.
+This chapter focuses on comparing the performance between \acrshort{mcmc} and \acrshort{vi} methods for performing inference in a \acrshort{pgm}. These methods allow inference in arbitrary models and can therefore be used with generative models designed independently of the inference method. At this point this is very beneficial as a realistic intention model has not yet been developed. Each method have their strengths and weaknesses for different types of problems. As a compromise, this chapter will focus on comparing the performance of a illustrative model in order to discuss a concrete example and to show how \acrshort{mcmc} and \acrshort{vi} can be used in practice.
+
+Instead of using the typical textbook example by comparing the methods on a well-known distribution where an exact solution exist, this illustrative example will rather attempt to demonstrate the flexibility of \acrshort{mcmc} and \acrshort{vi} on generative models. This illustrative example will therefore attempt to demonstrate inference in a model designed purely from considering the data-generating process without any restrictive assumptions.
 
 \section{The model}
-As the context of this paper is intention inference for autonomous ships, it seems fit that such an example is used. A simple intention model is therefore proposed as an example, which relates steering angle to an intention through a mixture model. The data generating process for the observed angle $\theta$ is shown in \cref{fig:example_pgm} and will be explained further in this section.
+As the context of this paper is intention inference for autonomous ships, it seems fit that such an example is used. A simple intention model, which relates steering angle to an intention through a mixture model, is therefore proposed. The data generating process for the observed angle $\theta$ is shown in \cref{fig:example_pgm} and will be explained further in this section.
 
 \begin{figure}[h]
     \centering
@@ -43,22 +45,22 @@ As the context of this paper is intention inference for autonomous ships, it see
 
         \plate {ship}{(I)(theta)(D)}{$t \in T$};
     \end{tikzpicture}
-    \caption{\acrshort{pgm} describing the data-generating process using graphical notation. The rectangle is called a plate and express that the variables within are repeated once for each $t \in T$. The variables outside the plate are shared across all $t \in T$. The gray node for $\theta$ indicate that the variable is observed, while the rest are latent.}
+    \caption{\acrshort{pgm} describing the data-generating process using graphical notation. The rectangle is called a plate and expresses that the variables within are repeated once for each $t \in T$. The variables outside the plate are shared across all $t \in T$. The gray node for $\theta$ indicate that the variable is observed, while the rest are latent.}
     \label{fig:example_pgm}
 \end{figure}
 
-The angle $\theta$ is defined to be the angle between the obstacle's current course and a simple predicted course given the obstacle's final destination. The vessels are required to report their final destination, but in some cases there may be user-errors where invalid destinations are transmitted to nearby vessels. If the obstacle's reported final destination is correct, $D=0$, the angle should be closely related to the obstacle's intention and can be generated from a Gaussian selected by the intention $I$ (i.e. a mixture of Gaussian's weighted by the intention probabilities). If the obstacle report an incorrect destination, $D=1$, the angle $\theta$ is independent of intention as the obstacle may he headed in a completely different direction.
+The angle $\theta$ is defined to be the angle between the vessel's current course and a predicted way-point given the final destination. The vessels are required to report their final destination to other nearby vessels, but in some cases there may be user-errors where invalid destinations are transmitted to nearby ships. If the reported final destination is correct, i.e. $D=0$, the angle should be closely related to the intention and can be generated from a Gaussian selected by the intention $I$ (i.e. a mixture of Gaussians weighted by the intention probabilities). If the vessel report an incorrect destination, i.e. $D=1$, the angle $\theta$ is independent of intention as the vessel might be headed in a completely different direction.
 
 \subsection{Model Assumptions}
-The assumptions used when designing the model is summarized below:
+The assumptions used when designing the model are summarized below:
 \begin{description}
-    \item[Assumption 1] The angles $\{\theta_1, \theta_2, \dots, \theta_t\}$ are independent
+    \item[Assumption 1] The angles $\{\theta_1, \theta_2, \dots, \theta_t\}$ are independent.
     \item[Assumption 2] The ship has equal turning characteristics for port and starboard turns. The intention probabilities are from this assumed symmetrical about $\theta=0$. 
     \item[Assumption 3] Port and starboard turns are defined to be turns where $\theta \in (0, \pi)$ and $\theta \in (-\pi, 0)$ respectively.
 \end{description}
 
 \subsection{Identifiabilty}
-This example model is intentionally not identifiable when observing only the angles $\boldsymbol{\theta}$. A key benefit of Bayesian model is that they are able to automatically handle low amount or sparse data, by relying on priors when the data is inconclusive. This example will show how the choice of priors affect the learning process, especially when parameters are not identifiable. Through the use of informative priors the model should still be able to learn what it can from available data, as well as express uncertainty when the data is inconclusive .   
+This model is not identifiable when observing only the angles $\boldsymbol{\theta}$. A key benefit of Bayesian model is that it should be able to handle low amounts or sparse data by relying on priors when the data is inconclusive. Through the use of informative priors the model should still be able to learn what it can from available data, as well as express uncertainty when the data is inconclusive.
 
 \subsection{Valid final destination}
 Whether or not the final destination is valid is modelled using a Bernoulli variable $D_t$ which takes the value $1$ if the destinations is \textbf{invalid}. A Beta distribution is used to model the prior probability $p_D = \Pr \{D=1\}$, i.e. the probability of the destination being invalid.  
@@ -71,7 +73,7 @@ Whether or not the final destination is valid is modelled using a Bernoulli vari
 \end{equation}
 
 \subsection{Intentions}
-The intention in a situation $I_t$ is modelled by a Categorical discrete variable where the possible realizations are shown in \cref{tbl:intentions}. The intention probabilities $\boldsymbol{\alpha}$ are distributed according to a Dirichlet distribution.
+The intention $I_t$ is modelled by a Categorical discrete variable where the possible realizations are shown in \cref{tbl:intentions}. The intention probabilities $\boldsymbol{\alpha}$ are distributed according to a Dirichlet distribution with fixed parameters.
 
 \begin{equation}
     \boldsymbol{\alpha} \sim \text{Dirichlet}, \quad \boldsymbol{\alpha} \in \{\alpha_0, \alpha_1, \alpha_2 \in (0, 1) \; | \; \sum_i \alpha_i = 1 \}
@@ -84,23 +86,24 @@ The intention in a situation $I_t$ is modelled by a Categorical discrete variabl
 \centering
 \begin{tabular}{|l|l|}
 \hline
-$I_t=0$ & The obstacle intends to keep its current course \\ \hline
-$I_t=1$ & The obstacle intends a starboard turn           \\ \hline
-$I_t=2$ & The obstacle intends a port-side turn            \\ \hline
+$I_t=0$ & The vessel intends to keep its current course \\ \hline
+$I_t=1$ & The vessel intends a starboard turn           \\ \hline
+$I_t=2$ & The vessel intends a port-side turn            \\ \hline
 \end{tabular}
 \caption{Possible realizations of the intention $I_t$}
 \label{tbl:intentions}
 \end{table}
 
 \subsection{Steering angle}
-The mixture components for $\theta_t$ when $D_t=0$ are Gaussian Distributions. For $I=0$, the mean is zero with unknown variance. For $I \in \{1, 2\}$ the means are unknown, but assumed, by \textbf{Assumption 2}, to have equal absolute value $\mu$ with opposite sign. This assumptions allows the model to generalize some of what it learns from the different intentions and reuse the information, e.g. if the model only observe starboard turns, it could still generalize to port turns.  $\mu$ is by \textbf{Assumption 3} assumed to be in the range $(0, \pi)$. The value for $\mu = \mu_2 = -\mu_1$ is therefore distributed according to a scaled Beta distribution with support on $\mu \in (0, \pi)$.  Using \cref{eq:change_of_variable} for change of variable, the distribution of $\mu$ becomes 
+The steering angle is modelled using a mixture model where the distribution of $\theta_t$ depend on the value of $I$ and $D$.
+The mixture components for $\theta_t$ when $D=0$ are Gaussian Distributions. For $I=0$, the mean is zero with unknown variance. For $I \in \{1, 2\}$ the means are unknown, but assumed, by \textbf{Assumption 2}, to have equal absolute value $\mu$ with opposite sign. This assumption allows the model to generalize some of what it learns from the different intentions and reuse the information, e.g. if the model only observe starboard turns, it could still generalize to port turns.  $\mu$ is by \textbf{Assumption 3} assumed to be in the range $(0, \pi)$. The value for $\mu = \mu_2 = -\mu_1$ is therefore distributed according to a scaled Beta distribution with support on $\mu \in (0, \pi)$.  Using \cref{eq:change_of_variable} for change of variable, the distribution of $\mu$ becomes 
 
 \begin{equation}\label{eq:prior_mu}
     p(\mu) = \text{Beta}(f^{-1}(\mu)) \frac{1}{|f'(f^{-1}(\mu))|}  = \frac{1}{\pi} \text{Beta}(\frac{\mu}{\pi}), \quad \mu = f(x) = \pi x
 \end{equation}
 
 The standard deviation is assumed equal for all intentions and is distributed according to an inverse Gamma distribution. In other words, the mixture components are assumed to have the same variance and they should be symmetrical around $\theta=0$.
-Learning the mean $\mu$ from data allows the model to adapt to different types of ships. A small fishing vessel might rapidly change course (i.e. large $\mu$), while a large oil-tanker has limited ability to turn due to its size (i.e. $\mu$). 
+Learning the mean $\mu$ from data allows the model to adapt to different types of ships. A small fishing vessel might rapidly change course (i.e. large $\mu$), while a large oil-tanker has limited ability to turn quickly due to its size (i.e. $\mu$). 
 
 \begin{align}
      \frac{\mu}{\pi} &\sim \text{Beta} & \sigma &\sim \text{Inv-Gamma} \\
@@ -130,7 +133,7 @@ One issue with using a Guassian distribution for angle information is that it ha
 When the obstacle's target destination is invalid, $D=1$, the angle $\theta$ is distributed according to a Uniform distribution over the range $(-\pi, \pi)$ to model how the angle contains no information about the obstacle in such a case. 
 
 \begin{equation}\label{eq:angle_uniform}
-    p(\theta_t | D=1) = \text{Uniform}(-\pi, \pi)
+    p(\theta_t | D_t=1) = \text{Uniform}(-\pi, \pi)
 \end{equation}
 
 The distribution for $\theta_t$ becomes a mixture between the Gaussian Mixture in \cref{eq:angle_gauss_mixture} and the uniform distribution in  \cref{eq:angle_uniform} as expressed in \cref{eq:angle_complete_mixture} by the law of total probability.
@@ -149,7 +152,7 @@ The data-generating process for $\boldsymbol{\theta}$ becomes:
 \begin{enumerate}
     \item Draw priors $p_D$, $\boldsymbol{\alpha}$, $\mu$ and $\sigma$
     \item For all $t \in \{1, \dots, N \}$, draw $D_t$ and $I_t$ conditional on $p_D$ and $\boldsymbol{\alpha}$
-    \item For all $t \in \{1, \dots, N\} $, if $D_t=1$, draw $\theta_t$ from Uniform distribution. If not, draw $\theta_t$ from $\mathcal{N}(\theta_t | \mu_i, \sigma)$ conditional on $I=i$, $\mu_i$ and $\sigma$. 
+    \item For all $t \in \{1, \dots, N\} $, if $D_t=1$, draw $\theta_t$ from a Uniform distribution. If not, draw $\theta_t$ from $\mathcal{N}(\theta_t | \mu_i, \sigma)$ conditional on $I=i$, $\mu_i$ and $\sigma$. 
 \end{enumerate}
 
 
@@ -171,11 +174,12 @@ The unnormalized posterior distribution then becomes
 \end{split}
 \end{align}
 
+The prior distributions are shown in \cref{fig:priors}. The priors for $\boldsymbol{\alpha}$ and $p_D$ were selected to be uninformative priors. $\sigma$ and $\mu$ were selected as informative priors and were selected by simple intuitive reasoning about the behaviour of a ship. In a real application, the priors should be more carefully selected. 
 
 \begin{figure}
     \centering
     \includegraphics[width=0.7\textwidth]{figures/intention_angle.png}
-    \caption{Normalized likelihood of different angles under different intention hypotheses. This is a polar plot where the angle represent $\theta^{(I=i)}$, the radius represent the probability. This is generated from \cref{eq:theta_intention_mixture} with $\mu_0=0$, $\mu_1 = -\frac{\pi}{2}$, $\mu_2=\frac{\pi}{2}$ and $\sigma_i=\frac{\pi}{8}$}
+    \caption{Normalized likelihood of different angles under different intention hypotheses. This is a polar plot where the angle represents $\theta^{(I=i)}$ and the radius represents the probability. This is generated from \cref{eq:theta_intention_mixture} with $\mu_0=0$, $\mu_1 = -\frac{\pi}{2}$, $\mu_2=\frac{\pi}{2}$ and $\sigma_i=\frac{\pi}{8}$}
     \label{fig:intention_angle}
 \end{figure}
 
@@ -189,14 +193,24 @@ The unnormalized posterior distribution then becomes
 The purpose of this chapter is to learn as much about the parameters $\boldsymbol{\alpha}$, $\mu$, $\sigma$ and $p_D$ from available observations $\mathcal{D}$, in this case only the angles $\mathcal{D} = \boldsymbol{\theta}$ are known. 
 
 \section{Implementation}
-Both \acrshort{mcmc} and \acrshort{vi} were implemented using Tensorflow Probability, as it has great support for both methods as well as it utilizes Tensorflows automatic differentiation to avoid dealing with error-prone calculations \cite{tensorflow2015-whitepaper}. The joint distribution in \cref{eq:example_joint} was implemented using the \texttt{JointDistributionSequential} distribution in TFP. (TODO: Add code in appendix)
+Both \acrshort{mcmc} and \acrshort{vi} were implemented using Tensorflow Probability, because it offer great support for both methods as well and it utilizes Tensorflows automatic differentiation to avoid dealing with error-prone calculations \cite{tensorflow2015-whitepaper}. The joint distribution in \cref{eq:example_joint} was implemented using the \texttt{JointDistributionSequential} distribution in TFP. The code is available in \cref{app:code}.
 
 
 \section{Dataset}
-The dataset was generated from $N=1000$ samples $\mathcal{D}$ from \cref{eq:angle_complete_mixture} with fixed parameters. A successful inference should be able to regain the parameters $\boldsymbol{\alpha}$, $p_D$, $\mu$ and $\sigma$ from $\mathcal{D}$.
+The datasets were generated by sampling from \cref{eq:angle_complete_mixture} with fixed parameters. A successful inference should be able to infer the true parameters $\boldsymbol{\alpha}$, $p_D$, $\mu$ and $\sigma$ from observing $\mathcal{D}$.
+The true parameters used to generate the datasets are summarized in \cref{tbl:example_params}. The parameters were selected such that the priors are reasonable, while also making sure that the true parameters are different from the prior max and mean, in order to verify that the values are actually learned from data. 
+\begin{table}[h!]
+\centering
+\begin{tabular}{lllll}
+\textbf{Variable:}   & $\boldsymbol{\alpha}$ & $p_D$ & $\mu$                  & $\sigma$         \\ \hline
+\textbf{Value:} & $[0.5, 0.3, 0.2]$     & $0.3$ & $\frac{\pi}{3}$ & $0.6$ \\
+\end{tabular}
+\caption{True values used to generate the datasets from \cref{eq:angle_complete_mixture}}
+\label{tbl:example_params}
+\end{table}
 
 \section{Markov Chain Monte Carlo}
-Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The log posterior target density was then defined using \cref{eq:example_unnormalized_posterior} as 
+Hamiltonian Monte Carlo was implemented using Tensorflow Probability (TFP). The log posterior target density was defined using \cref{eq:example_unnormalized_posterior} as 
 \begin{align}\label{eq:example_ll}
 \begin{split}
     ll &= \log \tilde{p}(\boldsymbol{\mu}, \sigma, p_D, \boldsymbol{\alpha})
@@ -210,10 +224,10 @@ The proposal distribution were transformed using the following transformations (
 \item Softmax \eqref{eq:softmax} to unconstrain sampling of $\{\boldsymbol{\alpha} \in (0, 1)^3\ | \sum x_i = 1\}$
 \item Sigmoid \eqref{eq:sigmoid} to unconstrain sampling of $p_D \in (0, 1)$
 \item Softplus \eqref{eq:softplus} to unconstrain sampling of $\sigma > 0$
-\item Softclip \eqref{eq:softplus} to unconstrain sampling of $\mu \in (0, \pi)$
+\item Softclip (\cref{sec:softclip}) to unconstrain sampling of $\mu \in (0, \pi)$
 \end{itemize}
 
-$20$ individual chains were randomly initialized by sampling from the prior. $10000$ samples were then drawn from each chain, were the first $5000$ samples are discarded due to burn-in. These values were selected by trial and error, and by inspecting the individual chains in order to confirm convergence.  
+$20$ individual chains were randomly initialized by sampling from the prior. $30000$ samples were then drawn from each chain, were the first $10000$ samples are discarded due to burn-in. Thinning was used to reduce the auto correlation of each chain by discarding every second sample. These values were selected by trial and error, and by inspecting the individual chains in order to verify convergence. A \texttt{tfp.mcmc.DualAverageStepSizeAdaptation} were used to automatically tune the stepsize of \acrshort{hmc} and $2$ leapfrog steps were manually found to work well.  
 
 \section{Variational Inference}
 
@@ -222,23 +236,12 @@ $20$ individual chains were randomly initialized by sampling from the prior. $10
 \item Softmax \eqref{eq:softmax} to transform $\mathcal{R}^3$ to $\{\boldsymbol{\alpha} \in (0, 1)^3\ | \sum x_i = 1\}$
 \item Sigmoid \eqref{eq:sigmoid} to transform $\mathcal{R}$ to $p_D \in (0, 1)$
 \item Softplus \eqref{eq:softplus} to transform $\mathcal{R}$ to $\sigma > 0$
-\item Softclip \eqref{eq:softplus} to transform $\mathcal{R}$ to $\mu \in (0, \pi)$
+\item Softclip (\cref{sec:softclip}) to transform $\mathcal{R}$ to $\mu \in (0, \pi)$
 \end{itemize}
 
-The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the reverse KL divergence by passing it to \texttt{tfp.vi.fit\_surrogate\_posterior} along with the same log posterior density used for \acrshort{mcmc}, expressed in \cref{eq:example_ll} \cite{tensorflow2015-whitepaper}. 
+The Stochastic Gradient Descent (SGD) optimizer \texttt{tf.optimizers.Adam} was then used to optimize the reverse KL divergence by passing it to \texttt{tfp.vi.fit\textunderscore surrogate\textunderscore posterior} along with the same log posterior density used for \acrshort{mcmc}, expressed in \cref{eq:example_ll} \cite{tensorflow2015-whitepaper}. A fixed number of $1000$ optimization steps were used and tuned by inspecting \acrshort{elbo}.
 
 \section{Results}
-A dataset of $N=1000$ samples were used to observe how well \acrshort{vi} and \acrshort{mcmc} are able to learn from data. The true parameters used to generate the datasets are summarized in \cref{tbl:example_params}. The parameters were selected such that the priors are reasonable, while also making sure that the true parameters are different from the prior max and mean, in order to verify that the values are actually learned from data. 
-\begin{table}[h]
-\centering
-\begin{tabular}{lllll}
-\textbf{Variable:}   & $\boldsymbol{\alpha}$ & $p_D$ & $\mu$                  & $\sigma$         \\ \hline
-\textbf{Value:} & $[0.5, 0.3, 0.2]$     & $0.3$ & $\frac{\pi}{3}$ & $0.6$ \\
-\end{tabular}
-\caption{True values used to generate the dataset for example case 1.}
-\label{tbl:example_params}
-\end{table}
-
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/example_mcmc.png}
@@ -246,7 +249,7 @@ A dataset of $N=1000$ samples were used to observe how well \acrshort{vi} and \a
     \label{fig:example_mcmc_posterior}
 \end{figure}
 
-The posterior distributions when using \acrshort{mcmc} are shown in \cref{fig:example_mcmc_posterior} and shows how it is able to correctly infer the parameters from data, with the MAP estimates being pretty much spot-on. The uncertainty for the different parameters are however rather high. The sampling took over 8 minutes in total. 
+The posterior distributions when using \acrshort{mcmc} on a datset with $N=1000$ samples are seen in \cref{fig:example_mcmc_posterior} and shows how it is able to correctly infer the parameters from data, with the MAP estimates being pretty much spot-on. The uncertainty of the different parameters is however rather high. The sampling took over 8 minutes in total. 
 
 \begin{figure}[h]
     \centering
@@ -256,7 +259,7 @@ The posterior distributions when using \acrshort{mcmc} are shown in \cref{fig:ex
 \end{figure}
 
 
-\cref{fig:example_vi_posterior} show the performance of  \acrshort{vi} on the same dataset. The MAP estimates for the intention probabilities $\boldsymbol{\alpha}$, standard deviation $\sigma$ and mean $\mu$ are close to the true parameters, though \acrshort{vi} severely underestimate the true uncertainty. For the invalid destination probability, $p_D$, the results are however much better with very similar results as \acrshort{mcmc}. Considering the optimization only used 13 seconds on the same computer, these results are quite impressive when compared to \acrshort{mcmc}.
+\cref{fig:example_vi_posterior} show the performance of  \acrshort{vi} on the same dataset. The MAP estimates for the intention probabilities $\boldsymbol{\alpha}$, standard deviation $\sigma$ and mean $\mu$ are close to the true parameters, though \acrshort{vi} severely underestimates the true uncertainty. For the invalid destination probability, $p_D$, the results are very comparable to \acrshort{mcmc}. Considering the optimization only used 13 seconds on the same computer, these results are quite impressive when compared to \acrshort{mcmc}.
 
 \begin{figure}[h]
     \centering
@@ -265,48 +268,48 @@ The posterior distributions when using \acrshort{mcmc} are shown in \cref{fig:ex
     \label{fig:example_mcmc_vi_alphas}
 \end{figure}
 
-\cref{fig:example_mcmc_vi_alphas} overlap the results from both methods for $\sigma$ and $\mu$ in order to demonstrate how \acrshort{vi} predict far lower uncertainty. Both methods get identical MAP estimates, but \acrshort{vi} predicts a far lower uncertainty than \acrshort{mcmc}. 
+\cref{fig:example_mcmc_vi_alphas} overlap the results from both methods for $\sigma$ and $\mu$ in order to demonstrate how \acrshort{vi} predicts far lower uncertainty. Both methods get identical MAP estimates, but \acrshort{vi} predicts a far lower uncertainty compared to \acrshort{mcmc}. 
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/example_vi_mcmc_comparison_low_N.png}
-    \caption{Comparison of MCMC and VI for the parameters $\boldsymbol{\alpha}$ and $\mu$ with only $N=50$ samples. Both methods are able to express uncertainty due to low amount of data, though \acrshort{vi} underestimate the support on the tails of the distributions.}
+    \caption{Comparison of MCMC and VI for the parameters $\boldsymbol{\alpha}$ and $\mu$ with only $N=50$ samples. Both methods are able to express uncertainty due to low amount of data, though \acrshort{vi} underestimates the support on the tails of the distributions.}
     \label{fig:example_mcmc_vi_low_N}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/example_mcmc_low_N.png}
-    \caption{Posterior distribution approximated using \acrshort{mcmc} with only $N=50$ samples. The results shows large uncertainty for all parameters.}
+    \caption{Posterior distribution approximated using \acrshort{mcmc} with only $N=50$ samples. The results show large uncertainty for all parameters.}
     \label{fig:example_mcmc_low_N}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/example_vi_low_N.png}
-    \caption{Posterior distribution approximated using \acrshort{vi} with only $N=50$ samples. The results shows large uncertainty for all parameters.}
+    \caption{Posterior distribution approximated using \acrshort{vi} with only $N=50$ samples. The results show large uncertainty for all parameters.}
     \label{fig:example_vi_low_N}
 \end{figure}
 
 
 
-Another dataset with only $N=50$ samples was generated to see how the methods behave with low amounts of data. \cref{fig:example_mcmc_vi_low_N} show how \acrshort{vi} is a bit overconfident and underestimate the uncertainty when compared to \acrshort{mcmc}. The results are otherwise very similar as seen from \cref{fig:example_mcmc_low_N} and \cref{fig:example_vi_low_N} for \acrshort{mcmc} and \acrshort{vi} respectively. Both methods are able to express the high uncertainty due to the limited amount of data available. 
+Another dataset with only $N=50$ samples was generated to see how the methods behave with low amounts of data. \cref{fig:example_mcmc_vi_low_N} shows how \acrshort{vi} is a bit overconfident and underestimate the uncertainty when compared to \acrshort{mcmc}. The results are otherwise very similar as seen from \cref{fig:example_mcmc_low_N} and \cref{fig:example_vi_low_N} for \acrshort{mcmc} and \acrshort{vi} respectively. Both methods are able to express the high uncertainty due to the limited amount of data available. 
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/mc_sim_mcmc.png}
-    \caption{Results from \acrshort{mcmc} using 10 random realizations of the data. This plot shows have much the results for this model varies for different realizations of the dataset, even if the parameters remains identical. Though most of the posteriors include the true parameters, some realizations cause the posterior to predict values far away from the true vaules.}
+    \caption{Results from \acrshort{mcmc} using 10 random realizations of the data. Each simulation is represented by a different color. This plot shows how much the results for this model varies for different realizations of the dataset, even if the parameters remain identical. Though most of the posteriors include the true parameters, some realizations cause the posterior to predict values far away from the true values.}
     \label{fig:example_mc_mcmc}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/mc_sim_vi.png}
-    \caption{Results from \acrshort{vi} using 10 random realizations of the data. There is large variations between different realizations of the data, similar to what was observed for \acrshort{mcmc}. Some of the posterior densities are far away from the true parameters. As \acrshort{vi} underestimate the true uncertainty, the differences becomes even more apparent than with \acrshort{mcmc}. }
+    \caption{Results from \acrshort{vi} using 10 random realizations of the data. Each simulation is represented by a different color. There are large variations between different realizations of the data, similar to what was observed for \acrshort{mcmc}. Some of the posterior densities are far away from the true parameters. As \acrshort{vi} underestimates the true uncertainty, the differences become even more apparent than with \acrshort{mcmc}. }
     \label{fig:example_mc_vi}
 \end{figure}
 
-When running the simulations with different realizations of the data, it was easy to see that the results are rather inconsistent. 10 simulations with the parameters from \cref{tbl:example_params} and $N=1000$ samples were used. New datasets were generated for each simulation using different random seeds. The results in \cref{fig:example_mc_vi} demonstrate how \acrshort{vi} give very different results for different datasets. Some results do not even include the true values and \acrshort{vi} is simply not able to produce consistent results on this problem. 
+When running the simulations with different realizations of the data, it was easy to see that the results are rather inconsistent. 10 simulations using the parameters from \cref{tbl:example_params} and $N=1000$ samples were used. New datasets were generated for each simulation using different random seeds. The results in \cref{fig:example_mc_vi} demonstrate how \acrshort{vi} gives inconsistent results when applied on different datasets. Some results do not even include the true values and \acrshort{vi} is simply not able to reproduce the results when the data changes. 
 Similar results for \acrshort{mcmc} are shown in \cref{fig:example_mc_mcmc}, where there are some variations between the posterior densities. However, \acrshort{mcmc} is able to better express the uncertainty and most of the densities include the true parameters.
 
 
@@ -317,7 +320,7 @@ Similar results for \acrshort{mcmc} are shown in \cref{fig:example_mc_mcmc}, whe
     \label{fig:example_mcmc_trace}
 \end{figure}
 
-The number of burn-in samples were somewhat arbitrarily chosen. However, by inspecting the individual chains in \cref{fig:example_mcmc_trace}, the individual chains appear to have reached the same stationary distribution and $5000$ burn-in samples are assumed to be enough for this specific problem.
+The number of burn-in samples were somewhat arbitrarily chosen. However, by inspecting the individual chains in \cref{fig:example_mcmc_trace}, the individual chains appear to have reached the same stationary distribution and $10000$ burn-in samples are assumed to be enough for this specific problem. 
 
 \begin{figure}[h]
     \centering
@@ -325,6 +328,8 @@ The number of burn-in samples were somewhat arbitrarily chosen. However, by insp
     \caption{Negative ELBO plotted against the fixed number of optimization steps for \acrshort{vi}. It reaches an optimum after less than $500$ steps and could in this case be stopped early to shorten the runtime.}
     \label{fig:example_vi_losses}
 \end{figure}
+
+The \acrshort{elbo} during optimization is shown in \cref{fig:example_vi_losses}. It converges to its optimum after approximately $400$ samples and could likely be stopped early to save some computations.
 
 
 

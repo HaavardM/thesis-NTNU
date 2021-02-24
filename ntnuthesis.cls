@@ -262,7 +262,7 @@
 \setlist[itemize,2]{label=$\circ$}
 \setlist[itemize,3]{label=$-$}
 
-% Make \fullcite show all authors irrespectively of maxcitenames
+% Make \fullcite show all authors irrespectivuthorely of maxcitenames
 \preto\fullcite{\AtNextCite{\defcounter{maxnames}{99}}}
 
 % Colour palette
