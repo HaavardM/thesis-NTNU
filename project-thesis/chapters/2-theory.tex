@@ -2,7 +2,7 @@
 
 \section{Useful Results From Probability Theory}
 
-The reader is assumed to have basic understanding of probability theory. Some of the most relevant results are summarized here.
+The reader is assumed to have a basic understanding of probability theory. Some of the most relevant results are summarized here and further details can be found in the first chapters of \cite{murphy}.
  
  \subsection{Notation}
  
@@ -13,28 +13,28 @@ The reader is assumed to have basic understanding of probability theory. Some of
  p(X) &= p(X=x)\\  &= p_X(X=x)\\ &= \Pr\{X = x\}
  \end{align*}
  
- For \textbf{continuous} random variables the probability of a single outcome is always zero, i.e. $p(X = x) \equiv 0$, as there are infinitely many possible outcomes. The notation $p(X)$ then denotes the probability density function (PDF) of $X$. 
+ For \textbf{continuous} random variables the probability of a single outcome is always infinitesimal, i.e. $p(X = x) \to 0$, as there are infinitely many possible outcomes. The notation $p(X)$ then denotes the probability density function (PDF) of $X$. 
  
  The notation $\Pr\{\cdot\}$, such as $\Pr\{X=x\}$ and $\Pr\{X \leq x\}$, is used to denote probability of a specific event occurring. The output of this operator is always a probability, i.e. $\Pr\{\cdot\} \in (0, 1)$. 
  
  
  
 \subsection{Joint Probabilities}
-The \textit{joint probability} $p(X, Y)$ is the probability that both $X$ and $Y$ occurs \cite[p.~29]{murphy}.
+The \textit{joint probability} $p(X, Y)$ is the probability that both $X$ and $Y$ occurs.
 
 \begin{equation}
     p(X, Y) = p(X \cap Y) = p(X | Y)p(Y)
 \end{equation}
 
 \subsection{Conditional Probabilities}
-The \textit{conditional probability} $p(X | Y)$ is the probability of $X$ occurring, given the known occurrence of another event $Y$. This can be interpreted as knowing the value of $Y$ includes some information about $X$. Mathematically it can be expressed as \cite[p.~29]{murphy}
+The \textit{conditional probability} $p(X | Y)$ is the probability of $X$ occurring, given the known occurrence of another event $Y$. This can be interpreted as knowing the value of $Y$ includes some information about $X$. Mathematically it can be expressed as 
 \begin{equation}\label{eq:conditional_probability}
     p(X | Y) = \frac{p(X, Y)}{p(Y)}
 \end{equation}
 
 \subsection{Bayes Rule}
 
-A useful extension to equation \eqref{eq:conditional_probability} is to recognize that the joint distribution $p(X, Y)$ can be rewritten as a product of a conditional probability $p(Y | X)$ and $p(X)$. Inserting into equation \eqref{eq:conditional_probability} yields \textit{Bayes Rule}
+A useful extension to equation \eqref{eq:conditional_probability} is to recognize that the joint distribution $p(X, Y)$ can be rewritten as a product of a conditional probability $p(Y | X)$ and a prior $p(X)$. Inserting into equation \eqref{eq:conditional_probability} yields \textit{Bayes Rule}
 \begin{equation}\label{eq:bayes_law}
     p(X | Y) = \frac{p(X, Y)}{p(Y)} = \frac{p(Y | X)p(X)}{p(Y)}.
 \end{equation}
@@ -51,7 +51,7 @@ For notational simplicity the integral operator is used for marginalization of b
 \begin{equation}
     p(X) = \int_{\boldsymbol{Y}} p(X, \boldsymbol{Y}) d\boldsymbol{Y} = \int_{\boldsymbol{Y}} p(X | \boldsymbol{Y}) p(\boldsymbol{Y}) d\boldsymbol{Y}
 \end{equation}
-The last equality is by the \textit{Law of total probability}, which relates marginal probabilities to conditional probabilities. This is a highly useful result which allow modelling complex distributions $p(X)$ by introducing auxiliary variables which often drastically simplifies calculations.
+The last equality is by the \textit{Law of total probability}, which relates marginal probabilities to conditional probabilities. This is a highly useful result which allows modelling complex distributions $p(X)$ by introducing auxiliary variables, hence drastically simplifying calculations.
 
 \subsection{Independence \& Conditional Independence}
 If the joint probability of two variables $X$ and $Y$ can be expressed as a product of two marginals, then they are \textit{marginally independent}.
@@ -59,7 +59,7 @@ If the joint probability of two variables $X$ and $Y$ can be expressed as a prod
     X \perp Y \iff p(X, Y) = p(X | Y)p(Y) = p(Y | X)p(X) = p(X)p(Y)
 \end{equation}
 
-Marginal independence is rare, as most variables usually influence each other in some way. However, the variables often affect one another indirectly through other variables. The variables $X$ and $Y$ are said to be \textit{conditionally independent} given $Z$, if the conditional joint can be written as a product of conditional marginals \cite[p.~31]{murphy}:
+Marginal independence is rare, as most variables usually influence each other in some way. However, the variables often affect one another indirectly through other variables. The variables $X$ and $Y$ are said to be \textit{conditionally independent} given $Z$, if the conditional joint distribution can be written as a product of conditional marginals:
 \begin{equation}\label{eq:conditional_independence}
     X \perp Y | Z \iff p(X, Y | Z) = p(X | Z)p(Y | Z)
 \end{equation}
@@ -68,7 +68,7 @@ Marginal independence is rare, as most variables usually influence each other in
 The results mentioned so far stem from abstract mathematical axioms, and do not tell how to interpret the resulting probabilities. Different interpretations are commonly accepted. The perhaps two biggest interpretations are the Frequentist and Bayesian interpretations. 
 
 \begin{description}
-    \item[The Frequentist Interpretation:] The Frequentists define an event's probability as the limit of its relative frequency over many trials. In other words, the probabilities are assigned a physical interpretation and remains rather objective. There do however arise issues and paradoxes when assigning probabilities to events which are not recurrent, i.e. they only happen a few times. The Frequentist interpretation assumes that the collected data is random and that the model (and its corresponding parameters) are fixed. The main goal of the Frequentists are therefore to create consistent methods for dealing with uncertain data.
+    \item[The Frequentist Interpretation:] The Frequentists define an event's probability as the limit of its relative frequency over many trials. In other words, the probabilities are assigned a physical interpretation and remains rather objective. Issues and paradoxes do however arise when assigning probabilities to events that are not recurrent, i.e. they only happen a few times. The Frequentist interpretation assumes that the collected data is random and that the model (and its corresponding parameters) are fixed. The main goal of the Frequentists is therefore to create consistent methods for dealing with uncertain data.
     \item[The Bayesian Interpretation:] The Bayesians interpret probability as a state of knowledge \cite{Jaynes86bayesianmethods:}. In Bayesian analysis the data is fixed, whereas the model is unknown. Data is used to update prior knowledge about the model, and the probabilities are used to quantify how strongly one believe in each outcome. This interpretation is highly philosophical, but beautifully captures humans' intuitive reasoning. The Bayesian interpretation does however involve a level of subjectivity when choosing priors, making it difficult to form objective opinions from data. For those interested, see \Cite{Jaynes86bayesianmethods:} for a fascinating read on the history of Bayesian probability.
 \end{description}
 
@@ -77,7 +77,7 @@ While the differences between the Frequentist and Bayesian interpretations are m
 
 
 \section{Identifiability}
-A model is said to be \textit{identifiable} if it is theoretically possible to learn the true parameters after an infinite number of observations. This implies that no two set of parameters can generate the same probability distribution. As an illustrative example, lets say one observe sum $y$ of two real random variables $x_1 + x_2 = y$. By only observing $y$, it is not possible to uniquely determine the distributions of $x_1$ and $x_2$ as there exist infinitely many combinations of $x_1$ and $x_2$ that could sum to $y$. 
+A model is said to be \textit{identifiable} if it is theoretically possible to learn the true parameters after an infinite number of observations. This implies that no two set of parameters can generate the same probability distribution. As an illustrative example, lets say one observe the sum $y$ of two real random variables so that $x_1 + x_2 = y$. By only observing $y$, it is not possible to uniquely determine the distributions of $x_1$ and $x_2$ as there exist infinitely many combinations of $x_1$ and $x_2$ that could sum to $y$. 
 
 
 \section{Bayesian Statistics}
@@ -87,16 +87,19 @@ Using \cref{eq:bayes_law} one can write
     p(\boldsymbol{\theta}| \mathcal{D}, \boldsymbol{\eta}) = \frac{p(\mathcal{D} | \boldsymbol{\theta}) p(\boldsymbol{\theta} | \boldsymbol{\eta})}{p(\mathcal{D})} \propto p(\mathcal{D} | \boldsymbol{\theta})p(\boldsymbol{\theta} | \boldsymbol{\eta})
 \end{equation}
 
-If $\boldsymbol{\theta}$ is the unknown parameters of a process, $\mathcal{D}$ is collected data or observations, and $\boldsymbol{\eta}$ is all prior knowledge about $\boldsymbol{\theta}$, then equation \eqref{eq:bayes_learning} is a mathematical representation of the process of learning from data \cite{Jaynes86bayesianmethods:}.
+If $\boldsymbol{\theta}$ are the unknown parameters of a process, $\mathcal{D}$ is collected data or observations, and $\boldsymbol{\eta}$ is all prior knowledge about $\boldsymbol{\theta}$, then equation \eqref{eq:bayes_learning} is a mathematical representation of the process of learning from data \cite{Jaynes86bayesianmethods:}.
 
 \cref{eq:bayes_learning} can be interpreted as
 \begin{description}
     \item[The Prior $p(\boldsymbol{\theta} | \boldsymbol{\eta})$:] The prior incorporates knowledge about $\boldsymbol{\theta}$ before observing any data. This can be domain-specific knowledge, results from prior experiments or intuitive reasoning about possible values of $\boldsymbol{\theta}$. 
     \item[The Likelihood $p(\mathcal{D} | \boldsymbol{\theta})$]: The likelihood of the observations $\mathcal{D}$ is how well the observations fit with prior beliefs $\boldsymbol{\theta} | \boldsymbol{\eta}$. In other words, how likely it is to observe $\mathcal{D}$ if the current belief $\boldsymbol{\theta}$ were to be true.
     \item[The Posterior $p(\boldsymbol{\theta} | \mathcal{D}, \boldsymbol{\eta})$]: The posterior distribution is the updated belief about $\boldsymbol{\theta}$. This is knowledge about $\boldsymbol{\theta}$ after observing the data. 
+    \item[The Evidence $p(\mathcal{D})$:] The evidence is how likely it is to observe the data regardless of the model. As the data $\mathcal{D}$ is observed and known, this is simply a normalizing constant. In practice, this is often intractable to compute unless the model is sufficiently simple. 
 \end{description}
 
-The conditional variable $\boldsymbol{\eta}$ is usually omitted for simplified notation, but is implicitly defined through the choice of prior distribution, i.e. $p(\boldsymbol{\theta}) = p(\boldsymbol{\theta} | \boldsymbol{\eta})$
+The conditional variable $\boldsymbol{\eta}$ is usually omitted for simplified notation, but is implicitly defined through the choice of prior distribution, i.e. $p(\boldsymbol{\theta}) = p(\boldsymbol{\theta} | \boldsymbol{\eta})$.
+
+Bayesian \acrfull{ml} do not distinguish between parameters and variables in the same way as done by many other \acrshort{ml} techniques. As Bayesian Statistics allow probability distribution on any unknown quantity, the model parameters are included in the same way as any other variables. Learning parameters and performing inference in a Bayesian model is therefore equivalent. 
 
 
 \subsection{Choice of prior}
@@ -120,6 +123,14 @@ The conditional variable $\boldsymbol{\eta}$ is usually omitted for simplified n
 \end{description}
 
 
+\subsection{MAP estimate}
+The \textit{Maximumum A Posteriori} estimate is a point estimate found by taking the maximum of the posterior distribution, i.e. 
+
+\begin{equation}\label{eq:map}
+    \text{MAP} = \arg \max_x p(x | \mathcal{D}) = \arg \max_x p(\mathcal{D} | x)p(x)
+\end{equation}
+
+
 \section{Stochastic Modelling}
 
 \subsection{Markov Chains}
@@ -130,7 +141,7 @@ p(\mathbf{X}_{t+1} | \mathbf{X}_t,  \mathbf{X}_{0:t-1}) = p(\mathbf{X}_{t+1} | \
 \end{equation}
 
 \subsubsection{Stationary Distribution}
-As time moves on, some states will be visited more frequently than others. This long-running distribution of states is called the \textit{stationary distribution} of the Markov Chain. If $\mathbf{P}$ is the transition probability matrix for a discrete Markov chain, then $\boldsymbol{\pi}$ is the stationary distribution if 
+As time moves on, some states will be visited more frequently than others. This long-running distribution of states is called the \textit{stationary distribution} of the Markov Chain. If $\mathbf{P}$ is the transition probability matrix for a discrete Markov chain, then $\boldsymbol{\pi}$ is the stationary distribution given that 
 \begin{equation}\label{eq:markov_stationary}
     \boldsymbol{\pi} = \boldsymbol{\pi} \mathbf{P}
 \end{equation}
@@ -140,40 +151,40 @@ The stationary distribution may not be unique, and whether a unique stationary d
 
 
 \section{Probabilistic Graphical Models}
-\textit{\acrfull{pgm}}, often called Bayesian Networks, allows for efficient factorization of the joint distribution by assuming conditional independence, as defined in \cref{eq:conditional_independence}, between variables. \acrshort{pgm}'s are graphs, where nodes represent random variables and edges represents statistical dependence between the variables. By utilizing the independence assumptions in the graphs, the computational complexity can be drastically reduced \cite{murphy}.
+\textit{\Glspl{pgm}} allows for efficient factorization of the joint distribution by assuming conditional independence, as defined in \cref{eq:conditional_independence}, between variables. \acrshort{pgm}s are graphs where nodes represent random variables and edges represent statistical dependence between the variables. By utilizing the independence assumptions in the graphs, the computational complexity can be drastically reduced \cite{murphy}.
 
-\subsection{\acrfull{dgm}}
-\acrshort{dgm}'s are perhaps the simplest type of \acrshort{pgm} and is based on \textbf{Directed Acyclic Graphs} (DAG). It is a graph structure which do not allow cycles and all edges are directed. The flow of information is explicitly modeled in the direction on the edges. \acrshort{dgm}'s are well-suited for modelling causal relationships and when the flow of information is clearly directed. An example can be the relationship between the state of a physical system and a sensor. The system affects the sensor, but the sensor does not affect the system. For the \acrshort{dgm} in \cref{fig:dgm}, the variables $B$ and $C$ are conditionally independent given $A$, i.e. $B \perp C | \; A$. However, knowing $D$ restricts $C$ and $B$, i.e. $B \not\perp C | \; D$. This all comes directly from inspecting the graph. 
+\subsection{Directed Graphical Models}
+\textit{\Glspl{dgm}} are perhaps the simplest type of \acrshort{pgm} and is based on \textbf{Directed Acyclic Graphs} (DAG). These methods are whats often referred to as Bayesian Networks or Belief Networks. It is a graph structure which do not allow cycles and where all edges are directed. The flow of information is explicitly modeled in the direction on the edges. \acrshort{dgm}s are well suited for modelling causal relationships and for situations when the flow of information is clearly directed. An example can be the relationship between the state of a physical system and a sensor. The system affects the sensor, but the sensor does not affect the system. For the \acrshort{dgm} in \cref{fig:dgm}, the variables $B$ and $C$ are conditionally independent given $A$, i.e. $B \perp C | \; A$. However, knowing $D$ restricts $C$ and $B$, i.e. $B \not\perp C | \; D$. This all comes directly from inspecting the graph. \acrshort{dgm}'s are for this reason well suited to describe \textit{generative models}, i.e. models which explicitly attempts to model how the process which generated the data.  
 
-\acrshort{dgm} allows for straight-forward factorization of the joint-distribution 
+\acrshort{dgm} allows for straightforward factorization of the joint distribution 
 \begin{equation}\label{eq:dgm_factorization}
     p(\mathbf{x}) = \prod_{v \in \mathcal{V}}p(v | \mathbf{pa}(v))
 \end{equation}
 where $\mathcal{V}$ is all the nodes in the graph and $\mathbf{pa}(v)$ is the parent's for node $v$. 
 
-\subsection{\acrfull{mrf}} \label{sec:mrf}
+\subsection{Markov Random Fields} \label{sec:mrf}
 
-\acrshort{mrf}'s are undirected graphical models, and offers a more general specification of independence assumptions. They are in some domains, such as relational or spatial data , more natural than \acrshort{dgm}'s as they are symmetric, i.e. the information flows both ways \cite{murphy}. The \acrshort{mrf} in \cref{fig:mrf} shows that $B$ and $C$ is only independent if both $A$ and $D$ is observed, i.e. $B \perp C | \; A, D$. The important thing to notice is that the \acrshort{mrf} makes vastly different assumptions than the \acrshort{dgm}, even though the structure is similar.
+\textit{\Glspl{mrf}} are undirected graphical models that offers a more general specification of independence assumptions. They are in some domains, such as relational or spatial data , more natural than \acrshort{dgm}s as they are symmetric, i.e. the information flows both ways \cite{murphy}. The \acrshort{mrf} in \cref{fig:mrf} shows that $B$ and $C$ is only independent if both $A$ and $D$ are observed, i.e. $B \perp C | \; A, D$. The important thing to notice is that the \acrshort{mrf} makes vastly different assumptions compared to the \acrshort{dgm}, even though the structure is similar.
 
 By the \textbf{Hammersley-Clifford Theorem} \cite[p.~ 668]{murphy}, the joint distribution of \acrshort{mrf} models can be factorized on the form
 \begin{equation}
     p(\mathbf{x}) =\frac{1}{Z} \prod_{c \in \mathcal{C}} \psi_c(\mathbf{x}_c)
 \end{equation}
-where is $\mathcal{C}$ is the set of all \textit{maximal cliques}, i.e. largest, fully connected sub graphs. All variables in a maximal clique is therefore dependent on each other. $\psi_c(\cdot)$ is the \textit{(factor) potential function} for the nodes in the clique $c$, and determines the strength of the interaction between the variables $\bf{x}_c$. The \textit{(factor) partition function}
+where is $\mathcal{C}$ is the set of all \textit{maximal cliques}, i.e. the largest, fully connected subgraphs. All variables in a maximal clique is therefore dependent on each other. $\psi_c(\cdot)$ is the \textit{(factor) potential function} for the nodes in the clique $c$, and determines the strength of the interaction between the variables $\bf{x}_c$. The \textit{(factor) partition function}
 \begin{equation}
     Z = \int_\mathbf{x} (\prod_{c \in \mathcal{C}} \psi_c(\mathbf{x}_c)) d \mathbf{x}
 \end{equation}
 is a normalization constant so that $p(\mathbf{x}) \in [0, 1]$. The potential functions $\psi_c(\cdot)$ can therefore be arbitrary non-negative functions. 
 
-\acrshort{dgm}'s can be converted into \acrshort{mrf}'s through \textit{\gls{moralization}}. \Gls{moralization} is performed by making all edges undirected and add new edges between variables sharing a child. Some independence information is lost in the process, but it represent the same factorization of the joint distribution. The computational complexity of inference on \acrshort{dgm}s and \acrshort{mrf}s are, generally speaking, the same  \cite{murphy}. Inference methods for \acrshort{mrf}'s can therefore also be used on \acrshort{dgm}'s by first moralizing.
+\acrshort{dgm}s can be converted into \acrshort{mrf}s through \textit{\gls{moralization}}. \Gls{moralization} is performed by making all edges undirected and add new edges between variables sharing a child. Some independence information is lost in the process, but it represent the same factorization of the joint distribution. The computational complexity of inference on \acrshort{dgm}s and \acrshort{mrf}s are, generally speaking, the same  \cite{murphy}. Inference methods for \acrshort{mrf}s can therefore also be used on \acrshort{dgm}s by moralizing in advance.
 
 
 \subsection{Factor Graphs}
-Factor Graphs unifies the concept of directed (\acrshort{dgm}) and undirected graphical models (\acrshort{mrf}). A factor graph is an undirected bipartite graph. Bipartite graphs are graphs with two different types of nodes, factors and variables. All variables are represented by round nodes and all factors are square nodes. Each factor is connected to all variables it references through undirected edges. Both \acrshort{mrf}'s and \acrshort{dgm}'s can be converted to factor graphs. Factor graphs is not really intended for modelling independence, but rather visualize how the joint distribution can be factorized to allow for efficient computations. \cref{fig:factor} shows a factor graph for the \acrshort{mrf} in \cref{fig:mrf}.
+Factor Graphs unify the concept of directed (\acrshort{dgm}) and undirected graphical models (\acrshort{mrf}). A factor graph is an undirected bipartite graph. Bipartite graphs are graphs with two different types of nodes, factors and variables. All variables are represented by round nodes and all factors are square nodes. Each factor is connected to all variables it references through undirected edges. Both \acrshort{mrf}s and \acrshort{dgm}s can be converted to factor graphs. Factor graphs are not really intended for modelling independence, but rather visualize how the joint distribution can be factorized to allow for efficient computations. \cref{fig:factor} shows a factor graph for the \acrshort{mrf} in \cref{fig:mrf}.
 
-For generative models, an extension to factor graph notation is proposed in \cite{dietz} to allow for a more intuitive reasoning about the model. The directed edges in \cref{fig:factor_directed} contains additional information about how realizations of the random variables are generated, similar to the \acrshort{dgm} in \cref{fig:dgm}. The factors can the be viewed intuitively as generative processes, with input and output variables. It otherwise contain the exact same functional representation as the normal factor graph in \cref{fig:factor}. 
+For generative models, an extension to factor graph notation is proposed in \cite{dietz} to allow for a more intuitive reasoning about the model. The directed edges in \cref{fig:factor_directed} contains additional information about how realizations of the random variables are generated, similar to the \acrshort{dgm} in \cref{fig:dgm}. The factors can then be viewed intuitively as generative processes with input and output variables. It otherwise contains the exact same functional representation as the normal factor graph in \cref{fig:factor}. 
 
-\begin{figure}[h]
+\begin{figure}[h!]
 \centering
 \begin{subfigure}{0.49\textwidth}
 \centering
@@ -247,13 +258,13 @@ For generative models, an extension to factor graph notation is proposed in \cit
 
 \section{Some useful functions}
 \subsection{Sigmoid}
-The sigmoid is used to map $\mathcal{R}$ to $(0, 1)$.
+The \textit{sigmoid} is used to map $\mathcal{R}$ to $(0, 1)$.
 \begin{equation}\label{eq:sigmoid}
     f(x) = \frac{1}{1 + e^{-x}}
 \end{equation}
 
 \subsection{Softmax}
-The softmax is a useful transformation from $\mathcal{R}^N$ to $\{\mathbf{x} \in (0,1)^N | \sum x_i = 1\}$ \cite{murphy,tensorflow2015-whitepaper}. It can be viewed as a multivariate generalization of the sigmoid function. 
+The \textit{softmax} is a useful transformation from $\mathcal{R}^N$ to $\{\mathbf{x} \in (0,1)^N | \sum x_i = 1\}$ \cite{murphy,tensorflow2015-whitepaper}. It can be viewed as a multivariate generalization of the sigmoid function. 
 \begin{equation}\label{eq:softmax}
     f(\mathbf{x})_i = \frac{e^{x_i}}{\sum_j e^{x_j}}
 \end{equation}
@@ -264,13 +275,16 @@ The \textit{softplus} function is useful for mapping $\mathcal{R}$ to the positi
     f(x) = \ln (1 + e^x)
 \end{equation}
 
+\subsection{Softclip}\label{sec:softclip}
+The \textit{softclip} function allow mapping from $\mathcal{R}$ to $(a, b)$ while remaining approximately linear when far from the bounds, i.e. $f(x) \approx x \; \text{for} \; a << x << b$. Beyond the bounds, the function will remain approximately constant at $a$ or $b$. This function is implemented in practice by using \cref{eq:softplus} to approximate $\max(a, x)$ and $\min(x, b)$ while still be differentiable. More details can be found in the Tensorflow Probability documentation \cite{tensorflow2015-whitepaper}.
+
 
 \section{Probability Distributions}
 
 This section will introduce a few useful probability distributions that may be unfamiliar to some readers. The reader is assumed to already be familiar with probability distributions introduced in most university-level statistic courses, such as the Normal (Gaussian), Exponential, Poisson etc. 
 
 \subsection{Support}
-The \textit{set-theoretic support} of a function $f: X \to \mathcal{R}$, denoted $supp(f)$ is the elements which do not map to zero.
+The \textit{set-theoretic support} of a function $f: X \to \mathcal{R}$, denoted $supp(f)$ are the elements which do not map to zero.
 \begin{equation}
     \text{supp}(f) = \{x \in X | f(x) \neq 0\}
 \end{equation}
@@ -288,7 +302,7 @@ Given a (possibly nonlinear) transformation $\mathbf{y} = f(\mathbf{x})$, the pr
 \end{equation}
 
 \subsection{Conjugate Priors}\label{sec:theory_conjugate_priors}
-If the posterior distribution is in the same family as the prior, then the posterior is called the \textit{conjugate distribution} and the prior is called the \textit{conjugate prior}. Using conjugate priors in Bayesian Statistics, allows for analytically tractable inference as the posterior becomes a well known probability distribution. \cref{table:conjugate_priors} summarizes the conjugate priors for a few common distribution. Non-standard distribution may still exist as conjugate distributions, such as the \textit{conjugate Dirichlet}
+If the posterior distribution is in the same family as the prior, then the posterior is called the \textit{conjugate distribution} and the prior is called the \textit{conjugate prior}. Using conjugate priors in Bayesian Statistics, allows for analytically tractable inference as the posterior becomes a well known probability distribution. \cref{table:conjugate_priors} summarizes the conjugate priors for a few common distribution. Non-standard distributions may still exist as conjugate distributions, such as the \textit{conjugate Dirichlet}.
 
 
 \begin{table}[h]
@@ -308,11 +322,11 @@ If the posterior distribution is in the same family as the prior, then the poste
 
 
 \subsection{Bernouilli \& Categorial Distributions}
-The Bernouilli Distribution is a discrete distribution modelling the probability of a single event occurring. The Categorial distribution is a generalization of the Bernouilli distribution, where each outcome can take $K \geq 2$ different values. The output of the Categorical distribution, $x \sim \text{Cat}(\boldsymbol{\alpha})$, is usually a single integer $x \in \{0, 1, \dots, K-1\}$, but can also be one-hot encoded as a $K$ dimentional vector $\mathbf{y}$ with elements $$y_i = \begin{cases}
+The Bernouilli Distribution is a discrete distribution that models the probability of a single event occurring. The Categorial distribution is a generalization of the Bernouilli distribution, where each outcome can take $K \geq 2$ different values. The output of the Categorical distribution, $x \sim \text{Cat}(\boldsymbol{\alpha})$, is usually a single integer $x \in \{0, 1, \dots, K-1\}$, but can also be one-hot encoded as a $K$ dimentional vector $\mathbf{y}$ with elements $$y_i = \begin{cases}
     1 & \text{if} \; x = i\\ 0 & \text{otherwise}
 \end{cases}$$
 \subsection{Beta \& Dirichlet Distributions}
-The Beta distribution is a distribution with support between $0$ and $1$, and is therefore well suited to model probabilities. The Dirichlet distribution is a multivariate generalization of the Beta distribution. The Dirichlet distribution support vectors of probabilities which sum to $1$.
+The Beta distribution is a distribution with support between $0$ and $1$, and is therefore well suited to model probabilities. The Dirichlet distribution is a multivariate generalization of the Beta distribution. The Dirichlet distribution supports vectors of probabilities that sum to $1$.
 \begin{equation}
     \text{supp}(Dir) = \{\boldsymbol{x} \in (0, 1)^K | \sum_{i=0}^{K-1} x_i = 1\} 
 \end{equation} 
@@ -321,7 +335,7 @@ The Binomial distribution is useful to model counting processes, such as "After 
 
 
 \subsection{The Exponential Family}
-The Exponential Family is a family of distribution for which the \acrshort{pdf} or \acrshort{pmf} can be expressed on the from
+The Exponential Family is a family of distributions for which the \acrshort{pdf} or \acrshort{pmf} can be expressed on the from
 \begin{equation}
     p(\mathbf{x} | \boldsymbol{\theta}) = h(\mathbf{x}) \exp[\eta(\boldsymbol{\theta}) T(\mathbf{x}) - A(\boldsymbol{\theta})]
 \end{equation}

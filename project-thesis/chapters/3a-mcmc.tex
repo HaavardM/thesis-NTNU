@@ -1,7 +1,7 @@
 
 \chapter{Monte Carlo Sampling}\label{chap:mcmc}
 
-\section{Markov-Chain-Monte-Carlo}
+\section{Markov Chain Monte Carlo}
 The main idea behind \acrfull{mcmc} algorithms is to construct Markov Chains whose stationary distribution is the desired target density. After drawing many correlated samples from such a chain, the fraction of time spent in each state will be proportional to the target density $p^*(\mathbf{x})$ \cite{murphy}. 
 
 \subsection{Metropolis Hastings Algorithm}
@@ -44,13 +44,13 @@ The MH algorithm is summarized in \cref{alg:metropolis_hastings}.
 A common proposal density is a symmetric Gaussian distribution centered at the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = \mathcal{N}(\mathbf{x'} | \mathbf{x}, \boldsymbol{\Sigma})$$ resulting in the \textit{Random Walk Metropolis Algorithm}.
 
 \subsection{Independence Sampling}
-If the proposal density $q(\cdot)$ is independent of the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = q(\mathbf{x'})$$ then the MH algorithm boils down to the \textit{independence sampler}, which is similar to importance sampling as described in \cref{sec:theory_importance_sampling} \cite{murphy}.
+If the proposal density $q(\cdot)$ is independent of the current state, i.e. $$q(\mathbf{x'} | \mathbf{x}) = q(\mathbf{x'})$$ then the MH algorithm boils down to the \textit{independence sampler} \cite{murphy}.
 
 \subsection{Hamiltonian MCMC}
 
-Sampling in a continuous state-space using \cref{alg:metropolis_hastings} with a simple proposal distribution can be slow. If the gradients of the (unnormalized) target distribution is known, other methods such as \textit{\acrfull{hmc}} can be used to drastically speed up the sampling process by proposing new states with increased likelihood of acceptance. In addition to the model parameters $\mathbf{q}$, auxiliary momentum variables $\bf p$ are sampled and used to simulate the state as a particle moving around in space. The Hamiltonian Dynamics in \cref{eq:hamiltonian_dynamics} are simulated and used to propose new states with high acceptance probability \cite{neal2012mcmc,murphy,hoffman2011nouturn,robert2018accelerating}. \acrshort{hmc} requires a few parameters to be specified. The number of \textit{leapfrog step} describes how many steps should be simulated for each proposal, while the \textit{step size} is the size of the discretization used when simulating the Hamiltonian Dynamics. Especially the number of leapfrog step can be difficult to tune, as too many leads to unnecessary computations while too few leads to random walk behaviour \cite{hoffman2011nouturn}. 
+Sampling in a continuous state-space using \cref{alg:metropolis_hastings} with a simple proposal distribution can be slow. If the gradients of the (unnormalized) target distribution are known, other methods such as \textit{\acrfull{hmc}} can be used to drastically speed up the sampling process by proposing new states with increased likelihood of acceptance. In addition to the model parameters $\mathbf{q}$, auxiliary momentum variables $\bf p$ are sampled and used to simulate the state as a particle moving around in space. The Hamiltonian Dynamics in \cref{eq:hamiltonian_dynamics} are simulated and used to propose new states with high acceptance probability \cite{neal2012mcmc,murphy,hoffman2011nouturn,robert2018accelerating}. \acrshort{hmc} requires a few parameters to be specified. The number of \textit{leapfrog steps} describes how many steps should be simulated for each proposal, while the \textit{step size} is the size of the discretization used when simulating the Hamiltonian Dynamics. Especially the number of leapfrog steps can be difficult to tune, as having too many lead to unnecessary computations while too few lead to random walk behaviour \cite{hoffman2011nouturn}. 
 
-Hamilton's equations is given by \cref{eq:hamiltonian_dynamics}. $H$ is the Hamiltonian representing the total energy of the system as a function of position and momentum, usually in the form of the potential energy $U(\mathbf{q})$ and the kinetic energy as expressed in \cref{eq:hamiltonian}. In \acrshort{hmc} the potential energy $U(\mathbf{q})$ is selected to be the negative log likelihood of the (unnormalized) target distribution and $M$ is a positive definite mass matrix, typically diagonal or a scalar multiple of the identity matrix \cite{neal2012mcmc}. 
+Hamilton's equations are given by \cref{eq:hamiltonian_dynamics}. $H$ is the Hamiltonian representing the total energy of the system as a function of position and momentum, usually in the form of the potential energy $U(\mathbf{q})$ and the kinetic energy as expressed in \cref{eq:hamiltonian}. In \acrshort{hmc} the potential energy $U(\mathbf{q})$ is selected to be the negative log likelihood of the (unnormalized) target distribution and $M$ is a positive definite mass matrix, typically diagonal or a scalar multiple of the identity matrix \cite{neal2012mcmc}. 
 \begin{align}\label{eq:hamiltonian_dynamics}
     \frac{d q_i}{d\tau} &= \frac{\partial H(\mathbf{q}, \mathbf{p})}{\partial p_i} & \frac{d p_i}{d\tau} &= -\frac{\partial H(\mathbf{q}, \mathbf{p})}{\partial q_i}
 \end{align}
@@ -59,15 +59,16 @@ Hamilton's equations is given by \cref{eq:hamiltonian_dynamics}. $H$ is the Hami
     H(\mathbf{q}, \mathbf{p}) &= U(\mathbf{q}) + \frac{1}{2} \mathbf{p}^\intercal M^{-1} \mathbf{p} & U(\mathbf{q}) = - \ln p^*(\mathbf{q})
 \end{align}
 
-An extension to \acrshort{hmc}, the \textit{\acrfull{nuts}} is proposed in \cite{hoffman2011nouturn}. It eliminates the need for manual tuning of leapfrog steps and it is shown empirically to perform comparably to well tuned \acrshort{hmc} method without any manual intervention.
+An extension to \acrshort{hmc}, the \textit{\acrfull{nuts}} is proposed in \cite{hoffman2011nouturn}. It eliminates the need for manual tuning of leapfrog steps and it is shown empirically to perform comparably to a well tuned \acrshort{hmc} method without any manual intervention.
 
 
 
 \subsection{Burn-in}
-The samples from the Markov Chain are not from the target distribution until the chain reaches its stationary distribution. A (potentially large) number of samples on the beginning of the chain are therefore invalid and are usually discarded. This is called the \textit{burn-in phase} and is one of the major weaknesses of \acrshort{mcmc} \cite{murphy}. Convergence of a Markov Chain is difficult to detect and in practice a fixed, large number of samples are discarded.   
+The samples from the Markov Chain are not from the target distribution until the chain reaches its stationary distribution. A (potentially large) number of samples in the beginning of the chain are therefore invalid and usually discarded. This is called the \textit{burn-in phase} and is one of the major weaknesses of \acrshort{mcmc} \cite{murphy}. Convergence of a Markov Chain is difficult to detect and in practice a fixed, large number of samples are discarded.   
 
-It can be shown that if the stationary distribution of a Markov Chain exists, it will be independent of starting state \cite{murphy}. Initializing the chain at different points will not affect the stationary distribution and convergence can be verified by comparing independently sampled chains, initialized with different values. If all chains have converged toward the same value, the burn-in phase is complete.    
-%TODO Add trace plot
+It can be shown that if the stationary distribution of a Markov Chain exists, it will be independent of the starting state \cite{murphy}. Initializing the chain at different points will not affect the stationary distribution and convergence can be verified by comparing independently sampled chains, initialized with different values. If all chains have converged toward the same value, the burn-in phase is complete.
+
+An alternative to burn-in is to initialize the chain at a known mode of the posterior distribution. This does however require that a good initial state is known prior to starting the simulation. This is useful with subsequent runs of \acrshort{mcmc}, as prior \acrshort{mcmc} simulations can be used to initialize the simulation and avoid burn-in. This further allow \acrshort{mcmc} to be paused and resumed by simple running \acrshort{mcmc} multiple times and use the last state of one chain as initial values for the next. This follows directly from the Markov assumption as future states are only dependent on the current state of the chain. 
 
 \subsection{MCMC in practice}
 Many software packages are available for \acrshort{mcmc}, such as: 
@@ -78,16 +79,17 @@ Many software packages are available for \acrshort{mcmc}, such as:
     \item PyMC3 \cite{pymc3}
 \end{enumerate}
 
-In practice, these packages can handle much of the complexity performing MCMC based inference, leaving only the model specification and a few parameters to the user. These packages also handles implementation details such as efficient utilization of available hardware (GPU and CPU) and automatic differentiation. Accelerated sampling methods such as \acrshort{hmc} and \acrshort{nuts} are also easy to use in these software packages.   
+In practice, these packages can handle much of the complexity performing MCMC based inference, leaving only the model specification and a few parameters to the user. These packages also handle implementation details such as efficient utilization of available hardware (GPU and CPU) and automatic differentiation. Accelerated sampling methods such as \acrshort{hmc} and \acrshort{nuts} are also easy to use in these software packages.   
 
 \subsection{Thinning}
-As new states are proposed from previous states, the samples are naturally highly auto-correlated. This results in a lot of samples which provide little additional information about the true distribution. A simple method to reduce the auto-correlation and thereby improve the information the samples is to use \textit{thinning}, were only every nth sample are kept. This can save a lot of storage \cite{murphy}.
+As new states are proposed from previous states, the samples are naturally highly auto-correlated. This results in a lot of samples that provide little additional information about the true distribution. A simple method to reduce the auto-correlation and thereby improve the information content of the samples is to use \textit{thinning}, were only every nth sample is kept. This can save a lot of storage \cite{murphy}.
 
 \subsection{Convergence Guarantees}
+If the proposal density $q$ has wide enough support, it can be shown that almost any simulation of $q$ can be turned into a simulation of $p^*$ by using the accept-reject step of \cref{alg:metropolis_hastings}. A sufficient condition is that $q$ has support everywhere in the state-space \cite{robert2016metropolishastings}, i.e. a chain simulated using $q$ can reach any point in the state-space of $p^*$. However, convergence is not generally guaranteed in finite time, only as the number of steps approaches the limit. 
 
 \subsection{Bijectors}
-Sampling from a constrained distribution (i.e. a Beta distribution which only offer support on $x \in (0, 1)$) using an unconstrained proposal distribution can quickly take a long time as many of the proposal will be rejected. A solution to this problem is to transform the proposal distribution such that the MCMC algorithm can sample in an unconstrained space \cite{Parno_2018, tensorflow2015-whitepaper}. 
+Sampling from a constrained distribution (e.g. a Beta distribution, which only offers support on $x \in (0, 1)$) using an unconstrained proposal distribution can quickly take a long time, as many of the proposals will be rejected. A solution to this problem is to transform the proposal distribution to allow the MCMC algorithm to sample in an unconstrained space \cite{Parno_2018, tensorflow2015-whitepaper}. 
 
-The framework \textit{Tensorflow Probability} introduce the concept of \textit{Bijectors} which are predefined (potentially non-linear) transformations of distributions. Softmax, Softplus, Sigmoid, Affine and Exponential are among many supported transformations. Using Bijectors, the proposal distributions in Tensorflow Probability can easily be transformed into a unconstrained space without dealing with any error-prone calculations \cite{tensorflow2015-whitepaper}. 
+The framework Tensorflow Probability introduces the concept of \textit{Bijectors} which are predefined (potentially non-linear) transformations of distributions. Bijectors simply implement \cref{eq:change_of_variable} and allow easy use of transformed distributions. Using Bijectors, the proposal distributions in Tensorflow Probability can easily be transformed into an unconstrained space without dealing with any error-prone calculations \cite{tensorflow2015-whitepaper}. 
 
 
