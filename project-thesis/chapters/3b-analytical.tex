@@ -1,35 +1,34 @@
 \chapter{Analytical Methods \& Variational Inference}\label{chap:analytical}
-For some \acrshort{pgm}'s the joint distribution may have a functional form which allow marginalization using analytical methods, i.e. directly evaluating the integrals and sums. When applicable, analytical methods allow for exact inference and avoid the randomness introduced by sampling methods. %TODO Cite or explain further 
+For some \acrshort{pgm}s the joint distribution may have a functional form that allows marginalization using analytical methods, i.e. directly evaluating the integrals and sums. When applicable, analytical methods allow for exact or approximate inference while avoiding the randomness and computational complexity introduced by sampling methods. 
 
 
 \section{Belief Propagation}
 %TODO Better citations
-The computational complexity of marginalizing over many variables in a \acrshort{pgm} may be large as the number of possible hypotheses quickly increases with the number of variables. Finding the solution in a reasonable amount of time requires a strategy which avoids unnecessary computations and efficiently utilize the structure of the \acrshort{pgm}. 
+The computational complexity of marginalizing over many variables in a \acrshort{pgm} may be large as the number of possible hypotheses quickly increases with the number of variables. Finding the solution in a reasonable amount of time requires a strategy that avoids unnecessary computations and efficiently utilizes the structure of the \acrshort{pgm}. 
 
-\textit{\acrfull{bp}}, also called the sum-product algorithm, is an algorithm for efficient marginalization in \acrshort{pgm}'s. The algorithm utilizes dynamic programming to avoid repeating costly calculations. The method is described in detail in \cite[p .~710]{murphy}, but is summarized here with a few notational modifications. 
+\textit{\acrfull{bp}}, also called the sum-product algorithm, is an algorithm for efficient marginalization in \acrshort{pgm}s. The algorithm utilizes dynamic programming to avoid repeating costly calculations. The method is described in detail in \cite[p .~710]{murphy}, but is summarized here with a few notational modifications. Only \acrshort{mrf}'s are considered in this section as \acrshort{dgm}'s can easily be converted into \acrshort{mrf}'s through \gls{moralization}.
 
 
 \subsection{Belief Propagation for trees}
-To compute the marginal density for a node $r$ in a tree-structured \acrshort{pgm}, one can imagine "picking up" the tree by $r$. The remaining nodes will be pulled down by gravity and $r$ will become the root node. \acrshort{bp} will collect evidence from the leaf nodes and work its way upward toward the root, collecting evidence and marginalizing on the way. One can imagine each node computes \textbf{messages} describing the belief about their parent nodes, and passing those messages to the parent nodes \cite{murphy}.
+To compute the marginal density for a node $r$ in a tree-structured \acrshort{pgm}, one can imagine "picking up" the tree by $r$. The remaining nodes will be pulled down by gravity and $r$ will become the root node. \acrshort{bp} will collect evidence from the leaf nodes and work its way upward toward the root, collecting evidence and marginalizing on the way. One can imagine that each node computes \textbf{messages} describing the belief about their parent nodes, and then passes those messages to the parents.
 \subsection{Message passing}
-A node $t$ computes a message containing the current belief about its parent given all evidence collected at or below node $t$ \cite{murphy}. Assuming all nodes below $t$ have already calculated their messages, the belief for node $t$ becomes
+A node $t$ computes a message containing the current belief about its parent given all evidence collected at or below node $t$. Assuming all nodes below $t$ have already calculated their messages, the belief for node $t$ becomes
 \begin{equation}\label{eq:bp_belief}
     bel_t^-(x_t) \triangleq p(x_t | \mathbf{v}_t^-) = \frac{1}{Z_t}\psi_t(x_t) \prod_{c \in ch(t)} m_{c\to t}^-(x_t)
 \end{equation}
-where $\mathbf{v}_t^-$ is all evidence at or below node $t$, $\psi_t(x_t)$ is the local evidence at node $t$, $m_{c \to t}^-$ is the messages passed from $t$'s children, $ch(t)$ is the children nodes for node $t$ and $Z_t$ is the normalization constant for node $t$.
-Assuming the belief $bel_s^-(x_s)$ for a children $s$ of node $t$ has already been calculated using \cref{eq:bp_belief},  the message $m_{s\to t}^-$ can then be computed using
+where $\mathbf{v}_t^-$ is all evidence at or below node $t$, $\psi_t(x_t)$ is the local evidence at node $t$, $m_{c \to t}^-$ is the messages passed from $t$'s children, $ch(t)$ represents the children nodes for node $t$ and $Z_t$ is the normalization constant for node $t$.
+Assuming the belief $bel_s^-(x_s)$ for a child $s$ of node $t$ has already been calculated using \cref{eq:bp_belief},  the message $m_{s\to t}^-$ can be computed using
 \begin{equation}\label{eq:bp_message}
     m_{s \to t}^-(x_t) = \int_{x_s} \psi_{st}(x_s, x_t) bel_s^-(x_s) dx_s
 \end{equation}
 where $\psi_{st}(x_s, x_t)$ is the edge potential. The edge potential $\psi_{st}(x_s, x_t)$ and local evidence $\psi_t(x_t)$ here corresponds to the factor potentials discussed in \cref{sec:mrf}.
-
-The messages and belief state for each node can then be recursively computed using \cref{eq:bp_belief} and \cref{eq:bp_message}.
+The messages and belief state for each node can then be recursively computed using \cref{eq:bp_belief} and \cref{eq:bp_message} from the leaf nodes as these have no incoming messages.
 
 
 
 Computing all messages from leaf nodes towards the top is called the \textit{collecting evidence}-phase and yields the marginal distribution for the root node. However, the marginal distribution for all other nodes can easily be calculated by calculating messages from the root node and distribute messages downward towards the leaf nodes. This is called the \textit{distribute evidence}-phase. 
 
-The belief state for nodes $s$ other than the root, can in the distribute evidence-phase be updated using
+The belief state for node $s$ other than the root, can in the distribute evidence-phase be updated using
 \begin{equation}\label{eq:bp_belief_top_down}
     bel_s(x_s) \triangleq p(x_s | \mathbf{v}) \propto bel_s^-(x_s) \prod_{t \in pa(s)} m_{t \to s}^+(x_s)
 \end{equation}
@@ -57,13 +56,13 @@ p(x_r) &= \idotsint_V p(x_r, x_1,\dots,x_k) \,dx_1 \dots dx_k\\
 \end{subequations}
 
 \subsection{Belief Propagation on arbitrary graphs}
-\acrshort{bp} can also be used for \acrshort{pgm}'s without tree structure, but then it becomes an approximate inference algorithm as convergence to the true state is no longer guaranteed. It is then called \textit{loopy belief propagation}, and works by running \acrshort{bp} until convergence, i.e. until the changes in belief state do not change significantly.  In practice, the method is effecient and simple, and often outperforms other approximate methods \cite{murphy}.
+\acrshort{bp} can also be used for \acrshort{pgm}s without tree structure, but then it becomes an approximate inference algorithm as convergence to the true state is no longer guaranteed. It is then called \textit{loopy belief propagation}, and works by running \acrshort{bp} until convergence, i.e. until the changes in belief state do not change significantly.  In practice, the method is effecient and simple, and often outperforms other approximate methods \cite{murphy}.
 
-\subsection{Limitations of analytical methods}
-The methods described so far in this chapter generally applies to both discrete and continuous random variables by replacing integrals with sums for discrete variables. However, in practice, continuous random variables quickly becomes intractable unless each parent-child in the graph are conjugate priors. Assuming conjugate priors severely limits the ability to describe the data-generating process, leaving only a few types of networks feasible. Looking back at \cref{table:conjugate_priors} for common conjugate priors, only a mix of gaussians, gamma and discrete distributions allow for multiple levels in a hierarchical model. For all other distributions, one quickly ends up in a situation where no standard conjugate exist \cite{winnbishop}. 
+\subsection{Limitations of exact analytical methods}
+The methods described so far in this chapter generally apply to both discrete and continuous random variables by replacing integrals with sums for discrete variables. In practice however, continuous random variables quickly become intractable unless each parent-child in the graph are conjugate priors. Requiring conjugate priors severely limits the ability to describe the data-generating process, leaving only a few types of networks feasible. Looking back at \cref{table:conjugate_priors} for common conjugate priors, only a mix of gaussians, gamma and discrete distributions allow for multiple levels in a hierarchical model. For all other distributions, one quickly ends up in a situation where no standard conjugate exists \cite{winnbishop}. 
 % TODO Cite. 
 \section{Variational Bayes}
-\acrshort{bp} allows for exact inference of \acrshort{pgm}'s when there exists closed-form solutions of the integrals. This is however rarely the case and is only true for carefully chosen distributions. Requiring all combination of nodes to be conjugate priors (\cref{sec:theory_conjugate_priors}) can severely limit the expressibility of a \acrshort{pgm} and is not a viable solution. 
+\acrshort{bp} allows for exact inference of \acrshort{pgm}s when there exist closed-form solutions of the integrals. This is rarely the case for continuous variables and is only true for carefully chosen distributions. Requiring all combinations of nodes to be conjugate priors (\cref{sec:theory_conjugate_priors}) can severely limit the expressibility of a \acrshort{pgm} and is not a viable solution. 
 
 Another approach is to approximate the target distribution $p(\mathbf{x} | \mathcal{D})$ with a simpler \textit{surrogate distribution} $q(\mathbf{x})$. If the surrogate density is selected to be close to the true posterior $p(\mathbf{x} | \mathcal{D})$, it can be used for approximate inference. 
 
@@ -108,23 +107,23 @@ Variational Inference then boils down to finding the best surrogate density $q^*
 
 \subsection{I or M mode projection}\label{sec:im-mode}
 
-Forward KL is also known as \textit{moment-projection} (M-projection)  as it will attempt to match the moments of $q(\cdot)$ with $p(\cdot)$. In the case of a multimodal $p(\cdot)$ and unimodal $q(\cdot)$, this may not be desirable as the mean is placed in between regions of high probability. Looking at \cref{eq:kl}, the KL divergence is infinite when $p(\cdot) > 0$ and $q(\cdot) = 0$. M-projection is therefore said to be \textit{zero avoiding} as optimizing \cref{eq:kl} needs to ensure $q(\mathbf{x}) > 0$ when $p(\mathbf{x}) > 0$. M-projection therefore tends to over-estimate the support of $p(\cdot)$.
+Forward KL is also known as \textit{moment-projection} (M-projection)  as it will attempt to match the moments of $q(\cdot)$ with $p(\cdot)$. In the case of a multimodal $p(\cdot)$ and unimodal $q(\cdot)$, this may not be desirable as the mean is placed in between regions of high probability. Looking at \cref{eq:kl}, the KL divergence is infinite when $p(\cdot) > 0$ and $q(\cdot) = 0$. M-projection is therefore said to be \textit{zero-avoiding} as optimizing \cref{eq:kl} needs to ensure $q(\mathbf{x}) > 0$ when $p(\mathbf{x}) > 0$. M-projection therefore tends to overestimate the support of $p(\cdot)$.
 
-Reverse KL is known as \textit{information-projection} (I-projection). I-projection tends to converge toward a local mode, which may or may not be desired. In the case of multimodal distributions, reverse \acrshort{kl} can therefore converge toward a local mode, even if there exist modes with higher probability mass. As \cref{eq:reverse_kl} is infinite when $p(\cdot) = 0$ and $q(\cdot) > 0$, optimizing reverse KL therefore needs to ensure $q(\cdot) = 0$ when $p(\cdot)=0$. I-projection is therefore said to be \textit{zero forcing} and tends to underestimate the support for $p(\cdot)$ \cite{murphy}. 
+Reverse KL is known as \textit{information-projection} (I-projection). I-projection tends to converge towards a local mode, which may or may not be desired. In the case of multimodal distributions, reverse \acrshort{kl} can therefore converge towards a local mode, even if there exist modes with higher probability mass. As \cref{eq:reverse_kl} is infinite when $p(\cdot) = 0$ and $q(\cdot) > 0$, optimizing reverse KL needs to ensure $q(\cdot) = 0$ when $p(\cdot)=0$. I-projection is therefore said to be \textit{zero-forcing} and tends to underestimate the support for $p(\cdot)$ \cite{murphy}. 
 
 \subsection{Selecting a good surrogate density}
-Finding a good surrogate density can be difficult. Perhaps the simplest method is to assume $q(\cdot)$ is to assume a specific parametrization and simply optimize over the parameters using numerical optimization techniques. 
+Finding a good surrogate density can be difficult. Perhaps the simplest method is to assume $q(\cdot)$ to be a specific parametric distribution and simply optimize over the parameters using numerical optimization techniques with \acrshort{elbo} as objective. 
 
 Another way to restrict the set of possible surrogate densities is to assume independent variables for the surrogate distribution $q(\cdot)$. This is called a \textit{mean-field} approximation.
 \begin{equation}\label{eq:mean_field}
     q(\mathbf{x}) = \prod_i q_i(x_i)
 \end{equation}
-However, this is in many cases a very strong assumption which may lead to poor results in the case of strong interactions in the posterior distribution. An extension called \textit{structured mean field} can in some cases be used if the posterior has tractable substructures (i.e. sub graphs which can be described using "simple" distributions). The variables forming tractable substructures can then be combined into "mega-variables" and \cref{eq:mean_field} can be used as an approximation \cite{murphy}.
+However, this is in many cases a very strong assumption which may lead to poor results in the case of strong interactions in the posterior distribution. An extension called \textit{structured mean field} can in some cases be used if the posterior has tractable substructures (i.e. subgraphs that can be described using "simple" distributions). The variables forming tractable substructures can then be combined into "mega-variables" and \cref{eq:mean_field} can be used as an approximation \cite{murphy}.
 
-When assuming a mean field approximation, it can be shown that the optimal surrogate density $q_j^*(x_j)$ satisfies \cref{eq:optimal_mean_field}. The optimal unnormalized log surrogate density for variable $x_i$ is simply the expectation of the log joint density $\log p(\mathcal{D}, \boldsymbol{x})$ over all variables except $x_i$. If all nodes in the \acrshort{pgm} are conjugate-priors, the expectation can be expressed analytically, and the optimal surrogate distribution can be by found  by updating each $q_j$ one at a time, using the current estimate of all other $q_{j\neq i}$, and repeat until (guaranteed) convergence \cite{bishop2007}. If the expectation cannot be computed analytically, further assumptions or approximations need to be used when optimizing \acrshort{elbo}.
+When assuming a mean field approximation, it can be shown that the optimal surrogate density $q_j^*(x_j)$ satisfies \cref{eq:optimal_mean_field}. The optimal unnormalized log surrogate density for variable $x_i$ is simply the expectation of the log joint density $\log p(\mathcal{D}, \boldsymbol{x})$ over all variables except $x_i$. If all nodes in the \acrshort{pgm} are conjugate priors, the expectation can be expressed analytically, and the optimal surrogate distribution can be found by updating each $q_j$ one at a time, using the current estimate of all other $q_{j\neq i}$, and repeat until (guaranteed) convergence \cite{bishop2007}. If the expectation cannot be computed analytically, the expectation needs to be approximated.
 \begin{equation}\label{eq:optimal_mean_field}
     \log q_i^*(x_i) = E_{q_{j \neq i}}\big[\log p(\mathcal{D}, \mathbf{x}) \big] + const
 \end{equation}
 
 \subsection{Variational Message Passing}
-\cite{winnbishop} introduces \textit{Variational Message Passing} (VMP) which combines \acrshort{bp} with \acrshort{vi} on conjugate-exponential models (i.e. models with conjugate priors and exponential family distributions). It propose a general framework for such models where a mean-field approximation is expressed as message-passing. The paper further propose extensions to VMP in order to relax the conjugacy constraints.
+\cite{winnbishop} introduces \textit{Variational Message Passing} (VMP) which combines \acrshort{bp} with \acrshort{vi} on conjugate-exponential models (i.e. models with conjugate priors and exponential family distributions). It proposes a general framework for such models where a mean-field approximation is expressed as message-passing in order to create a general framework for mean-field and avoid error-prone calculations. The paper further propose extensions to VMP in order to relax the conjugacy constraints.
