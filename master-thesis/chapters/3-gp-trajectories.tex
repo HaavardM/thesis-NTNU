@@ -1,0 +1,33 @@
+\chapter{Non-parametric trajectories using Gaussian Process}\label{chap:impl}
+Predicting vessel trajectories can be parametrized in multiple ways. The simplest parametrization would be to directly model the trajectory $f(t)$ from observed data. Another approach is to rather learn a vector-field from AIS gradients, and use the vector field as variable input to a linear model. The vector-field can then be though of as forces, or flows, pushing the vessel in the direction of historical AIS data. A simple Kalman-filter predict step can then be used to simulate the movement for any vessel placed in the vector-field. 
+
+
+\section{Non-parametric dynamic system using AIS tracking data}
+
+The trajectory $\mathcal{T}$ can be expressed using the dynamical system model $\dot{\boldsymbol{x}} = f(\boldsymbol{x})$
+\begin{subequations}
+\begin{align}
+    \boldsymbol{x}(t) &= \boldsymbol{x}(0) + \int_0^t \vec{f}(\boldsymbol{x}(\tau)) d\tau \\
+    \mathcal{T}(t) &= \boldsymbol{x}(t) + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
+\end{align}
+\end{subequations}
+
+The function $\vec{f}(\cdot): \mathcal{R}^2 \to \mathcal{R}^2$ denotes the vector field describing the forces acting on a vessel. Normally this function is parametrized explicitly and the solution is solved either analytically or numerically depending on the complexity of the model. However, in the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely stationary. Instead, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels.
+
+\begin{equation}\label{eq:gp_vec_field}
+    f(\boldsymbol{x}) = \begin{bmatrix} f_x (\boldsymbol{x})\\ f_y (\boldsymbol{x})\end{bmatrix} \sim \text{GP} \big(\begin{bmatrix} m_x(\boldsymbol{x})\\m_y(\boldsymbol{x})\end{bmatrix}, \ \begin{bmatrix}
+    K_{xx}(\boldsymbol{x}, \boldsymbol{x}') & K_{xy}(\boldsymbol{x}, \boldsymbol{x}') \\ K_{xy}(\boldsymbol{x}, \boldsymbol{x}')^\intercal & K_{yy}(\boldsymbol{x}, \boldsymbol{x}')
+    \end{bmatrix}\big) 
+\end{equation}
+
+The benefits of this formulation include:
+\begin{description}
+    \item[Easy incorporation of existing data] The model can easily be trained on partial data. Only the gradients of any historical trajectories are really needed.
+    \item[Few constraining assumptions] The dynamical model is not constrained by any specific parametrization, while still allows prior knowledge such as smoothness to be incorporated into the model.
+    \item[Uncertainty] The model can express uncertain when the availability of examples are sparse. 
+\end{description}
+
+\section{Learning trajectories directly from data (?)}
+\section{Branching Trajectories}
+\subsection{Mixture of Gaussian Process Experts}
+

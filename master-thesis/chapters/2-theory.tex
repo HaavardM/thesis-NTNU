@@ -1,1 +1,26 @@
 \chapter{Neccessary Theoretical Background}\label{chap:theory}
+
+\section{Introduction to Gaussian Processes}
+
+This introduction is heavily inspired by \cite{rasmussen}.
+
+A \acrfull{gp} can formally be defined as Definition \ref{def:gp}.
+
+\newtheorem{gp_def}{Definition}
+\begin{gp_def}\label{def:gp}
+A Gaussian Process is a collection of random variables, any finite number of which has a joint Gaussian Distribution.
+\end{gp_def}
+
+In this thesis we will use a more specific definition in order to interpret \acrshort{gp}'s as a statistical distribution over functions. A \acrshort{gp} for a random function $f(\boldsymbol{x})$ is fully specified by its mean function $m(\boldsymbol{x})$ and covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$.
+
+\begin{equation}
+    f(\boldsymbol{x}) \sim GP(\;m(\boldsymbol{x}), \; k(\boldsymbol{x}, \boldsymbol{x}')\;)
+\end{equation}
+
+This interpretation of a \acrshort{gp} might seem a bit odd in the beginning, especcially if
+
+\section{Multivariate Gaussian Process}
+\section{Computational Complexity}
+\section{Approximate methods}
+\subsection{Variational Inference}
+\subsection{Markov Chain Monte Carlo}
