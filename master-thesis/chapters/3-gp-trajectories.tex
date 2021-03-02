@@ -3,7 +3,6 @@ Predicting vessel trajectories can be parametrized in multiple ways. The simples
 
 
 \section{Non-parametric dynamic system using AIS tracking data}
-
 The trajectory $\mathcal{T}$ can be expressed using the dynamical system model $\dot{\boldsymbol{x}} = f(\boldsymbol{x})$
 \begin{subequations}
 \begin{align}
@@ -26,6 +25,8 @@ The benefits of this formulation include:
     \item[Few constraining assumptions] The dynamical model is not constrained by any specific parametrization, while still allows prior knowledge such as smoothness to be incorporated into the model.
     \item[Uncertainty] The model can express uncertain when the availability of examples are sparse. 
 \end{description}
+
+\cite{heinonen2018learningode} use a similar formulation to infer arbitrary, non-linear ODE models from sparse data and predict the dynamics far into the future. 
 
 \section{Learning trajectories directly from data (?)}
 \section{Branching Trajectories}
