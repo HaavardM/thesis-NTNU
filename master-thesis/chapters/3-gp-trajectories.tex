@@ -3,18 +3,18 @@ Predicting vessel trajectories can be parametrized in multiple ways. The simples
 
 
 \section{Non-parametric dynamic system using AIS tracking data}
-The trajectory $\mathcal{T}$ can be expressed using the dynamical system model $\dot{\boldsymbol{x}} = f(\boldsymbol{x})$
+The trajectory $\mathcal{T}$ can be expressed using the dynamical system
 \begin{subequations}
 \begin{align}
-    \boldsymbol{x}(t) &= \boldsymbol{x}(0) + \int_0^t \vec{f}(\boldsymbol{x}(\tau)) d\tau \\
-    \mathcal{T}(t) &= \boldsymbol{x}(t) + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
+    \dot{\boldsymbol{x}} &= \vec{f}(\boldsymbol{x})\\
+    \mathcal{T} &= \boldsymbol{x} + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
 \end{align}
 \end{subequations}
 
 The function $\vec{f}(\cdot): \mathcal{R}^2 \to \mathcal{R}^2$ denotes the vector field describing the forces acting on a vessel. Normally this function is parametrized explicitly and the solution is solved either analytically or numerically depending on the complexity of the model. However, in the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely stationary. Instead, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels.
 
 \begin{equation}\label{eq:gp_vec_field}
-    f(\boldsymbol{x}) = \begin{bmatrix} f_x (\boldsymbol{x})\\ f_y (\boldsymbol{x})\end{bmatrix} \sim \text{GP} \big(\begin{bmatrix} m_x(\boldsymbol{x})\\m_y(\boldsymbol{x})\end{bmatrix}, \ \begin{bmatrix}
+    \vec{f}(\boldsymbol{x}) = \begin{bmatrix} f_x (\boldsymbol{x})\\ f_y (\boldsymbol{x})\end{bmatrix} \sim \text{GP} \big(\begin{bmatrix} m_x(\boldsymbol{x})\\m_y(\boldsymbol{x})\end{bmatrix}, \ \begin{bmatrix}
     K_{xx}(\boldsymbol{x}, \boldsymbol{x}') & K_{xy}(\boldsymbol{x}, \boldsymbol{x}') \\ K_{xy}(\boldsymbol{x}, \boldsymbol{x}')^\intercal & K_{yy}(\boldsymbol{x}, \boldsymbol{x}')
     \end{bmatrix}\big) 
 \end{equation}
@@ -26,9 +26,42 @@ The benefits of this formulation include:
     \item[Uncertainty] The model can express uncertain when the availability of examples are sparse. 
 \end{description}
 
+The major downside is however that the model only learns gradients from data and relies heavily on numerical estimates of the velocity. In the case of AIS data, this is a large cause of uncertainty due to the large sampling interval.
+
+The model could further be improved by clustering the samples based on similar behaviour for different ships, such as similarities in velocity. Separate \acrshort{GP}s could then be trained on the different subsets of data.
+
 \cite{heinonen2018learningode} use a similar formulation to infer arbitrary, non-linear ODE models from sparse data and predict the dynamics far into the future. 
 
-\section{Learning trajectories directly from data (?)}
+
+
+\section{Learning trajectories directly from data}
+A more direct approach is to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{p}_t$, \acrshort{cog} $\psi_t$ and \acrshort{sog} $v_t$ to a position at time $t+\tau$. The method is formulated in mathematical terms in \cref{eq:gp_direct}. The model can then be queried about likely future positions by evaluating $\boldsymbol{f}$ with the desired initial conditions and time horizon, and then condition the \acrshort{gp} on close trajectories. 
+The method simply boils down to using the \acrshort{gp} kernels to find trajectories with similar initial conditions, and use those to predict future positions.
+
+\begin{subequations}\label{eq:gp_direct}
+\begin{align}
+    \boldsymbol{f}(\boldsymbol{x}) &= \boldsymbol{p}_{t+\tau} \label{eq:gp_direct_f}, \quad \boldsymbol{x} = \begin{bmatrix} \boldsymbol{p}_t & \psi_t & v_t & \tau\end{bmatrix}\\
+    \boldsymbol{f}(\boldsymbol{x}) &\sim \text{GP}(\boldsymbol{m}(\boldsymbol{x}), K(\boldsymbol{x}, \boldsymbol{x}))\label{eq:gp_direct_f_dist}
+\end{align} 
+\end{subequations}
+
+The benefits of this approach include:
+\begin{description}
+    \item[Continuous formulation] The model directly models the position at any time $t+\tau$ and do not require discretization. 
+    \item[Simple Problem formulation] The model requires few components.
+    \item[Easy incorporation of available AIS data] The reported \acrshort{cog} and \acrshort{sog} can easily be incorporated into the similarity measure, utilizing more of the available data.
+\end{description}
+
+However, the model is exclusively data-driven and makes it more challenging to incorporate model information. The high number of input variables also makes it more challenging to interpret how the model makes prediction. This makes tuning more challenging.
+
+\subsection{Choice of kernels}
+The kernels is in this case used as a similarity measure between two trajectories. This boils down to fin
+
+
+
+
 \section{Branching Trajectories}
+
+
 \subsection{Mixture of Gaussian Process Experts}
 
