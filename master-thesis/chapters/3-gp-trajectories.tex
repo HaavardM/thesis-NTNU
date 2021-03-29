@@ -28,7 +28,7 @@ The benefits of this formulation include:
 
 The major downside is however that the model only learns gradients from data and relies heavily on numerical estimates of the velocity. In the case of AIS data, this is a large cause of uncertainty due to the large sampling interval.
 
-The model could further be improved by clustering the samples based on similar behaviour for different ships, such as similarities in velocity. Separate \acrshort{GP}s could then be trained on the different subsets of data.
+The model could further be improved by clustering the samples based on similar behaviour for different ships, such as similarities in velocity. Separate \acrshort{gp}s could then be trained on the different subsets of data.
 
 \cite{heinonen2018learningode} use a similar formulation to infer arbitrary, non-linear ODE models from sparse data and predict the dynamics far into the future. 
 
