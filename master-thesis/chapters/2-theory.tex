@@ -1,5 +1,43 @@
 \chapter{Neccessary Theoretical Background}\label{chap:theory}
 
+\section{The Multivariate Gaussian Distribution}
+The Gaussian Distribution is one one the most used distributions in statistics \cite{murphy} and generalizes well into the multivariate case. The pdf for the $D$ dimensional multivariate Gaussian is given by \cref{eq:multivariate_gaussian} \cite{murphy}.
+\begin{equation}\label{eq:multivariate_gaussian}
+    \mathcal{N}(\boldsymbol{x} \; | \; \boldsymbol{\mu}, \boldsymbol{\Sigma}) \triangleq \frac{1}{(2 \pi)^{D/2} |\boldsymbol{\Sigma} | ^{1/2}} \exp \bigg[- \frac{1}{2} (\boldsymbol{x} - \boldsymbol{\mu})^\intercal \boldsymbol{\Sigma}^{-1}(\boldsymbol{x} - \boldsymbol{\mu})\bigg]
+\end{equation}
+\subsection{Marginalization and conditioning}
+Consider a joint multivariate Gaussian distribution for two (possibly vector-valued) variables $\boldsymbol{x}$ and $\boldsymbol{y}$.
+\begin{equation}
+    p(\boldsymbol{x}, \boldsymbol{y}) = N\bigg(\begin{bmatrix}
+        \boldsymbol{x} \\ \boldsymbol{y}
+    \end{bmatrix} \; \bigg| \; \begin{bmatrix}
+        \boldsymbol{\mu}_x \\ \boldsymbol{\mu}_y
+    \end{bmatrix}, \begin{bmatrix}
+        \boldsymbol{\Sigma_{xx}} &
+        \boldsymbol{\Sigma_{xy}} \\
+        \boldsymbol{\Sigma_{yx}} &
+        \boldsymbol{\Sigma_{yy}}
+    \end{bmatrix}\bigg)
+\end{equation}
+The marginals are then given by \cref{eq:multivariate_gaussian_marginal} and can simply be calculated by picking the corresponding values from $\boldsymbol{\mu}$ $\boldsymbol{\Sigma}$, i.e. no calculations needed. 
+\begin{align}\label{eq:multivariate_gaussian_marginal}
+    \begin{split}
+    p(\boldsymbol{x}) &= \mathcal{N}(\boldsymbol{x} \; | \; \boldsymbol{\mu}_x, \boldsymbol{\Sigma}_{xx})\\
+    p(\boldsymbol{y}) &= \mathcal{N}(\boldsymbol{y} \; | \; \boldsymbol{\mu}_y, \boldsymbol{\Sigma}_{yy})
+    \end{split}
+    \end{align}
+ The posterior conditional is given by \cref{eq:multivariate_gaussian_conditional}. These equations will be used extensively throughout this thesis.
+ \begin{tcolorbox}[title={Posterior Conditional Distribution}]
+ \begin{subequations}\label{eq:multivariate_gaussian_conditional}
+ \begin{align}
+    p(\boldsymbol{x} | \boldsymbol{y}) &= \mathcal{N}(\boldsymbol{x} \; | \; \boldsymbol{\mu}_{x|y}, \boldsymbol{\Sigma}_{x|y})\\
+    \boldsymbol{\mu}_{x|y} &= \boldsymbol{\mu}_x + \boldsymbol{\Sigma}_{xy}\boldsymbol{\Sigma}_{yy}^{-1}(\boldsymbol{y} - \boldsymbol{\mu}_y)\\
+    \boldsymbol{\Sigma}_{x|y} &= \boldsymbol{\Sigma}_{xx} -\boldsymbol{\Sigma}_{xy}\boldsymbol{\Sigma}_{yy}^{-1}\boldsymbol{\Sigma}_{yx}
+ \end{align}
+ \end{subequations}
+ \end{tcolorbox}
+
+
 \section{Introduction to Gaussian Processes}
 
 This introduction is heavily inspired by \cite{rasmussen}.
@@ -11,10 +49,10 @@ A \acrfull{gp} can formally be defined as Definition \ref{def:gp}.
 A Gaussian Process is a collection of random variables, any finite number of which has a joint Gaussian Distribution.
 \end{gp_def}
 
-In this thesis we will use a more specific definition in order to interpret \acrshort{gp}'s as a statistical distribution over functions. A \acrshort{gp} for a random function $f(\boldsymbol{x})$ is fully specified by its mean function $m(\boldsymbol{x})$ and covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$.
+In this thesis we will use a more specific definition in order to interpret \acrshort{gp}'s as a statistical distribution over functions. A \acrshort{gp} for a random function $f \triangleq f(\boldsymbol{x})$ is fully specified by its mean function $m(\boldsymbol{x})$ and covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$.
 
 \begin{equation}\label{eq:gp}
-    f(\boldsymbol{x}) \sim GP(\;m(\boldsymbol{x}), \; k(\boldsymbol{x}, \boldsymbol{x}')\;)
+    f \sim GP(\;m(\boldsymbol{x}), \; k(\boldsymbol{x}, \boldsymbol{x}')\;)
 \end{equation}
 
 This interpretation of a \acrshort{gp} might seem a bit odd at first. The key observation is that the marginal distribution $p(\boldsymbol{x})$ of a multivariate Gaussian distribution $p(\boldsymbol{x}, \boldsymbol{y})$ is another Gaussian distribution that is completetly independet of $\boldsymbol{y}$, as expressed in \cref{eq:gaussian_marginal}. Any variables that is not of intereset can therefore easily be marginalized away, leaving only the subset of variables we care about.
@@ -30,10 +68,7 @@ This interpretation of a \acrshort{gp} might seem a bit odd at first. The key ob
     \end{bmatrix} \bigg) d\boldsymbol{y} = \mathcal{N} \big( \boldsymbol{x} \;\big| \; \boldsymbol{\mu_x}, \boldsymbol{\Sigma_{xx}}\big)
 \end{equation}
 
-Any \acrshort{gp} by Definition \ref{def:gp} can therefore be thought of as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f(\boldsymbol{x})$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
-
-\subsection{Conditioning}
-So far, we have only specified the prior distribution over $f(\boldsymbol{x})$, and so far the \acrshort{gp}.  
+Any \acrshort{gp} by Definition \ref{def:gp} can therefore be thought of as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
 
 \subsection{Introduction to kernels}
 The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this theis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The key idea behind kernels is that the kernels may in many cases be simpler to compute than the input vectors themselves if the input-space is complex. The output of the kernel is a value describing the similarity (i.e. covariance) between the two inputs. Different types of kernels will be discussed in greater detail in \cref{sec:kernels}.
@@ -50,24 +85,49 @@ The resulting covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cd
 \end{equation}
 
 \subsection{Conditioning}
-So far we have only specified the prior distribution for $f(\boldsymbol{x})$. 
-As an example, we use the simple \acrshort{gp} in \cref{eq:theory_simple_gp}. The \acrshort{rbf} kernel used will be introduced in greater detail in \cref{sec:kernels_rbf}. The latent function $f(x)$ is the true relationship between $f$ and $x$, which can only be observed through the noisy observations $y_i$. 
-
+So far we have only specified the prior distribution for $f$. As a \acrshort{gp} is by definition a multivariate Gaussian Distribution, the posterior conditional in \cref{eq:multivariate_gaussian_conditional} can be used to condition $f$ on observed values. 
+As an example, we use a simple \acrshort{gp} for $f$ where mean $m$ and kernel $k$ is defined in \cref{eq:theory_simple_gp}. The \acrshort{rbf} kernel used will be introduced in greater detail in \cref{sec:kernels_rbf}.
 \begin{align}\label{eq:theory_simple_gp}
-    \begin{split}
-    k(x, x') &= \exp\bigg(-\frac{|| x - x'||^2}{2}\bigg)\\
-    f(x) &\sim \text{GP}(0, k(x, x'))\\
-    y_i &= f(x_i) + \epsilon
-    \end{split}
+    m(x) &= 0 & k(x, x') &= \exp\bigg(-\frac{|| x - x'||^2}{2}\bigg)
 \end{align}
+Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we want to update our prior beliefs after observing $f_* \triangleq f(x_*)$ at different inputs $x_*$ to get the posterior belief $f \; | \; f_*$.
 
-Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we then want to observe values $y_i$ and update our prior beliefs to get the posterior distribution for $f(x)$.
+The joint distribution of $f$ and $f_*$ is given by 
+
+\begin{equation}
+    p(f, f_*) = \mathcal{N}\bigg(\begin{bmatrix}
+        f \\ f_*
+    \end{bmatrix} \; \bigg| \begin{bmatrix}
+        m(x) \\ m(x_*)
+    \end{bmatrix},  \begin{bmatrix}
+        K(X, X) & K(X, X_*) \\ K(X_*, X) & K(X_*, X_*)
+    \end{bmatrix}\bigg)
+\end{equation}
+
+The posterior distribution $f | f_*$ can easily be computed using the closed form solution in \cref{eq:multivariate_gaussian_conditional}.
+\begin{subequations}
+\begin{align}
+    p(f | f_*) &= \mathcal{N}(f \; | \; \boldsymbol{\mu}_{f|f_*}, \boldsymbol{\Sigma}_{f|f_*})\\
+    \boldsymbol{\mu}_{f|f_*} &= m(x) + K(X, X_*) \; K(X_*, X_*)^{-1} \; (f_* - m(x_*))\\
+    \boldsymbol{\Sigma}_{f|f_*} &= K(X, X) - K(X, X_*)  K(X_*, X_*)^{-1} \; K(X_*, X)
+\end{align}
+\end{subequations}
+
+In practice, computing the inverse $K(X_*, X_*)$ quickly becomes expensive and error-prone for increasing number of samples. To avoid numerical instability, the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{figures/introduction-gp/prior.png}
-    \caption{Gaussian Process Prior}
-    \label{fig:gp_prior}
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/introduction-gp/prior.png}
+        \caption{Prior}
+        \label{fig:gp_prior}
+    \end{subfigure}
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\textwidth]{figures/introduction-gp/posterior.png}
+        \caption{Posterior after observing the function at two different inputs (black dots).}
+        \label{fig:gp_posterior}
+    \end{subfigure}
+    \caption{Simple Gaussian Process example with zero-mean and \acrshort{rbf} kernel with unit variance. The red line is the mean, while the red area is the $95\%$ confidence interval.}
 \end{figure}
 
 \section{Model Selection}
