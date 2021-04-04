@@ -1,4 +1,4 @@
-\chapter{Neccessary Theoretical Background}\label{chap:theory}
+\chapter{The Gaussian Process}\label{chap:theory}
 
 \section{The Multivariate Gaussian Distribution}
 The Gaussian Distribution is one one the most used distributions in statistics \cite{murphy} and generalizes well into the multivariate case. The pdf for the $D$ dimensional multivariate Gaussian is given by \cref{eq:multivariate_gaussian} \cite{murphy}.
@@ -40,7 +40,7 @@ The marginals are then given by \cref{eq:multivariate_gaussian_marginal} and can
 
 \section{Introduction to Gaussian Processes}
 
-This introduction is heavily inspired by \cite{rasmussen}.
+This introduction is heavily inspired by \cite{rasmussen} where more details can be found for those interested. 
 
 A \acrfull{gp} can formally be defined as Definition \ref{def:gp}.
 
@@ -55,18 +55,7 @@ In this thesis we will use a more specific definition in order to interpret \acr
     f \sim GP(\;m(\boldsymbol{x}), \; k(\boldsymbol{x}, \boldsymbol{x}')\;)
 \end{equation}
 
-This interpretation of a \acrshort{gp} might seem a bit odd at first. The key observation is that the marginal distribution $p(\boldsymbol{x})$ of a multivariate Gaussian distribution $p(\boldsymbol{x}, \boldsymbol{y})$ is another Gaussian distribution that is completetly independet of $\boldsymbol{y}$, as expressed in \cref{eq:gaussian_marginal}. Any variables that is not of intereset can therefore easily be marginalized away, leaving only the subset of variables we care about.
-
-\begin{equation}\label{eq:gaussian_marginal}
-    p(\boldsymbol{x}) = \int_{\boldsymbol{y}} \mathcal{N} \bigg(\begin{bmatrix}
-        \boldsymbol{x} \\ \boldsymbol{y}
-    \end{bmatrix}\; \bigg| \begin{bmatrix}
-        \boldsymbol{\mu_x} \\ \boldsymbol{\mu_y}
-    \end{bmatrix}, \; \begin{bmatrix}
-        \boldsymbol{\Sigma_{xx}} & \boldsymbol{\Sigma_{xy}} \\
-        \boldsymbol{\Sigma_{yx}} & \boldsymbol{\Sigma_{yy}} \\
-    \end{bmatrix} \bigg) d\boldsymbol{y} = \mathcal{N} \big( \boldsymbol{x} \;\big| \; \boldsymbol{\mu_x}, \boldsymbol{\Sigma_{xx}}\big)
-\end{equation}
+This interpretation of a \acrshort{gp} might seem a bit odd at first. The key observation is that the marginal distribution $p(\boldsymbol{x})$ of a multivariate Gaussian distribution $p(\boldsymbol{x}, \boldsymbol{y})$ is another Gaussian distribution that is completetly independent of $\boldsymbol{y}$, as expressed in \cref{eq:multivariate_gaussian_marginal}. Any variables not of interest can therefore easily be marginalized away, leaving only the subset of variables we care about.
 
 Any \acrshort{gp} by Definition \ref{def:gp} can therefore be thought of as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
 
@@ -90,30 +79,58 @@ As an example, we use a simple \acrshort{gp} for $f$ where mean $m$ and kernel 
 \begin{align}\label{eq:theory_simple_gp}
     m(x) &= 0 & k(x, x') &= \exp\bigg(-\frac{|| x - x'||^2}{2}\bigg)
 \end{align}
-Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we want to update our prior beliefs after observing $f_* \triangleq f(x_*)$ at different inputs $x_*$ to get the posterior belief $f \; | \; f_*$.
+Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we want to update our prior beliefs after observing $\boldsymbol{f}_* \triangleq f(X_*)$ at multiple inputs $X_*$ to get the posterior belief $f \; | \; \boldsymbol{f}_*$.
 
-The joint distribution of $f$ and $f_*$ is given by 
+The joint distribution of $f$ and $\boldsymbol{f}_*$ is given by 
 
 \begin{equation}
     p(f, f_*) = \mathcal{N}\bigg(\begin{bmatrix}
-        f \\ f_*
+        f \\ \boldsymbol{f}_*
     \end{bmatrix} \; \bigg| \begin{bmatrix}
-        m(x) \\ m(x_*)
+        m(x) \\ m(X_*)
     \end{bmatrix},  \begin{bmatrix}
         K(X, X) & K(X, X_*) \\ K(X_*, X) & K(X_*, X_*)
     \end{bmatrix}\bigg)
 \end{equation}
 
-The posterior distribution $f | f_*$ can easily be computed using the closed form solution in \cref{eq:multivariate_gaussian_conditional}.
-\begin{subequations}
+The posterior distribution $f | \boldsymbol{f}_*$ can easily be computed using the closed form solution in \cref{eq:multivariate_gaussian_conditional}.
+\begin{subequations}\label{eq:gp_conditional}
 \begin{align}
-    p(f | f_*) &= \mathcal{N}(f \; | \; \boldsymbol{\mu}_{f|f_*}, \boldsymbol{\Sigma}_{f|f_*})\\
-    \boldsymbol{\mu}_{f|f_*} &= m(x) + K(X, X_*) \; K(X_*, X_*)^{-1} \; (f_* - m(x_*))\\
-    \boldsymbol{\Sigma}_{f|f_*} &= K(X, X) - K(X, X_*)  K(X_*, X_*)^{-1} \; K(X_*, X)
+    p(f | f_*) &= \mathcal{N}(f \; | \; \boldsymbol{\mu}_{f|\boldsymbol{f}_*}, \boldsymbol{\Sigma}_{f|\boldsymbol{f}_*})\\
+    \bar{f} = \boldsymbol{\mu}_{f|\boldsymbol{f}_*} &= m(x) + K(X, X_*) \; K(X_*, X_*)^{-1} \; (\boldsymbol{f}_* - m(X_*))\label{eq:gp_conditional_mean}\\
+    \mathbb{V}[f] = \boldsymbol{\Sigma}_{f|\boldsymbol{f}_*} &= K(X, X) - K(X, X_*)  K(X_*, X_*)^{-1} \; K(X_*, X)\label{eq:gp_conditional_var}
 \end{align}
 \end{subequations}
 
-In practice, computing the inverse $K(X_*, X_*)$ quickly becomes expensive and error-prone for increasing number of samples. To avoid numerical instability, the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root.
+In practice, computing the inverse $K(X_*, X_*)$ quickly becomes expensive for increasing number of samples. To avoid numerical instability, the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root. \cref{eq:gp_conditional} can then be computed using $L$. A small diagonal entry is also usually added to the kernel matrix, i.e. $K' = K + \sigma I$ to model noisy observations. This modification also improves the numerical stability, so a small value is usually recommended even if there is no noise.
+\begin{subequations}
+\begin{align}
+    \begin{split}
+    \bar{f} &= m(x) + K(X, X_*) \; (L L^\intercal)^{-1} \; (\boldsymbol{f}_* - m(X_*))\\ &= m(x) + K(X, X_*) \; \underbrace{\big[(L^\intercal)^{-1} (L)^{-1}  \; (\boldsymbol{f}_* - m(X_*))\big]}_{\boldsymbol{\alpha}}
+    \end{split}\\
+    \begin{split}
+    \mathbb{V}[f] &= K(X, X) - K(X, X_*) \; (L L^\intercal)^{-1} \; K(X_*, X)\\
+    &= K(X, X) - K(X, X_*) \; (L^\intercal)^{-1} (L)^{-1} \; K(X_*, X)\\
+    &= K(X, X) - \underbrace{\big[(L)^{-1} \; K(X_*, X)\big]^\intercal}_{\boldsymbol{v^\intercal}} \; \underbrace{\big[(L)^{-1} \; K(X_*, X)\big]}_{\boldsymbol{v}}
+    \end{split}
+\end{align}
+\end{subequations}
+
+This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}.
+\begin{algorithm}[h]
+\SetAlgoLined
+\SetKwInOut{Input}{input}
+\Input{$X$ (prediction inputs), $\boldsymbol{f}_*$ (observed values), $k$ (kernel function), $X_*$ (observed inputs)}
+
+$L = cholesky\big(K(X_*, X_*)\big)$\;
+$\boldsymbol{\alpha} = L^\intercal \backslash (L \backslash \boldsymbol{f}_*)$\;
+$\boldsymbol{v} = L \backslash K(X, X_*)$\;
+$\bar{f} = m(X) + K(X, X_*) \boldsymbol{\alpha}$\;
+$\mathbb{V}[f] = K(X, X) - \boldsymbol{v}^\intercal \boldsymbol{v}$\;
+\KwResult{$\bar{f}$ (mean), $\mathbb{V}[f]$ (covariance)}
+\caption{Gaussian Process Prediction}
+\label{alg:gp_prediction}
+\end{algorithm}
 
 \begin{figure}[h]
     \centering
