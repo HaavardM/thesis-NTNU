@@ -7,7 +7,7 @@ plt.style.use('ggplot')
 x = np.linspace(0, 10)
 y = np.sin(x)
 
-gp = GaussianProcessRegressor()
+gp = GaussianProcessRegressor(alpha=0.01)
 
 conf95 = 1.96
 

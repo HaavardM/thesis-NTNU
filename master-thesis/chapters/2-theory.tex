@@ -75,10 +75,8 @@ The resulting covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cd
 
 \subsection{Conditioning}
 So far we have only specified the prior distribution for $f$. As a \acrshort{gp} is by definition a multivariate Gaussian Distribution, the posterior conditional in \cref{eq:multivariate_gaussian_conditional} can be used to condition $f$ on observed values. 
-As an example, we use a simple \acrshort{gp} for $f$ where mean $m$ and kernel $k$ is defined in \cref{eq:theory_simple_gp}. The \acrshort{rbf} kernel used will be introduced in greater detail in \cref{sec:kernels_rbf}.
-\begin{align}\label{eq:theory_simple_gp}
-    m(x) &= 0 & k(x, x') &= \exp\bigg(-\frac{|| x - x'||^2}{2}\bigg)
-\end{align}
+As an example, we use a simple \acrshort{gp} for $f$ with mean $m$ and kernel $k$.
+
 Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we want to update our prior beliefs after observing $\boldsymbol{f}_* \triangleq f(X_*)$ at multiple inputs $X_*$ to get the posterior belief $f \; | \; \boldsymbol{f}_*$.
 
 The joint distribution of $f$ and $\boldsymbol{f}_*$ is given by 
@@ -116,7 +114,7 @@ In practice, computing the inverse $K(X_*, X_*)$ quickly becomes expensive for i
 \end{align}
 \end{subequations}
 
-This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}.
+This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A simple \acrshort{gp} before and after conditioning is shown in \cref{fig:gp_simple}
 \begin{algorithm}[h]
 \SetAlgoLined
 \SetKwInOut{Input}{input}
@@ -145,11 +143,13 @@ $\mathbb{V}[f] = K(X, X) - \boldsymbol{v}^\intercal \boldsymbol{v}$\;
         \label{fig:gp_posterior}
     \end{subfigure}
     \caption{Simple Gaussian Process example with zero-mean and \acrshort{rbf} kernel with unit variance. The red line is the mean, while the red area is the $95\%$ confidence interval.}
+    \label{fig:gp_simple}
 \end{figure}
 
 \section{Model Selection}
 \section{Kernels}\label{sec:kernels}
 
+\section{Extended Kalman Filter}
 \subsection{Radial Basis Function}\label{sec:kernels_rbf}
 \section{Multivariate Gaussian Process}
 \section{Computational Complexity}
