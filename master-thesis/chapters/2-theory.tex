@@ -100,7 +100,7 @@ The posterior distribution $f | \boldsymbol{f}_*$ can easily be computed using t
 \end{align}
 \end{subequations}
 
-In practice, computing the inverse $K(X_*, X_*)$ quickly becomes expensive for increasing number of samples. To avoid numerical instability, the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root. \cref{eq:gp_conditional} can then be computed using $L$. A small diagonal entry is also usually added to the kernel matrix, i.e. $K' = K + \sigma I$ to model noisy observations. This modification also improves the numerical stability, so a small value is usually recommended even if there is no noise.
+In practice, computing the inverse $K(X_*, X_*)$ quickly becomes expensive for increasing number of samples. To avoid numerical instability, the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root. \cref{eq:gp_conditional} can then be computed using $L$. A small diagonal entry is also usually added to the kernel matrix, i.e. $K' = K + \sigma I$ to model noisy observations. This modification also improves the numerical stability, so a small value is recommended even if the observations are noise free \cite{scikit-learn}.
 \begin{subequations}
 \begin{align}
     \begin{split}
@@ -120,7 +120,7 @@ This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A s
 \SetKwInOut{Input}{input}
 \Input{$X$ (prediction inputs), $\boldsymbol{f}_*$ (observed values), $k$ (kernel function), $X_*$ (observed inputs)}
 
-$L = cholesky\big(K(X_*, X_*)\big)$\;
+$L = cholesky\big(K(X_*, X_*) + \sigma I\big)$\;
 $\boldsymbol{\alpha} = L^\intercal \backslash (L \backslash \boldsymbol{f}_*)$\;
 $\boldsymbol{v} = L \backslash K(X, X_*)$\;
 $\bar{f} = m(X) + K(X, X_*) \boldsymbol{\alpha}$\;
