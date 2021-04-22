@@ -59,6 +59,13 @@ This interpretation of a \acrshort{gp} might seem a bit odd at first. The key ob
 
 Any \acrshort{gp} by Definition \ref{def:gp} can therefore be thought of as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
 
+\subsection{A quick note on vector notation}
+We use two different notations for vector values in order to differentiate between two common cases:
+\begin{description}
+\item[Bold letters] are used to indicate a single, multivariate value. $f(\boldsymbol{x})$ is the scalar function $f$ evaluated at the multivariate input $\boldsymbol{x}$. In practice, this implies the input is $\boldsymbol{x} \in \mathcal{R}^{1 x M}$ with $M\geq 2$ columns.
+\item[Capital letters] such as X, are used to indicate multiple (potentially multivariate) samples. $f(X)$ is the scalar function $f$ evaluated at each row in $X$. In practice this implies that the input $X \in \mathcal{R}^{N x M}$ with $N \geq 2$ rows (samples) and $M \geq 1$ columns (dimensions).
+\end{description}
+
 \subsection{Introduction to kernels}
 The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this theis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The key idea behind kernels is that the kernels may in many cases be simpler to compute than the input vectors themselves if the input-space is complex. The output of the kernel is a value describing the similarity (i.e. covariance) between the two inputs. Different types of kernels will be discussed in greater detail in \cref{sec:kernels}.
 
@@ -96,7 +103,16 @@ The posterior distribution $\boldsymbol{f}_* | \boldsymbol{y}$ can easily be com
 \begin{align}
     p(\boldsymbol{f}_* | \boldsymbol{y}) &= \mathcal{N}(f \; | \; \boldsymbol{\mu}_{\boldsymbol{f}_*|\boldsymbol{y}}, \boldsymbol{\Sigma}_{\boldsymbol{f}_*|\boldsymbol{y}})\\
     \bar{\boldsymbol{f}}_* = \boldsymbol{\mu}_{\boldsymbol{f}_* | \boldsymbol{y}} &= m(X_*) + K(X_*, X) \; K(X, X)^{-1} \; (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean}\\
-    \mathbb{V}[f] = \boldsymbol{\Sigma}_{\boldsymbol{f}_* | \boldsymbol{y}} &= K(X_*, X_*) - K(X_*, X)  K(X, X)^{-1} \; K(X, X_*)\label{eq:gp_conditional_var}
+    \mathbb{V}[\boldsymbol{f}_*] = \boldsymbol{\Sigma}_{\boldsymbol{f}_* | \boldsymbol{y}} &= K(X_*, X_*) - K(X_*, X)  K(X, X)^{-1} \; K(X, X_*)\label{eq:gp_conditional_var}
+\end{align}
+\end{subequations}
+
+As the notation quickly gets messy for the general case, we also introduce a shorthand notation for evaluating $f(\boldsymbol{x}_*)$, which is what we most often want. As used by \cite{rasmussen}, we introduce $\boldsymbol{k}_* = K(X, \boldsymbol{x}_*)$ as a vector of covariances calculated between the test point and each of the training samples, as well as $K=K(X, X)$. Using this shorthand notation for a single test case, \cref{eq:gp_conditional} boils down to \cref{eq:gp_conditional_simple}.
+
+\begin{subequations}\label{eq:gp_conditional_simple}
+\begin{align}
+    \bar{f}_* &= m(\boldsymbol{x}_*) + \boldsymbol{k}_*^\intercal ( K + \sigma I)^{-1} (\boldsymbol{y} - m(X))\\
+    \mathbb{V}[f_*] &= k(\boldsymbol{x}_*, \boldsymbol{x}_*) - \boldsymbol{k}_*^\intercal K^{-1} \; \boldsymbol{k}_*\label{eq:gp_conditional_var}
 \end{align}
 \end{subequations}
 
@@ -125,7 +141,7 @@ $\boldsymbol{\alpha} = L^\intercal \backslash (L \backslash \boldsymbol{y})$\;
 $\boldsymbol{v} = L \backslash K(X, X_*)$\;
 $\bar{\boldsymbol{f}}_* = m(X_*) + K(X_*, X) \boldsymbol{\alpha}$\;
 $\mathbb{V}[\boldsymbol{f}_*] = K(X_*, X_*) - \boldsymbol{v}^\intercal \boldsymbol{v}$\;
-\KwResult{$\bar{f}$ (mean), $\mathbb{V}[f]$ (covariance)}
+\KwResult{$\bar{\boldsymbol{f}}$ (mean), $\mathbb{V}[\boldsymbol{f}_*]$ (covariance)}
 \caption{Gaussian Process Prediction}
 \label{alg:gp_prediction}
 \end{algorithm}
@@ -156,10 +172,10 @@ $\mathbb{V}[\boldsymbol{f}_*] = K(X_*, X_*) - \boldsymbol{v}^\intercal \boldsymb
 
 \section{Model Selection}
 \section{Kernels}\label{sec:kernels}
+\subsection{Radial Basis Function}\label{sec:kernels_rbf}
 
 \section{Extended Kalman Filter}
 \section{Particle Filter}
-\subsection{Radial Basis Function}\label{sec:kernels_rbf}
 \section{Multivariate Gaussian Process}
 \section{Computational Complexity}
 \section{Approximate methods}

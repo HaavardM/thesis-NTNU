@@ -181,6 +181,7 @@
 \RequirePackage{gnuplottex}                 % for generating gnuplots on the fly
 \RequirePackage{hyperref}                   % interactive cross references
 \RequirePackage[ruled, vlined]{algorithm2e}
+\RequirePackage{algpseudocode}
 \ifcapitalize
     \RequirePackage[capitalize,noabbrev]{cleveref}   % automatic cross references
 \else
