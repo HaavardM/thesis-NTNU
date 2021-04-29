@@ -132,16 +132,16 @@ In practice, computing the inverse $K(X, X)$ quickly becomes expensive for incre
 
 This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A simple \acrshort{gp} before and after conditioning is shown in \cref{fig:gp_simple}
 \begin{algorithm}[h]
-\SetAlgoLined
-\SetKwInOut{Input}{input}
-\Input{$X_*$ (prediction inputs), $\boldsymbol{y}$ (observed values), $k$ (kernel function), $X$ (observed inputs)}
-
-$L = cholesky\big(K(X, X) + \sigma I\big)$\;
-$\boldsymbol{\alpha} = L^\intercal \backslash (L \backslash \boldsymbol{y})$\;
-$\boldsymbol{v} = L \backslash K(X, X_*)$\;
-$\bar{\boldsymbol{f}}_* = m(X_*) + K(X_*, X) \boldsymbol{\alpha}$\;
-$\mathbb{V}[\boldsymbol{f}_*] = K(X_*, X_*) - \boldsymbol{v}^\intercal \boldsymbol{v}$\;
-\KwResult{$\bar{\boldsymbol{f}}$ (mean), $\mathbb{V}[\boldsymbol{f}_*]$ (covariance)}
+\begin{algorithmic}[1]
+    
+\Procedure{GP-PREDICT}{$X_*$, $\boldsymbol{y}$, $k$, $X$}
+    \State $L = cholesky\big(K(X, X) + \sigma I\big)$
+    \State $\boldsymbol{\alpha} = L^\intercal \backslash (L \backslash \boldsymbol{y})$
+    \State $\boldsymbol{v} = L \backslash K(X, X_*)$
+    \State $\bar{\boldsymbol{f}}_* = m(X_*) + K(X_*, X) \boldsymbol{\alpha}$
+    \State $\mathbb{V}[\boldsymbol{f}_*] = K(X_*, X_*) - \boldsymbol{v}^\intercal \boldsymbol{v}$
+\EndProcedure
+\end{algorithmic}
 \caption{Gaussian Process Prediction}
 \label{alg:gp_prediction}
 \end{algorithm}
