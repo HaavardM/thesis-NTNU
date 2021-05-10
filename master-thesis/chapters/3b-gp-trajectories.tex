@@ -84,11 +84,15 @@ Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict 
 TODO: Include figure of more complicated case where this procedure fails.
 
 \subsection{Incorporating vessel position}
-The \textit{\acrfull{pdaf}} is a method commonly used in radar tracking and other methdos influenced by fake observations, or clutter as it is commonly called in the litterature. 
+The \textit{\acrfull{pdaf}} is a method commonly used in radar tracking and other methods influenced by false measurements, or clutter as it is commonly called in the litterature. The following introduction to \acrshort{pdaf} is inspired by \cite{sensorfusjon}.
 
-In this section, we will consider all measurements in the the available training set as virtual position measurements, which may or may not originate from the vessel at time $t + \tau$. We will use the same assumption as the \acrshort{pdaf}, where we assume \textbf{at most once} measurement originating from the target to reduce the computational complexity significatly \cite{sensorfusjon}.
+In this section, we will consider all measurements in the the available training set as virtual position measurements, which may or may not originate from the vessel at time $t + \tau$. We will use the same assumption as the \acrshort{pdaf}, where we assume \textbf{at most once} measurement originating from the target to reduce the computational complexity significatly \cite{sensorfusjon}. As we obviously do not have true measurements of the vessel's position in the future, we expect there to be a lot of clutter in the measurements, forcing the model to primarily trust its own predictions. 
 
 The vessel state at step $t$ is updated independently for each of the $M$ measurement in the training set using a normal Kalman update step, leading to $M$ different Gaussian state distributions. The likelihood of each measruement given the predicted state $\boldsymbol{x}_{t | t-1}$ are then used as weights for the different states. The measurements which aligns well with the predicted state are therefore weighted higher. An independent clutter model is included to include the possibility of no measurements originating from the vessel. We then have a Gaussian Mixture Model describing the true state of the vessel after incorporating the $M$ possible measurments.
+
+\begin{equation}
+    \boldsymbol{x}_t^{\alpha=i} = \text{}
+\end{equation}
 
 Moment reduction is then used to combined the different hypothesises into a single univariate Gaussian Normal.
 

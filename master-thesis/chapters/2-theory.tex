@@ -112,7 +112,7 @@ As the notation quickly gets messy for the general case, we also introduce a sho
 \begin{subequations}\label{eq:gp_conditional_simple}
 \begin{align}
     \bar{f}_* &= m(\boldsymbol{x}_*) + \boldsymbol{k}_*^\intercal ( K + \sigma I)^{-1} (\boldsymbol{y} - m(X))\\
-    \mathbb{V}[f_*] &= k(\boldsymbol{x}_*, \boldsymbol{x}_*) - \boldsymbol{k}_*^\intercal K^{-1} \; \boldsymbol{k}_*\label{eq:gp_conditional_var}
+    \mathbb{V}[f_*] &= k(\boldsymbol{x}_*, \boldsymbol{x}_*) - \boldsymbol{k}_*^\intercal K^{-1} \; \boldsymbol{k}_*\label{eq:gp_conditional_var_simple}
 \end{align}
 \end{subequations}
 
@@ -174,7 +174,12 @@ This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A s
 \section{Kernels}\label{sec:kernels}
 \subsection{Radial Basis Function}\label{sec:kernels_rbf}
 
-\section{Extended Kalman Filter}
+\section{Bayes Filter and the Extended Kalman Filter}
+The Kalman Filter, and by extension, the \textit{\acrfull{ekf}}, is most likely already known to the reader. We will therefore keep this introduction short. 
+
+The BayesFilter is a Markov 
+
+
 \section{Particle Filter}
 \section{Multivariate Gaussian Process}
 \section{Computational Complexity}
