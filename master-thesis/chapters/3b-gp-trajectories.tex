@@ -67,20 +67,6 @@ Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict 
     \label{alg:gp_ekf_prediction}
 \end{algorithm}
 
-\begin{figure}
-    \centering
-    \begin{subfigure}{\textwidth}
-        \includegraphics[width=\textwidth]{figures/gp_ekf.png}
-        \caption{The predicted trajectory alongside ground-truth. The red vectors in the background are the training samples used for the \acrshort{gp} prediction model, while the background color indiciates the level of uncertainty in the vector-field.}
-    \end{subfigure}
-    \begin{subfigure}{\textwidth}
-        \includegraphics[width=\textwidth]{figures/gp_ekf_unc.png}
-        \caption{The \acrshort{gp} uncertianty is incorporated into EKF trajectory prediction. Here shown as a $3\sigma$ confidence interval on $X$ and $Y$ axis.}
-    \end{subfigure}
-    \label{fig:dgp_ekf_predict_only}
-    \caption{GP-EKF-PREDICT works well on simple cases such as straight line trajectories.}
-\end{figure}
-
 TODO: Include figure of more complicated case where this procedure fails.
 
 \subsection{Incorporating vessel position}
@@ -97,6 +83,16 @@ The vessel state at step $t$ is updated independently for each of the $M$ measu
 Moment reduction is then used to combined the different hypothesises into a single univariate Gaussian Normal.
 
 Combining this update procedure with the GP-EKF prediction procedure in \cref{alg:gp_ekf_prediction}, the predicted trajectory can be tuned to favor areas with large amount of samples, effectiely pulling the state towards areas with available samples. In areas with eavenly spread samples, the predicted state is mostly unaffected.
+
+\begin{figure}
+    \begin{subfigure}{\textwidth}
+    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_pdaf.png}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_unc_with_pdaf.png}
+    \end{subfigure}
+    \caption{Predicted position with and without the PDAF update procedure.}
+\end{figure}
 
 TODO: Include equations, algorithm, Poisson Clutter Model and more citations on PDAF. 
 
