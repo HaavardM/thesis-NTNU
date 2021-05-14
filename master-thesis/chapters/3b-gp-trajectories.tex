@@ -46,10 +46,10 @@ Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict 
         \frac{\partial \vec{f}(\boldsymbol{x}_*)}{\partial \boldsymbol{x}_*} &= \frac{\partial}{\partial \boldsymbol{x}_*} \bigg(\boldsymbol{k}_*^\intercal K^{-1} \big(\boldsymbol{y} - m(X)\big)\bigg)\\
         &= \frac{\partial \boldsymbol{k}_*^\intercal}{\partial \boldsymbol{x}_*} K^{-1} \big(\boldsymbol{y} - m(X)\big)\\
         &= \frac{\partial \boldsymbol{k}_*^\intercal}{\partial \boldsymbol{x}_*} \boldsymbol{\alpha} = \begin{bmatrix}
-            \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_1)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_1)}{\partial \boldsymbol{x}_*[2]} & \cdots & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_1)}{\partial \boldsymbol{x}_*[M]} \\
-            \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_2)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_2)}{\partial \boldsymbol{x}_*[2]} & \cdots & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_2)}{\partial \boldsymbol{x}_*[M]} \\
-            \vdots                                                                              & \vdots                                                                              & \ddots & \vdots                                                                              \\
-            \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_N)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_N)}{\partial \boldsymbol{x}_*[2]} & \cdots & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_N)}{\partial \boldsymbol{x}_*[M]} \\
+            \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_1)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_1)}{\partial \boldsymbol{x}_*[2]} \\
+            \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_2)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_2)}{\partial \boldsymbol{x}_*[2]} \\
+            \vdots & \vdots \\
+            \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_N)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_N)}{\partial \boldsymbol{x}_*[2]} \\
         \end{bmatrix}^\intercal \boldsymbol{\alpha}
     \end{split}
 \end{align}
@@ -70,17 +70,46 @@ Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict 
 TODO: Include figure of more complicated case where this procedure fails.
 
 \subsection{Incorporating vessel position}
-The \textit{\acrfull{pdaf}} is a method commonly used in radar tracking and other methods influenced by false measurements, or clutter as it is commonly called in the litterature. The following introduction to \acrshort{pdaf} is inspired by \cite{sensorfusjon}.
+The \textit{\acrfull{pdaf}} is a method commonly used in radar tracking and other methods influenced by false measurements, or clutter as it is commonly called in the litterature. The following introduction to \acrshort{pdaf} is inspired by \cite{sensorfusjon}. As single target tracking and data-association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here.
 
-In this section, we will consider all measurements in the the available training set as virtual position measurements, which may or may not originate from the vessel at time $t + \tau$. We will use the same assumption as the \acrshort{pdaf}, where we assume \textbf{at most once} measurement originating from the target to reduce the computational complexity significatly \cite{sensorfusjon}. As we obviously do not have true measurements of the vessel's position in the future, we expect there to be a lot of clutter in the measurements, forcing the model to primarily trust its own predictions. 
+In this section, we will consider all measurements in the the available training set as virtual \footnote{By virtual we mean a measurement which did not actually originate from the target vessel, but rather a measurement which could potentially originate from our target in the future. The word measurement is still used to keep the terminology similar to whats used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. We will use the same assumption as the \acrshort{pdaf}, where we assume \textbf{at most one} measurement originating from the target in order to reduce the computational complexity significantly \cite{sensorfusjon}. As we obviously do not have true measurements of the vessel's position in the future, we expect most of the measurements to be clutter, forcing the model to primarily trust its own predictions. 
 
-The vessel state at step $t$ is updated independently for each of the $M$ measurement in the training set using a normal Kalman update step, leading to $M$ different Gaussian state distributions. The likelihood of each measruement given the predicted state $\boldsymbol{x}_{t | t-1}$ are then used as weights for the different states. The measurements which aligns well with the predicted state are therefore weighted higher. An independent clutter model is included to include the possibility of no measurements originating from the vessel. We then have a Gaussian Mixture Model describing the true state of the vessel after incorporating the $M$ possible measurments.
+Given the predicted state $\hat{\boldsymbol{x}}_t$, we expect the any real measurement to be distributed around this predicted state, i.e. $h(\boldsymbol{x}) = \boldsymbol{x} \implies H = \frac{\partial h (\boldsymbol{x})}{\partial \boldsymbol{x}} = I$ as expressed in \cref{eq:gp_ekf_pdaf_measurement} where $R$ is the measurement noise.
 
-\begin{equation}
-    \boldsymbol{x}_t^{\alpha=i} = \text{}
+\begin{equation} \label{eq:gp_ekf_pdaf_measurement}
+    \hat{\boldsymbol{z}}_t \sim \mathcal{N}(\hat{\boldsymbol{x}}_t, S_{t}) = \mathcal{N}(\hat{\boldsymbol{x}}_t, \hat{P}_t + R)
 \end{equation}
 
-Moment reduction is then used to combined the different hypothesises into a single univariate Gaussian Normal.
+It is possible that none of the measurements originate from the target, i.e. we only observe clutter. The choice of a good clutter model is a complicated topic, but we will here use the Poisson clutter model. As none of the measurements actually originate from our target, it is difficult to assign meaning to the any clutter model and it therefore simply boils down to which parameters we need to tune\footnote{We here pretend that the trajectory prediction can be seen as a target tracking problem. The clutter parameters therefore needs to be interpreted in the context of target tracking, not trajectory prediction.}, and the Poisson clutter model should be familiar to many familiar with target tracking.
+According to the Poisson clutter model, the association probabilities are given by \cref{eq:pdaf_clutter_association_prob}, where $a_t$ is a discrete variable following a Categorical distribution where $a_t=k > 0$ denotes that measurement $k$ originated from the target. $a_t = 0$ is the special case when none of the measurements originated from the target, i.e. the predicted state should not be updated. $Z$ here denotes a matrix of all the measurements (positions) available in the training data, while $\lambda$ denotes the clutter rate and $P_D$ denotes the probability of detecting the target vessel.
+\begin{equation}\label{eq:pdaf_clutter_association_prob}
+    \Pr\{a_t | Z\} \propto \begin{cases}
+        \lambda (1 - P_D) &  a_t = 0\\
+        P_D \mathcal{N} (\boldsymbol{z}^{a_t} | \hat{\boldsymbol{x}}_t, S_t) & a_t > 0\\
+    \end{cases}
+\end{equation}
+
+Once we have the likelihood for each of the possible outcomes, the association probabilites $\boldsymbol{\beta}$ can be computed by normalizing the likelihood. 
+
+\begin{equation}
+    \beta_i = \frac{\Pr\{a_t=i \; | \; Z\}}{\sum_{k=0}^M \Pr\{a_t=k \; | \; Z\}}
+\end{equation}
+
+We can then update the predicted step using the Kalman update procedure, conditioned on the assocication $a_t$ and the updated state of the vessel can be described as a Gaussian Mixture Model over $M+1$ different modes weighted by the association probabilites, i.e. 
+\begin{equation}
+    p(\boldsymbol{x_t}) = \underbrace{\beta_0 \mathcal{N}(\boldsymbol{x}_t \; | \; \hat{\boldsymbol{x}}_t, \hat{P}_t)}_{\text{No measurements are valid}} + \sum_{k=1}^M \underbrace{\beta_k \mathcal{N}\big(\boldsymbol{x}_t | \boldsymbol{x}_{t | \boldsymbol{z}^{a_t=k}}, P_{t | \boldsymbol{z}^{a_t=k}}\big)}_{\text{Measurement $k$ is valid}}
+\end{equation}
+
+Moment reduction is then used to combined the different hypothesises into a single unimodal Gaussian distribution, i.e. we want to find a Gaussian distribution that matches the first and second moment (mean and variance) of the Gaussian mixture. 
+
+While we could consider all available measurement at each timesteps, it is in practice more convenient to only consider a subset which is close enough to our predicted state. As we want this measurement \textit{gate} to scale with the uncertianty, we select the gated subset as \cref{eq:pdaf_gate} where $g$ is the number of standard deviations we want to consider.
+
+\begin{equation} \label{eq:pdaf_gate}
+    \mathcal{G} = \big\{ \boldsymbol{z} \; | \; (\boldsymbol{z} - \hat{\boldsymbol{x}}_t)^\intercal S^{-1} (\boldsymbol{z} - \hat{\boldsymbol{x}}_t) < g^2 \big\}
+\end{equation}
+
+
+
 
 Combining this update procedure with the GP-EKF prediction procedure in \cref{alg:gp_ekf_prediction}, the predicted trajectory can be tuned to favor areas with large amount of samples, effectiely pulling the state towards areas with available samples. In areas with eavenly spread samples, the predicted state is mostly unaffected.
 
