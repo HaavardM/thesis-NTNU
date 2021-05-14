@@ -55,9 +55,9 @@ In this thesis we will use a more specific definition in order to interpret \acr
     f \sim GP(\;m(\boldsymbol{x}), \; k(\boldsymbol{x}, \boldsymbol{x}')\;)
 \end{equation}
 
-This interpretation of a \acrshort{gp} might seem a bit odd at first. The key observation is that the marginal distribution $p(\boldsymbol{x})$ of a multivariate Gaussian distribution $p(\boldsymbol{x}, \boldsymbol{y})$ is another Gaussian distribution that is completetly independent of $\boldsymbol{y}$, as expressed in \cref{eq:multivariate_gaussian_marginal}. Any variables not of interest can therefore easily be marginalized away, leaving only the subset of variables we care about.
+This interpretation of a \acrshort{gp} might seem a bit odd at first. The key observation is that the marginal distribution $p(\boldsymbol{x})$ of a multivariate Gaussian distribution $p(\boldsymbol{x}, \boldsymbol{y})$ is another Gaussian distribution that is completely independent of $\boldsymbol{y}$, as expressed in \cref{eq:multivariate_gaussian_marginal}. Any variables not of interest can therefore easily be marginalized away, leaving only the subset of variables we care about.
 
-Any \acrshort{gp} by Definition \ref{def:gp} can therefore be thought of as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
+Any \acrshort{gp} by Definition \ref{def:gp} can therefore be viewed as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
 
 \subsection{A quick note on vector notation}
 We use two different notations for vector values in order to differentiate between two common cases:
@@ -67,7 +67,7 @@ We use two different notations for vector values in order to differentiate betwe
 \end{description}
 
 \subsection{Introduction to kernels}
-The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this theis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The key idea behind kernels is that the kernels may in many cases be simpler to compute than the input vectors themselves if the input-space is complex. The output of the kernel is a value describing the similarity (i.e. covariance) between the two inputs. Different types of kernels will be discussed in greater detail in \cref{sec:kernels}.
+The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this thesis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The key idea behind kernels is that the kernels may, in many cases, be simpler to compute than the input vectors themselves if the input space is complex. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Different types of kernels will be discussed in greater detail in \cref{sec:kernels}.
 
 The kernel must be positive definite in order to produce a valid covariance matrix, which requires that
 
@@ -81,7 +81,7 @@ The resulting covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cd
 \end{equation}
 
 \subsection{Conditioning}
-So far we have only specified the prior distribution for $f$. As a \acrshort{gp} is by definition a multivariate Gaussian Distribution, the posterior conditional in \cref{eq:multivariate_gaussian_conditional} can be used to condition $f$ on observed values. 
+So far, we have only specified the prior distribution for $f$. As a \acrshort{gp} is by definition a multivariate Gaussian Distribution, the posterior conditional in \cref{eq:multivariate_gaussian_conditional} can be used to condition $f$ on observed values. 
 As an example, we use a simple \acrshort{gp} for $f$ with mean $m$ and kernel $k$.
 
 Let $\boldsymbol{f}_* \triangleq f(X_*)$ denote the function evaluated at test points $X_*$. Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we want to update our prior beliefs after observing $\boldsymbol{y} = f(X) + \epsilon$ at multiple inputs $X$ to get the posterior belief $\boldsymbol{f}_* \; | X, \boldsymbol{y}, X_*$.
@@ -107,7 +107,7 @@ The posterior distribution $\boldsymbol{f}_* | \boldsymbol{y}$ can easily be com
 \end{align}
 \end{subequations}
 
-As the notation quickly gets messy for the general case, we also introduce a shorthand notation for evaluating $f(\boldsymbol{x}_*)$, which is what we most often want. As used by \cite{rasmussen}, we introduce $\boldsymbol{k}_* = K(X, \boldsymbol{x}_*)$ as a vector of covariances calculated between the test point and each of the training samples, as well as $K=K(X, X)$. Using this shorthand notation for a single test case, \cref{eq:gp_conditional} boils down to \cref{eq:gp_conditional_simple}.
+As the notation quickly gets messy for the general case, we also introduce a shorthand notation for evaluating $f(\boldsymbol{x}_*)$, which we most often want. As used by \cite{rasmussen}, we introduce $\boldsymbol{k}_* = K(X, \boldsymbol{x}_*)$ as a vector of covariances calculated between the test point and each of the training samples, as well as $K=K(X, X)$. Using this shorthand notation for a single test case, \cref{eq:gp_conditional} boils down to \cref{eq:gp_conditional_simple}.
 
 \begin{subequations}\label{eq:gp_conditional_simple}
 \begin{align}
@@ -116,7 +116,7 @@ As the notation quickly gets messy for the general case, we also introduce a sho
 \end{align}
 \end{subequations}
 
-In practice, computing the inverse $K(X, X)$ quickly becomes expensive for increasing number of samples. To avoid numerical instability, the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root. \cref{eq:gp_conditional} can then be computed using $L$. A small diagonal entry is also usually added to the kernel matrix, i.e. $K' = K + \sigma I$ to model noisy observations. This modification also improves the numerical stability, so a small value is recommended even if the observations are noise free \cite{scikit-learn}.
+In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing number of samples. To avoid numerical instability, the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root. \cref{eq:gp_conditional} can then be computed using $L$. A small diagonal entry is also usually added to the kernel matrix, i.e., $K' = K + \sigma I$ to model noisy observations. This modification also improves the numerical stability, so a small value is recommended even if the observations are noise-free \cite{scikit-learn}.
 \begin{subequations}
 \begin{align}
     \begin{split}

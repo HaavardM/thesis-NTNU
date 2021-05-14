@@ -1,6 +1,6 @@
 \chapter{Learning trajectories directly from data}
 Perhaps the most direct approach is to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{p}_t$, \acrshort{cog} $\psi_t$ and \acrshort{sog} $v_t$ to a position at time $t+\tau$. The method is formulated in mathematical terms in \cref{eq:gp_direct}. The model can then be queried about likely future positions by evaluating $\boldsymbol{f}$ with the desired initial conditions and time horizon, and then condition the \acrshort{gp} on close trajectories. 
-The method simply boils down to using the \acrshort{gp} kernels to find trajectories with similar initial conditions, and use those to predict future positions.
+The method boils down to using the \acrshort{gp} kernels to find trajectories with similar initial conditions and use those to predict future positions.
 
 \begin{subequations}\label{eq:gp_direct}
 \begin{align}
@@ -16,10 +16,10 @@ The benefits of this approach include:
     \item[Easy incorporation of available AIS data] The reported \acrshort{cog} and \acrshort{sog} can easily be incorporated into the similarity measure, utilizing more of the available data.
 \end{description}
 
-However, the model is exclusively data-driven and makes it more challenging to incorporate model information. The high number of input variables also makes it more challenging to interpret how the model makes prediction. This makes tuning more challenging. This model further assumes that the trajectory is jointly Gaussian, making it more challenging to describe branching trajectories.
+However, the model is exclusively data-driven and makes it more challenging to incorporate model information. The high number of input variables also makes it more challenging to interpret how the model makes a prediction. This makes tuning more challenging. This model further assumes that the trajectory is jointly Gaussian, making it more challenging to describe branching trajectories.
 
 \subsection{Choice of kernels}
-The kernels is in this case used as a similarity measure between two trajectories. This boils down to fin
+The kernels are, in this case, used as a similarity measure between two trajectories. This boils down to fin
 
 
 
