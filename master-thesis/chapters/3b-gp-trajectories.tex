@@ -36,10 +36,18 @@ The model could further be improved by clustering the samples based on similar b
 \section{Simulating trajectories using the Gaussian Process Extended Kalman Filter}
 
 \subsection{EKF trajectory prediction}
-Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict trajectories using the prediction step from the \acrshort{ekf}. As the prediction $\vec{f}_*$ is non-linear, the Jacobian $\frac{\partial \vec{f}(\boldsymbol{x}_*)}{\partial \boldsymbol{x}_*}$ is necessary in order to calculate the predicted covariance in \acrshort{ekf} \cite{gpekf}. Luckily, since the derivative is a linear operator, calculating the Jacobian of $\vec{f}_*$ is simple, as derived in \cref{eq:gp_jacobian}. The \acrshort{ekf} prediction procedure in \cref{alg:gp_ekf_prediction} can then be called repeatedly to simulate the trajectory. This method works well for simple cases such as straight-line trajectories as seen in \cref{fig:dgp_ekf_predict_only}. On more complicated trajectories, relying on this prediction scheme only may yield a disappointing result. Similar to open-loop control schemes, errors will accumulate and any small prediction errors early in the trajectory may yield larger errors later on as they will affect later predictions. As the GP-EKF purely relies on gradient information, it has no feedback on position and can therefore not correct for these errors over time.
+Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict trajectories using the prediction procedure used by \acrshort{ekf}. 
+The state is updated incrementally by adding $\vec{f}$ to the current state, i.e. the \acrshort{ekf} prediction model, $g(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
 
+\begin{equation}\label{eq:gp_ekf_prediction}
+    \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1})
+\end{equation}
 
+Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, we need to linearize in order to propagate the state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}_*$ can be computed using \cref{eq:gp_jacobian} \cite{gpekf}. 
 
+\begin{equation}\label{eq:gp_ekf_prediction_jac}
+    \boldsymbol{G}_t = \frac{\partial \boldsymbol{g}(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1})}{\boldsymbol{x}_{t-1}}
+\end{equation}
 
 \begin{align}\label{eq:gp_jacobian}
     \begin{split}
@@ -54,18 +62,32 @@ Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict 
     \end{split}
 \end{align}
 
+We can then predict the state uncertainty using \cref{eq:gp_ekf_prediction_uncertianty}, propagating the previous uncertainty $\boldsymbol{P}_{t-1}$ using the linearized prediction model $\boldsymbol{G}_t$ and adding the prediction uncertianty $\mathbb{V}[\vec{f}]$.
+
+\begin{equation}\label{eq:gp_ekf_prediction_uncertianty}
+    \boldsymbol{P}_t = \boldsymbol{G}_t^\intercal \boldsymbol{P}_{t-1} \boldsymbol{G}_t + \mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1})]
+\end{equation}
+
+The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can be used iteratively to simulate a complete trajectory. 
+
 \begin{algorithm}[h]
     \begin{algorithmic}[1]
         \Procedure{GP-EKF-PREDICT}{$\vec{f}$, $\boldsymbol{x}_{t-1}$, $\boldsymbol{P}_{t-1}$, $\Delta t$}
         \State $\hat{\boldsymbol{x}}_{t} = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1}) \Delta t$
-        \State $\boldsymbol{F} = \frac{\partial \vec{f}(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} \Delta t$
-        \State $\hat{\boldsymbol{P}}_t = \boldsymbol{F}^\intercal \boldsymbol{P}_{t-1} \boldsymbol{F} +\mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1})] (\Delta t)^2$
+        \State $\boldsymbol{G_t} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} \Delta t$
+        \State $\hat{\boldsymbol{P}}_t = \boldsymbol{G_t}^\intercal \boldsymbol{P}_{t-1} \boldsymbol{G_t} +\mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1})] (\Delta t)^2$
         \State \textbf{return} $\hat{\boldsymbol{x}}_t, \; \hat{\boldsymbol{P}}_t$
         \EndProcedure
     \end{algorithmic}
     \caption{GP-EKF Trajectory Prediction}
     \label{alg:gp_ekf_prediction}
 \end{algorithm}
+
+
+
+
+
+
 
 TODO: Include a figure of a more complicated case where this procedure fails.
 
