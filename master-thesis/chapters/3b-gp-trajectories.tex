@@ -36,17 +36,18 @@ The model could further be improved by clustering the samples based on similar b
 \section{Simulating trajectories using the Gaussian Process Extended Kalman Filter}
 
 \subsection{EKF trajectory prediction}
-Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict trajectories using the prediction procedure used by \acrshort{ekf}. 
-The state is updated incrementally by adding $\vec{f}$ to the current state, i.e. the \acrshort{ekf} prediction model, $g(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
+Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict trajectories using the prediction procedure used by \textit{\acrfull{ekf}}. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}.
+
+During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state, i.e. the \acrshort{ekf} prediction model, $g(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
 
 \begin{equation}\label{eq:gp_ekf_prediction}
     \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1})
 \end{equation}
 
-Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, we need to linearize in order to propagate the state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}_*$ can be computed using \cref{eq:gp_jacobian} \cite{gpekf}. 
+Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, we need to linearize the prediction in order to propagate the state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}_*$ can be computed using \cref{eq:gp_jacobian}. 
 
 \begin{equation}\label{eq:gp_ekf_prediction_jac}
-    \boldsymbol{G}_t = \frac{\partial \boldsymbol{g}(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1})}{\boldsymbol{x}_{t-1}}
+    \boldsymbol{G}_t = \frac{\partial \boldsymbol{g}(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}}
 \end{equation}
 
 \begin{align}\label{eq:gp_jacobian}
@@ -83,15 +84,11 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
     \label{alg:gp_ekf_prediction}
 \end{algorithm}
 
-
-
-
-
-
-
-TODO: Include a figure of a more complicated case where this procedure fails.
-
 \subsection{Incorporating vessel position}
+While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. Looking at the available data in \cref{fig:gp_ekf_with_pdaf}, we want the prediction to converge towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, we want weak feedback that may compensate for minor prediction errors. 
+
+As we do not have any actual position measurements of the vessel's future position, we need to express somehow that the available training data are \textbf{potential} measurements, which at any timestep may or may not originate from the vessel. Incorporating vessel position becomes a data association problem, for which we can look to target tracking for inspiration.
+
 The \textit{\acrfull{pdaf}} is a method commonly used in target tracking which combines data association and filtering. The following introduction to \acrshort{pdaf} is mostly inspired by \cite{sensorfusjon}, with some adaptations to fit our problem better. As single target tracking and data association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here. For more details, see \cite{sensorfusjon,bar1995multitarget}
 
 In this section, we will consider all measurements in the available training set as virtual \footnote{By virtual, we mean a measurement that did not actually originate from the target vessel, but rather a measurement that could potentially originate from our target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. We will use the same assumption as the \acrshort{pdaf}, where we assume \textbf{at most one} measurement originating from the target in order to reduce the computational complexity significantly \cite{sensorfusjon}. As we obviously do not have true measurements of the vessel's position in the future, we expect most of the measurements to be clutter, forcing the model to primarily trust its own predictions. 
@@ -152,6 +149,7 @@ Combining this update procedure with the GP-EKF prediction procedure in \cref{al
     \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_unc_with_pdaf.png}
     \end{subfigure}
     \caption{Predicted position with and without the PDAF update procedure.}
+    \label{fig:gp_ekf_with_pdaf}
 \end{figure}
 
 TODO: Include equations, algorithm, Poisson Clutter Model, and more citations on PDAF. 
