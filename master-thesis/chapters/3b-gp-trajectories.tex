@@ -152,9 +152,8 @@ Combining this update procedure with the GP-EKF prediction procedure in \cref{al
     \label{fig:gp_ekf_with_pdaf}
 \end{figure}
 
-TODO: Include equations, algorithm, Poisson Clutter Model, and more citations on PDAF. 
-
-\subsection{Tuning model parameters}
+\subsubsection{Tuning PDAF parameters}
+We want the model to mainly prioritize the prediction model, as it would otherwise be stuck since the measurements do not change over time. As the measurements are not actually originating from the target vessel, we also expect there to be a lot of noise in the measurements themselves. In practice, this boils down to using a large measurement noise $\boldsymbol{R}$ and a rather low detection probability $P_D$ before tuning the clutter rate in order to acheive good results. 
 \subsubsection{Consistency}
 
 
