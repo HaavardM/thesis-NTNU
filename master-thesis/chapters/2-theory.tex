@@ -40,7 +40,7 @@ The marginals are then given by \cref{eq:multivariate_gaussian_marginal} and can
 
 \section{Introduction to Gaussian Processes}
 
-This introduction is heavily inspired by \cite{rasmussen} where more details can be found for those interested. 
+This introduction is heavily inspired by \cite{rasmussen} where more details can be found for those interested. During this introduction, we will only focus on the scalar case and delay the discussion of vector-valued functions until \cref{sec:theory_vector_gp}. Rest assured, this introduction easily extends to vector-valued functions!
 
 A \acrfull{gp} can formally be defined as Definition \ref{def:gp}.
 
@@ -62,14 +62,15 @@ Any \acrshort{gp} by Definition \ref{def:gp} can therefore be viewed as the fini
 \subsection{A quick note on vector notation}
 We use two different notations for vector values in order to differentiate between two common cases:
 \begin{description}
-\item[Bold letters] are used to indicate a single, multivariate value. $f(\boldsymbol{x})$ is the scalar function $f$ evaluated at the multivariate input $\boldsymbol{x}$. In practice, this implies the input is $\boldsymbol{x} \in \mathcal{R}^{1 x M}$ with $M\geq 2$ columns.
-\item[Capital letters] such as X, are used to indicate multiple (potentially multivariate) samples. $f(X)$ is the scalar function $f$ evaluated at each row in $X$. In practice this implies that the input $X \in \mathcal{R}^{N x M}$ with $N \geq 2$ rows (samples) and $M \geq 1$ columns (dimensions).
+\item[Bold letters] are used to indicate a single, multivariate value. $f(\boldsymbol{x})$ is the scalar function $f$ evaluated at the multivariate input $\boldsymbol{x}$. In practice, this implies the input is $\boldsymbol{x} \in \mathcal{R}^{1 x M}$ with $M\geq 2$ columns. 
+\item[Capital letters] such as $X$, are used to indicate multiple (potentially multivariate) samples. $f(X)$ is the scalar function $f$ evaluated at each row in $X$. In practice this implies that the input $X \in \mathcal{R}^{N x M}$ with $N \geq 2$ rows (samples) and $M \geq 1$ columns (dimensions).
+\item[Vector Arrow] such as $\vec{f}$ is used to denote vector-fields (i.e. vector-valued functions). This will be useful when we get to vector-valued \acrshort{gp}s, and allow the distinction between shorthand notations such as $\boldsymbol{f}_* = f(X_*)$, $\vec{f}_* = \vec{f}(\boldsymbol{x}_*)$ and $\vec{\boldsymbol{f}}_* = \vec{f}(X_*)$.
 \end{description}
 
 \subsection{Introduction to kernels}
 The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this thesis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The key idea behind kernels is that the kernels may, in many cases, be simpler to compute than the input vectors themselves if the input space is complex. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Different types of kernels will be discussed in greater detail in \cref{sec:kernels}.
 
-The kernel must be positive definite in order to produce a valid covariance matrix, which requires that
+The kernel must be positive definite to produce a valid covariance matrix, which requires that
 
 \begin{equation}
     k(\boldsymbol{x}, \boldsymbol{x}') = k(\boldsymbol{x}', \boldsymbol{x})
@@ -162,7 +163,7 @@ This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A s
     \label{fig:gp_simple}
 \end{figure}
 
-\section{Vector-valued Gaussian Process}
+\section{Vector-valued Gaussian Process}\label{sec:theory_vector_gp}
 \acrshort{gp}s can easily be extended for vector-valued functions by simply considering the joint distribution of each function component as in \cref{eq:gp_vector}. In this thesis we will assume independent components, i.e. $k_{xy}=k_{yx}=0$
 \begin{equation}\label{eq:gp_vector}
      \vec{f}(\boldsymbol{x}) = \begin{bmatrix} f_x (\boldsymbol{x})\\ f_y (\boldsymbol{x})\end{bmatrix} \sim \text{GP} \big(\begin{bmatrix} m_x(\boldsymbol{x})\\m_y(\boldsymbol{x})\end{bmatrix}, \ \begin{bmatrix}
@@ -204,7 +205,7 @@ The parameter $v > 0$ determines the smoothness, where:
 \begin{itemize}
     \item $v=\frac{1}{2}$ yields the \textit{Ornstein-Uhlenbeck Process} and functions, that when drawn from a \acrshort{gp} with this kernel, are continious, but not differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \exp \{-\frac{||\boldsymbol{r}||}{l}\}$$
     \item $v=\frac{3}{2}$ yields functions that, when drawn from a \acrshort{gp} with this kernel, are continous and once-differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big) \exp\big\{- \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big\}$$
-    \item $v=\frac{5}{2}$ yields functions, that when drawn from a \acrshort{gp} with this kernel,  are continous and twice differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = (1 + \frac{\sqrt{5} ||\boldsymbol{r}||}{l} + \frac{5 ||\boldsymbol{r}||^2}{3 l^2}) \exp\{- \frac{\sqrt{5} ||\boldsymbol{r}||}{l}\}$$
+    \item $v=\frac{5}{2}$ yields functions, that when drawn from a \acrshort{gp} with this kernel,  are continous and twice differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{5} ||\boldsymbol{r}||}{l} + \frac{5 ||\boldsymbol{r}||^2}{3 l^2}\big) \exp\big\{- \frac{\sqrt{5} ||\boldsymbol{r}||}{l}\big\}$$
 \end{itemize}
 More generally, the functions drawn from a \acrshort{gp} with a Matérn class kernel, is $k$-times differentiable if and only if $v > k$\cite{rasmussen}. The Matérn class of kernels is argued to be a better choice than the \acrshort{rbf} kernel for many physical systems, as the infinitely smooth function generated by \acrshort{rbf} is too smooth \cite{rasmussen}.
 Further mathematical details can be found in \cite[sec.~4.2]{rasmussen} as it is outside the scope of this thesis.
@@ -239,10 +240,24 @@ The name \textit{marginal likelihood} comes from the fact that the latent functi
     p(\boldsymbol{y} \; | \; X, \boldsymbol{\theta}) = \int_{\boldsymbol{f}} p\big(\boldsymbol{y} \;| \; \boldsymbol{f}\big) p\big(\boldsymbol{f} \; |\; m(X), K(X, X)\big) d\boldsymbol{f}
 \end{equation}
 
+\section{Sampling from a Gaussian Process}
+As the \acrshort{gp} is a jointly Gaussian distribution, we can draw random samples from it as with any other multivariate Gaussian.
 
+\begin{equation}\label{eq:gp_samples}
+    \boldsymbol{f}_* \sim \mathcal{N}(\bar{\boldsymbol{f}}_*, \mathbb{V}[\boldsymbol{f}_*])
+\end{equation}
 
+More specifically, we can convert a vector $Z$ of independent and identically distributed standard normal samples into samples from a jointly Gaussian distribution.
 
+Once again, we make use of the Cholesky decomposition to decompose the \acrshort{gp} covariance, i.e. $\mathbb{V}[\boldsymbol{f}_*] = L L^\intercal$. Using $L$ and $\bar{\boldsymbol{f}}_*$, \cref{eq:gp_samples} can be expressed as 
+\begin{equation}
+    \mathcal{N}(\bar{\boldsymbol{f}}_*, \mathbb{V}[\boldsymbol{f}_*]) = \bar{\boldsymbol{f}}_* + L \mathcal{N}(0, I)
+\end{equation}
+showing us how we can convert indendent standard normal samples into samples from our \acrshort{gp} \cite{rasmussen}:
 
+\begin{equation}
+    \boldsymbol{f}_* = \bar{\boldsymbol{f}}_* + L Z, \quad Z \sim \mathcal{N}(0, I)
+\end{equation}
 
 
 
