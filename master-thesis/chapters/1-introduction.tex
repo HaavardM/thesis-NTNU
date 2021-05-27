@@ -15,15 +15,15 @@ There have been several attempts on utilizing Big Data \acrshort{ais} to improve
 % High level introduction to the Gaussian process and why it may be a natural fit for this problem
 
 \section{Thesis Structure}
-We will first introduce the Gaussian Process in the first chapter. Inspired by the excellent introduction in \cite{rasmussen}, we will explain the reasoning, intuition, and mathematics behind the Gaussian Process to lay the necessary foundation for the rest of this thesis. We will assume a basic understanding of calculus, statistics, and probability theory, but otherwise introduce all neccessary theory.  
+The Gaussian Process will be presented in the first chapter. Inspired by the excellent introduction in \cite{rasmussen}, we will explore the reasoning, intuition, and mathematics behind the Gaussian Process to lay the necessary foundation for the rest of this thesis. A basic understanding of calculus, statistics, and probability theory is assumed, but all necessary subjects are otherwise introduced.  
 
 Once we have laid the foundations for Gaussian Processes, we will move on to the different ways they can be applied to the long-term prediction problem. In the following chapter, we introduce our first approach, where we attempt to describe the vessel's trajectory directly as a Gaussian Process as a function of time. This method is similar to interpolating and averaging similar trajectories, though with the added benefit of quantifying the uncertainty.
 
-We then move on to a more indirect approach. We attempt to use the Gaussian Process to model a dynamical model and then simulate the trajectories using an iterative procedure. This method is inspired by the work in \cite{pedestrian,gpekf}, and can be seen as an extension of the Kalman filter. Familiarity of sensor-fusion methods is beneficial but not required to follow the derivations.
+We then move on to a more indirect approach. We attempt to use the Gaussian Process to model a dynamical model and then simulate the trajectories using an iterative procedure. This method is inspired by the work in \cite{pedestrian,gpekf}, and can be seen as an extension of the Kalman filter. Familiarity with sensor-fusion methods is beneficial but not required to follow the derivations.
 
-Once the methods are introduced in their respective chapter, we will move on to the implementation and benchmarking of the methods. We will apply both methods on a real \acrshort{ais} dataset. We will then discuss these results and compare the different methods. We will consider both the empricial results, as well the theoretical strengths and weaknesses. 
+Once the methods are introduced in their respective chapter, we will move on to implementation and benchmarking of the methods. We will apply both methods on a real \acrshort{ais} dataset. We will then discuss these results and compare the different methods. We will consider both the empirical results as well the more theoretical strengths and weaknesses. 
 
-Finally, we will summarize our findings in the conclusion, as well as discuss possible extensions.
+Finally, we will summarize our findings, as well as discuss possible extensions to this work.
 
 
 
