@@ -1,14 +1,41 @@
 \chapter{The Gaussian Process}\label{chap:theory}
 
+\section{Probability Theory}
+The reader is assumed to be already comfortable with basic probability theory. Some concepts are nevertheless included here, mainly to introduce the mathematical notation we will use throughout this thesis. 
+
+\subsection{Probability Distributions}
+We use $p(X)$ to denote the probability distribution of the random variable $X$, regardless of $X$ being discrete or random. Whether $p(X)$ refers to the \textit{\acrfull{pdf}} for continous random variables or \textit{\acrfull{pmf}} for discrete random variables therefore depend on the context. 
+
+For the probability of a specific event occuring, we will use the notation $\Pr\{X=x\}$ and $\Pr\{X \leq x\}$ instead. This is always a real number, i.e. $\Pr\{\cdot\} \in (0, 1)$. 
+
+\subsection{Joint Distribution}
+
+\subsection{Conditional Distribution}
+We use the notation $A | B$ to express the event $A$ occurring given the known occurrence of $B$. In the context of probability distributions, we use $p(A | B)$ for the probability of $A$ occurring, given that we know $B$ has happened.
+
+\subsection{Interpretation of Probability}
+We will heavily rely on a Bayesian interpretation of probability in this thesis. Without going into unnecessary philosophical details, the Bayesian view interprets probabilities as beliefs rather than relative frequencies\footnote{The interpretation of probabilities as the relative frequency of outcomes from repeated trials is what is often taught in statistics courses and is called the \textit{frequentist} interpretation.}. 
+The benefit of the Bayesian interpretation is that it naturally can be used to model uncertainty of events which we cannot easily express as repeated trials. Examples include one-off events and parameter estimation of fixed but unknown quantities.\footnote{As a thought experiment, let us say you want to determine the number of trees on the planet. There is a fixed amount of trees, but the actual number is unknown as you cannot count every single one. There is nothing uncertain about the number of trees itself, only your beliefs which are uncertain due to incomplete knowledge.} \cite{murphy}.
+
+Central to the Basian view of probability is \textit{Bayes rule}, which is used to update our beliefs $\boldsymbol{\theta}$ when we get new observations $\mathcal{D}$, given by
+
+\begin{equation}
+    p(\boldsymbol{\theta} | \mathcal{D}) = \frac{p(\boldsymbol{\theta} \cap \mathcal{D})}{p(\mathcal{D})} = \frac{p(\mathcal{D} | \boldsymbol{\theta}) p(\boldsymbol{\theta})}{p(\mathcal{D})}
+\end{equation}
+where $p(\boldsymbol{\theta})$ is our prior belief about $\boldsymbol{\theta}$ before observing $\mathcal{D}$, $p(\mathcal{D} | \boldsymbol{\theta})$ is the likelihood of observing $\mathcal{D}$ given a fixed value for $\boldsymbol{\theta}$, $p(\mathcal{D})$ is a normalization constant and $p(\boldsymbol{\theta} | \mathcal{D})$ is our \textit{posterior} beliefs about $\boldsymbol{\theta}$ after observing $\mathcal{D}$. 
+
+
+
+
 \section{The Multivariate Gaussian Distribution}
-The Gaussian Distribution is one one the most used distributions in statistics \cite{murphy} and generalizes well into the multivariate case. The pdf for the $D$ dimensional multivariate Gaussian is given by \cref{eq:multivariate_gaussian} \cite{murphy}.
+The Gaussian Distribution is one one the most used distributions in statistics \cite{murphy} and generalizes well for multivariate variables. The pdf for the $D$ dimensional multivariate Gaussian is given by \cref{eq:multivariate_gaussian} \cite{murphy,rasmussen}.
 \begin{equation}\label{eq:multivariate_gaussian}
     \mathcal{N}(\boldsymbol{x} \; | \; \boldsymbol{\mu}, \boldsymbol{\Sigma}) \triangleq \frac{1}{(2 \pi)^{D/2} |\boldsymbol{\Sigma} | ^{1/2}} \exp \bigg[- \frac{1}{2} (\boldsymbol{x} - \boldsymbol{\mu})^\intercal \boldsymbol{\Sigma}^{-1}(\boldsymbol{x} - \boldsymbol{\mu})\bigg]
 \end{equation}
 \subsection{Marginalization and conditioning}
-Consider a joint multivariate Gaussian distribution for two (possibly vector-valued) variables $\boldsymbol{x}$ and $\boldsymbol{y}$.
+Consider the joint multivariate Gaussian distribution for two (potentially vector-valued) variables $\boldsymbol{x}$ and $\boldsymbol{y}$. 
 \begin{equation}
-    p(\boldsymbol{x}, \boldsymbol{y}) = N\bigg(\begin{bmatrix}
+    p(\boldsymbol{x}, \boldsymbol{y}) = \mathcal{N}\bigg(\begin{bmatrix}
         \boldsymbol{x} \\ \boldsymbol{y}
     \end{bmatrix} \; \bigg| \; \begin{bmatrix}
         \boldsymbol{\mu}_x \\ \boldsymbol{\mu}_y
@@ -19,14 +46,12 @@ Consider a joint multivariate Gaussian distribution for two (possibly vector-val
         \boldsymbol{\Sigma_{yy}}
     \end{bmatrix}\bigg)
 \end{equation}
-The marginals are then given by \cref{eq:multivariate_gaussian_marginal} and can simply be calculated by picking the corresponding values from $\boldsymbol{\mu}$ $\boldsymbol{\Sigma}$, i.e. no calculations needed. 
-\begin{align}\label{eq:multivariate_gaussian_marginal}
-    \begin{split}
-    p(\boldsymbol{x}) &= \mathcal{N}(\boldsymbol{x} \; | \; \boldsymbol{\mu}_x, \boldsymbol{\Sigma}_{xx})\\
-    p(\boldsymbol{y}) &= \mathcal{N}(\boldsymbol{y} \; | \; \boldsymbol{\mu}_y, \boldsymbol{\Sigma}_{yy})
-    \end{split}
-    \end{align}
- The posterior conditional is given by \cref{eq:multivariate_gaussian_conditional}. These equations will be used extensively throughout this thesis.
+The marginal and posterior conditional distribution are given by \cref{eq:multivariate_gaussian_marginal} and \cref{eq:multivariate_gaussian_conditional} respectively \cite{rasmussen}, and will be used extensively throughout this thesis.
+Note that the marginal distribution do not actually require any calculations and is found by selecting the corresponding values from $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$. 
+\begin{tcolorbox}[ams align, title={Marginal Distribution}]\label{eq:multivariate_gaussian_marginal}
+    p(\boldsymbol{x}) = \int_{\boldsymbol{y}} p(\boldsymbol{x}, \boldsymbol{y}) d\boldsymbol{y} = \mathcal{N}(\boldsymbol{x} \; | \; \boldsymbol{\mu}_x, \boldsymbol{\Sigma}_{xx})
+\end{tcolorbox}
+
  \begin{tcolorbox}[title={Posterior Conditional Distribution}]
  \begin{subequations}\label{eq:multivariate_gaussian_conditional}
  \begin{align}
@@ -68,7 +93,7 @@ We use two different notations for vector values in order to differentiate betwe
 \end{description}
 
 \subsection{Introduction to kernels}
-The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this thesis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The key idea behind kernels is that the kernels may, in many cases, be simpler to compute than the input vectors themselves if the input space is complex. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Different types of kernels will be discussed in greater detail in \cref{sec:kernels}.
+The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this thesis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The key idea behind kernels is that the kernels may, in many cases, be simpler to compute than the input vectors themselves if the input space is complex. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Kernel functions are discussed in greater detail in \cref{sec:kernels}.
 
 The kernel must be positive definite to produce a valid covariance matrix, which requires that
 
@@ -77,7 +102,7 @@ The kernel must be positive definite to produce a valid covariance matrix, which
 \end{equation}
 
 The resulting covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cdot)$ on all pairs on inputs, i.e.
-\begin{equation}
+\begin{equation} 
     K(X, X)_{ij} = k(\boldsymbol{x}_i, \boldsymbol{x}_j) \quad \forall i, j
 \end{equation}
 
@@ -85,7 +110,7 @@ The resulting covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cd
 So far, we have only specified the prior distribution for $f$. As a \acrshort{gp} is by definition a multivariate Gaussian Distribution, the posterior conditional in \cref{eq:multivariate_gaussian_conditional} can be used to condition $f$ on observed values. 
 As an example, we use a simple \acrshort{gp} for $f$ with mean $m$ and kernel $k$.
 
-Let $\boldsymbol{f}_* \triangleq f(X_*)$ denote the function evaluated at test points $X_*$. Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we want to update our prior beliefs after observing $\boldsymbol{y} = f(X) + \epsilon$ at multiple inputs $X$ to get the posterior belief $\boldsymbol{f}_* \; | X, \boldsymbol{y}, X_*$.
+Let $\boldsymbol{f}_* \triangleq f(X_*)$ denote the function evaluated at test points $X_*$. Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we want to update our prior beliefs after observing $\boldsymbol{y} = f(X) + \epsilon$ at multiple inputs $X$ to get the posterior belief $p(\boldsymbol{f}_* \; | X, \boldsymbol{y}, X_*)$.
 
 The joint distribution of $\boldsymbol{y}$ and $\boldsymbol{f}_*$ is given by 
 
@@ -99,7 +124,7 @@ The joint distribution of $\boldsymbol{y}$ and $\boldsymbol{f}_*$ is given by
     \end{bmatrix}\bigg)
 \end{equation}
 
-The posterior distribution $\boldsymbol{f}_* | \boldsymbol{y}$ can easily be computed using the closed form solution in \cref{eq:multivariate_gaussian_conditional}.
+The posterior distribution $p(\boldsymbol{f}_* | \boldsymbol{y})$ can easily be computed using the posterior conditional distribution in \cref{eq:multivariate_gaussian_conditional}.
 \begin{subequations}\label{eq:gp_conditional}
 \begin{align}
     p(\boldsymbol{f}_* | \boldsymbol{y}) &= \mathcal{N}(f \; | \; \boldsymbol{\mu}_{\boldsymbol{f}_*|\boldsymbol{y}}, \boldsymbol{\Sigma}_{\boldsymbol{f}_*|\boldsymbol{y}})\\
@@ -108,7 +133,7 @@ The posterior distribution $\boldsymbol{f}_* | \boldsymbol{y}$ can easily be com
 \end{align}
 \end{subequations}
 
-As the notation quickly gets messy for the general case, we also introduce a shorthand notation for evaluating $f(\boldsymbol{x}_*)$, which we most often want. As used by \cite{rasmussen}, we introduce $\boldsymbol{k}_* = K(X, \boldsymbol{x}_*)$ as a vector of covariances calculated between the test point and each of the training samples, as well as $K=K(X, X)$. Using this shorthand notation for a single test case, \cref{eq:gp_conditional} boils down to \cref{eq:gp_conditional_simple}.
+As the notation quickly gets messy for the general case, we also introduce a shorthand notation for evaluating $f(\boldsymbol{x}_*)$ at a single test point, which is what we most often want. To follow the convention used by \cite{rasmussen}, we introduce $\boldsymbol{k}_* \triangleq K(X, \boldsymbol{x}_*)$ as a vector of covariances calculated between the test point and each of the training samples, as well as $K \triangleq K(X, X)$. Using this shorthand notation for a single test case, \cref{eq:gp_conditional} boils down to \cref{eq:gp_conditional_simple}.
 
 \begin{subequations}\label{eq:gp_conditional_simple}
 \begin{align}
@@ -259,14 +284,44 @@ showing us how we can convert indendent standard normal samples into samples fro
     \boldsymbol{f}_* = \bar{\boldsymbol{f}}_* + L Z, \quad Z \sim \mathcal{N}(0, I)
 \end{equation}
 
-
-
-
-
-
-\section{Particle Filter}
-\section{Multivariate Gaussian Process}
-\section{Computational Complexity}
 \section{Approximate methods}
-\subsection{Variational Inference}
-\subsection{Markov Chain Monte Carlo}
+The standard derivation of the \acrshort{gp} requires inverting the kernel matrix, either through the Cholesky Decomposition or directly. The computational complexity of the Cholesky decomposition is $\frac{n^3}{6}$ and $\frac{n^2}{2}$ for solving triangular systems \cite{rasmussen}. This may be acceptable for sparse datasets but makes \acrshort{gp}s infeasible for Big Data applications. 
+
+For simple functions, it often works well only to use a representable subset of the data. However, throwing away the majority of available data is not an elegant solution to the problem. 
+\subsection{Variational Gaussian Process}
+
+\subsubsection{A short introduciton to Variational Inference}
+Variational Inference was covered thoroughly in a previous specialization project \cite{mellbye}. A quick introduction of the necessary concepts is included here, and more details can be found in \cite{mellbye, murphy}.
+
+In many cases, using the true posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ turns out to be challenging. Calculating the posterior using Bayes Rule requires a normalizing constant $p(\mathcal{D})$, which quickly becomes infeasible unless the distributions are simple. The true posterior are therefore often assumed only to be known up to a normalizing constant, i.e.
+
+\begin{equation}
+    \tilde{p}(\boldsymbol{\theta} | \mathcal{D}) \triangleq p(\mathcal{D} | \boldsymbol{\theta})p(\boldsymbol{\theta}) \propto p(\boldsymbol{\theta} | \mathcal{D})
+\end{equation}
+
+An exact analytical solution to the posterior is then unavailable, and one would have to turn to approximate inference methods. 
+One such method, \textit{\acrfull{vi}}, approximates the posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ with a simpler, \textit{surrogate distribution} $q(\boldsymbol{\theta})$. If we can find a $q(\boldsymbol{\theta})$ similar to $p(\boldsymbol{\theta} | \mathcal{D})$, we can use the simpler surrogate density to perform inference.
+
+To find a good surrogate density $q(\cdot)$ we use the \textit{\acrfull{kl}} as a measure of similarity between the two probability distributions, where the reverse\footnote{\acrshort{kl} is generally not symmetric in its input arguments, i.e. $\mathbb{KL}(p || q) \neq \mathbb{KL}(q || p)$} \acrshort{kl} is given by
+\begin{align}
+    \mathbb{KL}(q || p) = \int_{\boldsymbol{\theta}} q(\boldsymbol{\theta}) \log \frac{q(\boldsymbol{\theta})}{p(\boldsymbol{\theta})} d\boldsymbol{\theta} = E_{q} \big[ \log \frac{q(\boldsymbol{\theta})}{p(\boldsymbol{\theta})} \big]\label{eq:kl_qp}
+\end{align}
+As we only know the unnormalized posterior distribution $\tilde{p}$, we cannot actually compute the reverse \acrshort{kl}. However, we can still find the best surrogate density $\hat{q}$ by observing that the argument minimizing $\mathbb{KL}(q || p)$ also minimizes $\mathbb{KL}(q || \tilde{p})$, i.e.
+
+\begin{align}
+    \hat{q}(\boldsymbol{\theta}) &= \arg \min_q \mathbb{KL}(q || p)\\ &= \arg \min_q \big(\mathbb{KL}(q || \tilde{p}) + \log p(\mathcal{D})\big) \\&= \arg \min_q \mathbb{KL} (q || \tilde{p})
+\end{align}
+
+The best surrogate density can therefore be found by maximizing the \textit{\acrfull{elbo}} given by 
+\begin{equation}
+    \text{ELBO} \triangleq -\mathbb{KL}(q || \tilde{p})
+\end{equation} which can be computed using the unnormalized posterior $\tilde{p}$. If we assume a known parametric representation of $q(\cdot)$, we can then turn the problem of selecting a good surrogate density into an optimization problem of finding the set of parameters maximizing \acrshort{elbo}. 
+
+\subsubsection{Sparse Variational Gaussian Process}
+To deal with the computational complexity of \acrshort{gp}s, \cite{Titsias2008VariationalMS} introduced the \textit{\acrfull{svgp}}. A short introduction is included here. 
+
+Rather than directly using all the available training data directly, we can rather attempt to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data.
+
+
+
+\subsubsection{}
