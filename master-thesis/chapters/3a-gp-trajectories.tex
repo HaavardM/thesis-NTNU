@@ -26,7 +26,7 @@ However, the model is exclusively data-driven and makes it more challenging to i
 \section{Implementation}
 The model is implemented in \textit{GPFlow} \cite{GPflow2017}, a \acrshort{gp} framework built on the well-known \textit{tensorflow} \cite{tensorflow2015-whitepaper} library. GPFlow has several implementations of \acrshort{gp}s, including both excact implementation and \acrshort{svgp} we have discussed earlier. We will here utilize the \acrshort{svgp} implementation to learn a sparse approximation of \cref{eq:gp_direct} direcly from all available data. 
 
-For optimization, the stochastic gradient optimizer \textit{ADAM}, which should familiar for anyone working with Neural Networks. With only a few lines-of-code, the \acrshort{elbo} can be optimized in order to get a variational approximation of the true posterior distribution.
+For optimization, the stochastic gradient optimizer \textit{ADAM} which should be familiar for anyone working with Neural Networks. With only a few lines-of-code, the \acrshort{elbo} can be optimized to get a variational approximation of the true posterior distribution.
 
 \section{Comparison to neural networks}
 

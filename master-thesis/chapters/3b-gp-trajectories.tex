@@ -142,11 +142,14 @@ While we could consider all available measurement at each timestep, it is in pra
 Combining this update procedure with the GP-EKF prediction procedure in \cref{alg:gp_ekf_prediction}, the predicted trajectory can be tuned to favor areas with a large number of samples, effectively pulling the state towards areas with available samples. In regions with samples spread evenly around the predicted state, then the \acrshort{pdaf}'s effect is negligible (assuming proper tuning).
 
 \begin{figure}
+    \centering
     \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_pdaf.png}
+    \centering
+    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_pdaf.pdf}
     \end{subfigure}
     \begin{subfigure}{\textwidth}
-    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_unc_with_pdaf.png}
+    \centering
+    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_unc_with_pdaf.pdf}
     \end{subfigure}
     \caption{Predicted position with and without the PDAF update procedure.}
     \label{fig:gp_ekf_with_pdaf}
@@ -165,6 +168,13 @@ Inspired by the prediction step used by \textit{particle filters} \cite{sensorfu
 The derivation of the Sequential Monte-Carlo approach is embarrassingly simple as this method trades high computational complexity for more straightforward mathematics. Instead of analytical propagation of uncertainty, many trajectories are simulated through random sampling and used to express the uncertainty empirically. We can this way describe the uncertainty for any trajectory distribution, though at the cost of considerable computational complexity. We also lose the convenience of parametric distributions described using only a few parameters.
 
 Given a set $N$ particles at time $t$, $\{\boldsymbol{x}^1_t, \boldsymbol{x}^2_t, \cdots, \boldsymbol{x}^N_t\}$, the next state can be sampled 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/dyngp/gp_particle.pdf}
+    \caption{}
+    \label{fig:gp_particle}
+\end{figure}
 
 
 
