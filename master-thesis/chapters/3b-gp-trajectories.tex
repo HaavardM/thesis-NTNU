@@ -93,10 +93,10 @@ The \textit{\acrfull{pdaf}} is a method commonly used in target tracking which c
 
 In this section, we will consider all measurements in the available training set as virtual \footnote{By virtual, we mean a measurement that did not actually originate from the target vessel, but rather a measurement that could potentially originate from our target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. We will use the same assumption as the \acrshort{pdaf}, where we assume \textbf{at most one} measurement originating from the target to reduce the computational complexity significantly \cite{sensorfusjon}. As we do not have proper measurements of the vessel's position in the future, we expect most of the measurements to be clutter, forcing the model to primarily trust its predictions. 
 
-Given the predicted state $\hat{\boldsymbol{x}}_t$, we expect any real measurement to be distributed around this state due to some measurement noise. Following the notation used by \acrshort{ekf}, and using the measurement model $h(\boldsymbol{x}) = \boldsymbol{x} \implies H = \frac{\partial h (\boldsymbol{x})}{\partial \boldsymbol{x}} = I$, the predicted measurement distributed is expressed as in \cref{eq:gp_ekf_pdaf_measurement} where $R$ is the measurement noise.
+Given the predicted state $\hat{\boldsymbol{x}}_t$, we expect any real measurement to be distributed around this state due to some measurement noise. Following the notation used by \acrshort{ekf}, and using the measurement model $h(\boldsymbol{x}) = \boldsymbol{x} \implies H = \frac{\partial h (\boldsymbol{x})}{\partial \boldsymbol{x}} = I$, the predicted measurement distributed is expressed as in \cref{eq:gp_ekf_pdaf_measurement} where we define $\boldsymbol{S}_t \triangleq \hat{\boldsymbol{P}}_t + \boldsymbol{R}$ and $\boldsymbol{R}$ is the measurement noise.
 
 \begin{equation} \label{eq:gp_ekf_pdaf_measurement}
-    \hat{\boldsymbol{z}}_t \sim \mathcal{N}(\hat{\boldsymbol{x}}_t, S_{t}) = \mathcal{N}(\hat{\boldsymbol{x}}_t, \hat{\boldsymbol{P}}_t + R)
+    \hat{\boldsymbol{z}}_t \sim \mathcal{N}(\hat{\boldsymbol{x}}_t, \boldsymbol{S}_{t}) = \mathcal{N}(\hat{\boldsymbol{x}}_t, \hat{\boldsymbol{P}}_t + \boldsymbol{R})
 \end{equation}
 
 None of the measurements may originate from the target, i.e., we only observe clutter. The choice of a good clutter model is a complicated topic, but we will here use the Poisson clutter model. As the measurements are not actual measurements from our target, it is difficult to assign meaning to any clutter model. It, therefore, simply boils down to which parameters we need to tune\footnote{We here pretend that the trajectory prediction can be seen as a target tracking problem. The clutter parameters, therefore, need to be interpreted in the context of target tracking, not trajectory prediction.} and the Poisson clutter model should already be familiar to anyone with experience in target tracking.
@@ -146,10 +146,12 @@ Combining this update procedure with the GP-EKF prediction procedure in \cref{al
     \begin{subfigure}{\textwidth}
     \centering
     \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_pdaf.pdf}
+    \caption{Trajectory plotted against the vector-field $\vec{f}(\boldsymbol{x})$}
     \end{subfigure}
     \begin{subfigure}{\textwidth}
     \centering
     \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_unc_with_pdaf.pdf}
+    \caption{$95\%$ credibility interval for the trajectory plotted against time}
     \end{subfigure}
     \caption{Predicted position with and without the PDAF update procedure.}
     \label{fig:gp_ekf_with_pdaf}
