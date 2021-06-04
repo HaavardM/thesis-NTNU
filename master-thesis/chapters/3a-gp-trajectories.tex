@@ -1,6 +1,5 @@
 \chapter{Learning trajectories directly from data}
-Perhaps the most direct approach is to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{p}_t$, \acrshort{cog} $\psi_t$ and \acrshort{sog} $v_t$ to a position at time $t+\tau$. The method is formulated in mathematical terms in \cref{eq:gp_direct}. The model can then be queried about likely future positions by evaluating $\boldsymbol{f}$ with the desired initial conditions and time horizon, and then condition the \acrshort{gp} on close trajectories. 
-The method boils down to using the \acrshort{gp} kernels to find trajectories with similar initial conditions and use those to predict future positions through clever interpolation and averaging.
+As a first attempt on using \acrshort{gp}s for trajectory prediction, a direct approach was attempted. The idea was to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{p}_t$, \acrshort{cog} $\psi_t$ and \acrshort{sog} $v_t$ to a position at time $t+\tau$. The method is formulated in mathematical terms in \cref{eq:gp_direct}. 
 
 \begin{subequations}\label{eq:gp_direct}
 \begin{align}
@@ -9,25 +8,47 @@ The method boils down to using the \acrshort{gp} kernels to find trajectories wi
 \end{align} 
 \end{subequations}
 
-The benefits of this approach include:
+The model could then be queried about likely future positions by evaluating $\boldsymbol{f}$ with the desired initial conditions and time horizon. 
+
+The conceptual benefits of this formulation include:
 \begin{description}
     \item[Continuous formulation] The model directly models the position at any time $t+\tau$ and do not require discretization. 
     \item[Simple Problem formulation] The model requires few components.
     \item[Easy incorporation of available AIS data] The reported \acrshort{cog} and \acrshort{sog} can easily be incorporated into the similarity measure, utilizing more of the available data.
 \end{description}
 
-However, the model is exclusively data-driven and makes it more challenging to incorporate model information. The high number of input variables also makes it more difficult to interpret how the model makes a prediction. In turn, this makes tuning more challenging. This model further assumes that the trajectory is jointly Gaussian, making it harder to describe branching trajectories.
+However, this formulation turned out to be impractical to work with, and the idea was abandoned after several attempts to get it to work. The attempted method and the issues which followed are discussed in this chapter.
 
 
+\section{Implementation}
+A large number of input dimensions pose a challenge as it requires large amounts of data, which is infeasible using the exact \acrshort{gp}. Two different approximations were attempted.
 
+\subsection{Excact GP with a subset of data}
+When making a prediction, only a subset of the \acrshort{ais} data is relevant for any given query. Trajectories with very different initial conditions than the query input should be safe to ignore, leaving only a subset of relevant trajectories to use for training. This way, we can still use the exact \acrshort{gp} formulation and avoid the additional complexity of \acrshort{gp} approximations. 
+\subsection{Sparse Variational Gaussian Process}
+While filtering the data before making a prediction works well for isolated cases, it does not scale well. The model needs to be retrained for each query, which results in a significant performance penalty in practical applications. As an alternative, we can attempt to use the \acrshort{svgp} instead to train a single \acrshort{gp} which can be used for any queries in an area. The training time will be a lot longer but can be performed in advance. 
 
 \section{Choice of kernels}
+
+We attempted multiple types of kernels. 
 
 \section{Implementation}
 The model is implemented in \textit{GPFlow} \cite{GPflow2017}, a \acrshort{gp} framework built on the well-known \textit{tensorflow} \cite{tensorflow2015-whitepaper} library. GPFlow has several implementations of \acrshort{gp}s, including both excact implementation and \acrshort{svgp} we have discussed earlier. We will here utilize the \acrshort{svgp} implementation to learn a sparse approximation of \cref{eq:gp_direct} direcly from all available data. 
 
-For optimization, the stochastic gradient optimizer \textit{ADAM} which should be familiar for anyone working with Neural Networks. With only a few lines-of-code, the \acrshort{elbo} can be optimized to get a variational approximation of the true posterior distribution.
+For optimization, the stochastic gradient optimizer \textit{ADAM} should be familiar for anyone working with Neural Networks. With only a few lines of code, the \acrshort{elbo} can be optimized to get a variational approximation of the true posterior distribution.
 
-\section{Comparison to neural networks}
+\section{Results}
+
+In practice, this formulation turned out to be challenging to work with, primarily due to the increased complexity of \acrshort{svgp} and a large number of input dimensions.
+
+\subsection{Complexity}
+Building the model using \acrshort{svgp} turned out to be challenging. While the model sometimes was able to achieve reasonable \acrshort{mse} given enough training iterations, the trajectories were by visual inspection found to be unrealistic. The high complexity of the model made it challenging to pinpoint the underlying cause of prediction errors. The benefit of \acrshort{gp}s interpretability is lost when using these approximate methods.
+
+\subsection{Optimization}
+The optimization would often result in unrealistic hyperparameters, such as prioritizing \acrshort{cog} and \acrshort{sog} over the position. This would yield predictions where the initial position was far away from the queried position. This problem could potentially be fixed by specifying priors for the hyperparameters, but this would also further increase the complexity. 
+
+Optimizing both the hyperparameters and the inducing variables was extremely slow and required hours to get good results. Due to the high number of input dimensions, a large number of inducing variables were required to get a good approximation. 
+
+
 
 

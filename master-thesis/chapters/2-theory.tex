@@ -128,16 +128,16 @@ The posterior distribution $p(\boldsymbol{f}_* | \boldsymbol{y})$ can easily be 
 \begin{subequations}\label{eq:gp_conditional}
 \begin{align}
     p(\boldsymbol{f}_* | \boldsymbol{y}) &= \mathcal{N}(f \; | \; \boldsymbol{\mu}_{\boldsymbol{f}_*|\boldsymbol{y}}, \boldsymbol{\Sigma}_{\boldsymbol{f}_*|\boldsymbol{y}})\\
-    \bar{\boldsymbol{f}}_* = \boldsymbol{\mu}_{\boldsymbol{f}_* | \boldsymbol{y}} &= m(X_*) + K(X_*, X) \; K(X, X)^{-1} \; (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean}\\
+    \mathbb{E}[\boldsymbol{f}_*] =  \boldsymbol{\mu}_{\boldsymbol{f}_* | \boldsymbol{y}} &= m(X_*) + K(X_*, X) \; K(X, X)^{-1} \; (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean}\\
     \mathbb{V}[\boldsymbol{f}_*] = \boldsymbol{\Sigma}_{\boldsymbol{f}_* | \boldsymbol{y}} &= K(X_*, X_*) - K(X_*, X)  K(X, X)^{-1} \; K(X, X_*)\label{eq:gp_conditional_var}
 \end{align}
 \end{subequations}
 
-As the notation quickly gets messy for the general case, we also introduce a shorthand notation for evaluating $f(\boldsymbol{x}_*)$ at a single test point, which is what we most often want. To follow the convention used by \cite{rasmussen}, we introduce $\boldsymbol{k}_* \triangleq K(X, \boldsymbol{x}_*)$ as a vector of covariances calculated between the test point and each of the training samples, as well as $K \triangleq K(X, X)$. Using this shorthand notation for a single test case, \cref{eq:gp_conditional} boils down to \cref{eq:gp_conditional_simple}.
+As the notation quickly gets messy for the general case, we also introduce a shorthand notation for evaluating $f(\boldsymbol{x}_*)$ at a single test point, which is what we most often want. To follow the convention used by \cite{rasmussen}, we introduce $\boldsymbol{k}_* \triangleq K(X, \boldsymbol{x}_*)$ as a vector of covariances calculated between the test point and each of the training samples, as well as $K \triangleq K(X, X)$ and $\bar{f}_* \triangleq \mathbb{E}[f_*]$. Using this shorthand notation for a single test case, \cref{eq:gp_conditional} boils down to \cref{eq:gp_conditional_simple}.
 
 \begin{subequations}\label{eq:gp_conditional_simple}
 \begin{align}
-    \bar{f}_* &= m(\boldsymbol{x}_*) + \boldsymbol{k}_*^\intercal ( K + \sigma I)^{-1} (\boldsymbol{y} - m(X))\\
+    \bar{f}_* = \mathbb{E}[f_*]  &= m(\boldsymbol{x}_*) + \boldsymbol{k}_*^\intercal ( K + \sigma I)^{-1} (\boldsymbol{y} - m(X))\\
     \mathbb{V}[f_*] &= k(\boldsymbol{x}_*, \boldsymbol{x}_*) - \boldsymbol{k}_*^\intercal K^{-1} \; \boldsymbol{k}_*\label{eq:gp_conditional_var_simple}
 \end{align}
 \end{subequations}
@@ -146,7 +146,7 @@ In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing
 \begin{subequations}
 \begin{align}
     \begin{split}
-    \bar{\boldsymbol{f}}_* &= m(X_*) + K(X_*, X) \; (L L^\intercal)^{-1} \; (\boldsymbol{y} - m(X))\\ &= m(X_*) + K(X_*, X) \; \underbrace{\big[(L^\intercal)^{-1} (L)^{-1}  \; (\boldsymbol{y} - m(X))\big]}_{\boldsymbol{\alpha}}
+    \mathbb{E}[{\boldsymbol{f}}_*] &= m(X_*) + K(X_*, X) \; (L L^\intercal)^{-1} \; (\boldsymbol{y} - m(X))\\ &= m(X_*) + K(X_*, X) \; \underbrace{\big[(L^\intercal)^{-1} (L)^{-1}  \; (\boldsymbol{y} - m(X))\big]}_{\boldsymbol{\alpha}}
     \end{split}\\
     \begin{split}
     \mathbb{V}[\boldsymbol{f}_*] &= K(X_*, X_*) - K(X_*, X) \; (L L^\intercal)^{-1} \; K(X, X_*)\\

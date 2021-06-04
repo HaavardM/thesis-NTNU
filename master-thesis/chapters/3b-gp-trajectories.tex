@@ -10,15 +10,15 @@ In \cite{pedestrian}, a \acrshort{gp} was used to model the trajectory patterns 
 In this section, a similar method is proposed for long-term vessel prediction. The vessel trajectory $\boldsymbol{\mathcal{T}}$ can be expressed using the dynamical system
 \begin{subequations}
     \begin{align}
-        \boldsymbol{x}_{t+1} & = \boldsymbol{x}_t + \vec{f}(\boldsymbol{x}_t)                              \\
+        \boldsymbol{x}_{t+1} & = \boldsymbol{x}_t + \vec{f}(\boldsymbol{x}_t,t)                              \\
         \mathcal{T}_t        & = \boldsymbol{x}_t + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
     \end{align}
 \end{subequations}
-The function $\vec{f}(\cdot): \mathcal{R}^2 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by parametrization.
+The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by parametrization.
 
 \begin{equation}\label{eq:gp_vec_field}
-    \vec{f}(\boldsymbol{x}) = \begin{bmatrix} f_x (\boldsymbol{x})\\ f_y (\boldsymbol{x})\end{bmatrix} \sim \text{GP} \big(\begin{bmatrix} m_x(\boldsymbol{x})\\m_y(\boldsymbol{x})\end{bmatrix}, \ \begin{bmatrix}
-            K_{xx}(\boldsymbol{x}, \boldsymbol{x}') & K_{xy}(\boldsymbol{x}, \boldsymbol{x}') \\ K_{xy}(\boldsymbol{x}, \boldsymbol{x}')^\intercal & K_{yy}(\boldsymbol{x}, \boldsymbol{x}')
+    \vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_x (\boldsymbol{\eta})\\ f_y (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(\begin{bmatrix} m_x(\boldsymbol{\eta})\\m_y(\boldsymbol{\eta})\end{bmatrix}, \ \begin{bmatrix}
+            K_{xx}(\boldsymbol{\eta}, \boldsymbol{\eta}') & K_{xy}(\boldsymbol{\eta}, \boldsymbol{\eta}') \\ K_{xy}(\boldsymbol{\eta}, \boldsymbol{\eta}')^\intercal & K_{yy}(\boldsymbol{\eta}, \boldsymbol{\eta}')
         \end{bmatrix}\big)
 \end{equation}
 
@@ -41,24 +41,26 @@ Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict 
 During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state, i.e. the \acrshort{ekf} prediction model, $g(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
 
 \begin{equation}\label{eq:gp_ekf_prediction}
-    \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1})
+    \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}_t(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1}, t)
 \end{equation}
 
-Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, we need to linearize the prediction in order to propagate the state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}_*$ can be computed using \cref{eq:gp_jacobian}. 
+Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, we need to linearize the prediction in order to propagate the state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}_*$ can be computed using \cref{eq:gp_jacobian}. We also define $\boldsymbol{\eta} \triangleq \begin{bmatrix}
+    \boldsymbol{x} & t
+\end{bmatrix}$ to simplify the notation for the \acrshort{gp} inputs. 
 
 \begin{equation}\label{eq:gp_ekf_prediction_jac}
-    \boldsymbol{G}_t = \frac{\partial \boldsymbol{g}(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}}
+    \boldsymbol{G}_t = \frac{\partial \boldsymbol{g}_t(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1}, t)}{\partial \boldsymbol{x}_{t-1}}
 \end{equation}
 
 \begin{align}\label{eq:gp_jacobian}
     \begin{split}
-        \frac{\partial \vec{f}(\boldsymbol{x}_*)}{\partial \boldsymbol{x}_*} &= \frac{\partial}{\partial \boldsymbol{x}_*} \bigg(\boldsymbol{k}_*^\intercal K^{-1} \big(\boldsymbol{y} - m(X)\big)\bigg)\\
+        \frac{\partial \vec{f}(\boldsymbol{x}_*, t)}{\partial \boldsymbol{x}_*} &= \frac{\partial \vec{f}(\boldsymbol{\eta})}{\partial \boldsymbol{x}_*} \\  &= \frac{\partial}{\partial \boldsymbol{x}_*} \bigg(\boldsymbol{k}_*^\intercal K^{-1} \big(\boldsymbol{y} - m(X)\big)\bigg)\\
         &= \frac{\partial \boldsymbol{k}_*^\intercal}{\partial \boldsymbol{x}_*} K^{-1} \big(\boldsymbol{y} - m(X)\big)\\
         &= \frac{\partial \boldsymbol{k}_*^\intercal}{\partial \boldsymbol{x}_*} \boldsymbol{\alpha} = \begin{bmatrix}
-            \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_1)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_1)}{\partial \boldsymbol{x}_*[2]} \\
-            \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_2)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_2)}{\partial \boldsymbol{x}_*[2]} \\
+            \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_1)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_1)}{\partial \boldsymbol{x}_*[2]} \\
+            \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_2)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_2)}{\partial \boldsymbol{x}_*[2]} \\
             \vdots & \vdots \\
-            \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_N)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{x}_*, \boldsymbol{x}_N)}{\partial \boldsymbol{x}_*[2]} \\
+            \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_N)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_N)}{\partial \boldsymbol{x}_*[2]} \\
         \end{bmatrix}^\intercal \boldsymbol{\alpha}
     \end{split}
 \end{align}
@@ -66,23 +68,40 @@ Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linea
 We can then predict the state uncertainty using \cref{eq:gp_ekf_prediction_uncertianty}, propagating the previous uncertainty $\boldsymbol{P}_{t-1}$ using the linearized prediction model $\boldsymbol{G}_t$ and adding the prediction uncertianty $\mathbb{V}[\vec{f}]$.
 
 \begin{equation}\label{eq:gp_ekf_prediction_uncertianty}
-    \boldsymbol{P}_t = \boldsymbol{G}_t^\intercal \boldsymbol{P}_{t-1} \boldsymbol{G}_t + \mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1})]
+    \boldsymbol{P}_t = \boldsymbol{G}_t^\intercal \boldsymbol{P}_{t-1} \boldsymbol{G}_t + \mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1}, t)]
 \end{equation}
 
-The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can be used iteratively to simulate a complete trajectory. 
+The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can be used iteratively to simulate a complete trajectory, as demonstrated in \cref{fig:gp_ekf}.
 
 \begin{algorithm}[h]
     \begin{algorithmic}[1]
         \Procedure{GP-EKF-PREDICT}{$\vec{f}$, $\boldsymbol{x}_{t-1}$, $\boldsymbol{P}_{t-1}$, $\Delta t$}
-        \State $\hat{\boldsymbol{x}}_{t} = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1}) \Delta t$
-        \State $\boldsymbol{G_t} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} \Delta t$
-        \State $\hat{\boldsymbol{P}}_t = \boldsymbol{G_t}^\intercal \boldsymbol{P}_{t-1} \boldsymbol{G_t} +\mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1})] (\Delta t)^2$
+        \State $\hat{\boldsymbol{x}}_{t} = \boldsymbol{x}_{t-1} + \mathbb{E}\big[\vec{f}(\boldsymbol{x}_{t-1}, t)\big] \Delta t$
+        \State $\boldsymbol{G_t} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1}, t)}{\partial \boldsymbol{x}_{t-1}} \Delta t$
+        \State $\hat{\boldsymbol{P}}_t = \boldsymbol{G_t}^\intercal \boldsymbol{P}_{t-1} \boldsymbol{G_t} +\mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1}, t)] (\Delta t)^2$
         \State \textbf{return} $\hat{\boldsymbol{x}}_t, \; \hat{\boldsymbol{P}}_t$
         \EndProcedure
     \end{algorithmic}
     \caption{GP-EKF Trajectory Prediction}
     \label{alg:gp_ekf_prediction}
 \end{algorithm}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf.pdf}
+    \caption{Trajectory plotted against the vector-field $\vec{f}(\boldsymbol{x})$. The ellipses show the $95\%$ credibility interval for the predicted trajectory at the ground-truth timestamps.}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_state.pdf}
+    \caption{$2\sigma$ credibility interval for the trajectory plotted against time}
+    \end{subfigure}
+    \caption{Predicted position using \cref{alg:gp_ekf_prediction}}
+    \label{fig:gp_ekf}
+\end{figure}
+
 
 \subsection{Incorporating vessel position}
 While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. Looking at the available data in \cref{fig:gp_ekf_with_pdaf}, we want the prediction to converge towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, we want weak feedback that may compensate for minor prediction errors. 
@@ -146,14 +165,14 @@ Combining this update procedure with the GP-EKF prediction procedure in \cref{al
     \begin{subfigure}{\textwidth}
     \centering
     \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_pdaf.pdf}
-    \caption{Trajectory plotted against the vector-field $\vec{f}(\boldsymbol{x})$}
+    \caption{Trajectory plotted against the vector-field $\vec{f}(\boldsymbol{x})$. The ellipses show the $95\%$ credibility interval for the predicted trajectory at the ground-truth timestamps.}
     \end{subfigure}
     \begin{subfigure}{\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_unc_with_pdaf.pdf}
+    \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_pdaf_state.pdf}
     \caption{$95\%$ credibility interval for the trajectory plotted against time}
     \end{subfigure}
-    \caption{Predicted position with and without the PDAF update procedure.}
+    \caption{Predicted position with the PDAF update procedure.}
     \label{fig:gp_ekf_with_pdaf}
 \end{figure}
 
