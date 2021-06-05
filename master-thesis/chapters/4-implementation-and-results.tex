@@ -1,8 +1,27 @@
 \chapter{Implementation And Results}
-\section{The Dataset}
-\section{Pre-processing}
-\section{Results}
-\subsection{Straight-line trajectories}
+\section{Statistical Testing}
+Inspired by \cite{hexeberg}, we will test the performance of the model for straight-line trajectoires and curved trajectories independently.
+\subsection{Straigth-line trajectories}
+We use the first $100$ randomly sampled trajectories satisfying the following requirements:
+\begin{enumerate}
+    \item The sum of subsequent changes in \acrshort{cog} must be less than $30$ degrees, i.e. the trajectory must be close to a straight line.
+    \item There must be sufficient data available for training in the neighbourhood around the initial starting point, with similar initial heading and speed.
+\end{enumerate}
+\subsubsection{Prediction Errors}
+Insert quantile or box plot here
+\subsubsection{Consistency}
+Insert plot of NEES here
+
 \subsection{Curved Trajectories}
-\subsection{Branching Trajectories}
-\subsection{Limited available data}
+We use the first $100$ randomly sampled trajectories satisfying the following requirements:
+\begin{enumerate}
+    \item The sum of subsequent changes in \acrshort{cog} must be greater than $40$ degrees, i.e. the trajectory must be close to a straight line.
+    \item There must be sufficient data available for training in the neighbourhood around the initial starting point, with similar initial heading and speed.
+\end{enumerate}
+
+\subsubsection{Prediction Errors}
+Insert quantile or box plot here
+\subsubsection{Consistency}
+Insert plot of NEES here
+
+

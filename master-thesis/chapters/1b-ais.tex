@@ -1,0 +1,9 @@
+\chapter{AIS}
+
+\section{From individual samples to trajectories}\label{sec:from_ais_to_traj}
+The raw \acrshort{ais} samples can be converted into trajectory vectors using the following pipeline.
+\begin{enumerate}
+    \item Raw \acrshort{ais} samples are first sorted by timestamp and grouped by MMSI.
+    \item Each sample is considered the starting point for a trajectory, and the leading $N$ samples are collected into a vector. $N$ is a fixed number of samples. Samples with fewer than $N$ leading samples are ignored.
+    \item Trajectories with duration less than $15$ minutes or more than $30$ minutes are discared. 
+\end{enumerate}

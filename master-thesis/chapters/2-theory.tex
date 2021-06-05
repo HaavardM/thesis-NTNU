@@ -63,7 +63,7 @@ Note that the marginal distribution do not actually require any calculations and
  \end{tcolorbox}
 
 
-\section{Introduction to Gaussian Processes}
+\section{Introduction to Gaussian Processes}\label{sec:gp}
 
 This introduction is heavily inspired by \cite{rasmussen} where more details can be found for those interested. During this introduction, we will only focus on the scalar case and delay the discussion of vector-valued functions until \cref{sec:theory_vector_gp}. Rest assured, this introduction easily extends to vector-valued functions!
 
@@ -241,7 +241,7 @@ Kernels can be mixed and matched through multiplication and addition, where the 
 \section{Hyperparameter selection}
 Manually tuning the kernel hyperparameters is tedious and time-consuming, motivating the need for automatic selection of parameters. In this section, we will introduce a few practical methods for model selection with \acrshort{gp}s.
 
-\subsection{Maximum Likelihood - The Marginal Likelihood}
+\subsection{Maximum Likelihood - The Marginal Likelihood}\label{sec:gp_mle}
 The \textit{marginal likelihood}, the likelihood of observing a set of given observations $\boldsymbol{y}$, conditioned on a \acrshort{gp} with kernel parameters $\boldsymbol{\theta}$ and inputs $X$ is given by 
 
 \begin{equation}
