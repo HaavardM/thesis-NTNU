@@ -212,8 +212,13 @@ We want the model to prioritize the prediction model, as it would otherwise be s
 \section{Implementation details}
 This chapter has so far only discussed how $\vec{f}$ could be used to simulate trajectories. This section will discuss how the \acrshort{gp}s introduced in \cref{sec:gp} can be applied.
 
-\subsection{Calculating the gradients}
-As $\vec{f}$ models the speed, rather than the position of the trajectories, the \acrshort{ais} needs some preprocessing before it can be used for training. Trajectories from the dataset are converted into training samples for $\vec{f}$ using the simple first-order finite-difference method in \cref{eq:finite_difference} between subsequent \acrshort{ais} samples in a trajectory $i$. This yields the training outputs $\boldsymbol{y}_t^{i}$ corresponding to the inputs $\boldsymbol{\eta}_t^i$ such that $\boldsymbol{y}_t^i = \vec{f}(\boldsymbol{\eta}_t^i) + \epsilon$.
+\subsection{Feature Engineering}
+As $\vec{f}$ models the speed, rather than the position of the trajectories, the \acrshort{ais} needs some preprocessing before it can be used for training. There are two potential sources for the training samples $\boldsymbol{y}$:
+
+\begin{enumerate}
+    \item Trajectories from the dataset are converted into training samples for $\vec{f}$ using the simple first-order finite-difference method in \cref{eq:finite_difference} between subsequent \acrshort{ais} samples in a trajectory $i$. This yields the training outputs $\boldsymbol{y}_t^{i}$ corresponding to the inputs $\boldsymbol{\eta}_t^i$ such that $\boldsymbol{y}_t^i = \vec{f}(\boldsymbol{\eta}_t^i) + \epsilon$.
+    \item The \acrshort{cog} and \acrshort{cog} from the \acrshort{ais} data can be used directly.
+\end{enumerate}
 
 \begin{align}\label{eq:finite_difference}
 \boldsymbol{y}_t = \frac{\boldsymbol{x}_{t+1} - \boldsymbol{x}_t}{\tau_{t+1} - \tau_t}
@@ -274,12 +279,12 @@ Given a set $N$ particles at time $t$, $\{\boldsymbol{x}^1_t, \boldsymbol{x}^2_t
 
 
 \subsection{Why is $\vec{f}$ time-varying?}
-The time component was initially included to better handle trajectories with sharp turns. If $\vec{f}$ only relied on position, the \acrshort{gp} would have no way of expressing that the speed vector at position $\boldsymbol{x}$ might change over time. The time component was later found to have the additional benefit of also explaining uncertainty due to difference in velocity between similar paths, as the vector-field not only depend on the predicted position, but also on the predicted timestamp.
+The time component was initially included to handle trajectories with sharp turns better. If $\vec{f}$ only relied on position, the \acrshort{gp} would have no way of expressing that the speed vector at position $\boldsymbol{x}$ might change over time. The time component was later found to have the additional benefit of also explaining uncertainty due to difference in velocity between similar paths, as the vector-field not only depend on the predicted position, but also on the predicted timestamp.
 
-In practice, the \acrshort{ml} approach will in many cases yield very large lengthscales\footnote{In fact, the time lengthscale tends to reach a maximum value during optimization} for the time-components of the kernel, effectively disabling the time dependency. The time component is therefore only really used when the dataset contains a lot of time-dependent noise.
+In practice, the \acrshort{ml} approach will, in many cases, yield very large lengthscales\footnote{In fact, the time lengthscale tends to reach a maximum value during optimization} for the time-components of the kernel, effectively disabling the time dependency. The time component is therefore only really used when the dataset contains a lot of time-dependent noise.
 
 \section{Summary}
-This chapter has so far introduced a lot of new concepts, so it might be nice with a short summary of the overall pipeline:
+This chapter has so far introduced a lot of new concepts, so that it might be nice with a summary of the overall pipeline:
 
 \begin{enumerate}
     \item The raw \acrshort{ais} data is first grouped and sorted to get fixed-length trajectory vectors.
