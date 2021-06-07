@@ -290,7 +290,7 @@ The standard derivation of the \acrshort{gp} requires inverting the kernel matri
 For simple functions, it often works well only to use a representable subset of the data. However, throwing away the majority of available data is not an elegant solution to the problem. 
 \subsection{Variational Gaussian Process}
 
-\subsubsection{A short introduciton to Variational Inference}
+\subsubsection{A short introduciton to Variational Inference}\todo[]{This may be a bit out of scope, consider removing}
 Variational Inference was covered thoroughly in a previous specialization project \cite{mellbye}. A quick introduction of the necessary concepts is included here, and more details can be found in \cite{mellbye, murphy}.
 
 In many cases, using the true posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ turns out to be challenging. Calculating the posterior using Bayes Rule requires a normalizing constant $p(\mathcal{D})$, which quickly becomes infeasible unless the distributions are simple. The true posterior are therefore often assumed only to be known up to a normalizing constant, i.e.
