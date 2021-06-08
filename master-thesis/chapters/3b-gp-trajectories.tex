@@ -10,16 +10,16 @@ In \cite{pedestrian}, a \acrshort{gp} was used to model the trajectory patterns 
 In this section, a similar method is proposed for long-term vessel prediction. The vessel trajectory $\boldsymbol{\mathcal{T}}$ can be expressed using the dynamical system
 \begin{subequations}
     \begin{align}
-        \boldsymbol{x}_{k+1}       & = \boldsymbol{x}_k + \vec{f}(\boldsymbol{x}_k,\tau_k)\Delta \tau                          \\
+        \boldsymbol{x}_{k+1}       & = \boldsymbol{x}_k + \vec{f}(\boldsymbol{x}_k,\tau_k)\Delta \tau            \\
         \boldsymbol{\mathcal{T}}_k & = \boldsymbol{x}_k + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
     \end{align}
 \end{subequations}
-The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization.
+The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. 
 
 \begin{equation}\label{eq:gp_vec_field}
-    \vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_x (\boldsymbol{\eta})\\ f_y (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(\begin{bmatrix} m_x(\boldsymbol{\eta})\\m_y(\boldsymbol{\eta})\end{bmatrix}, \ \begin{bmatrix}
-            K_{xx}(\boldsymbol{\eta}, \boldsymbol{\eta}') & K_{xy}(\boldsymbol{\eta}, \boldsymbol{\eta}') \\ K_{xy}(\boldsymbol{\eta}, \boldsymbol{\eta}')^\intercal & K_{yy}(\boldsymbol{\eta}, \boldsymbol{\eta}')
-        \end{bmatrix}\big)
+\vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_x (\boldsymbol{\eta})\\ f_y (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(0, \ \begin{bmatrix}
+    K(\boldsymbol{\eta}, \boldsymbol{\eta}') & 0 \\ 0 & K(\boldsymbol{\eta}, \boldsymbol{\eta}')
+\end{bmatrix}\big)
 \end{equation}
 
 The benefits of this formulation include:
@@ -32,7 +32,7 @@ The benefits of this formulation include:
 The pipeline for making predictions using available \acrshort{ais} data will now be introduced in greater detail, but can be summarized as:
 \begin{enumerate}
     \item Calculate trajectory gradients $\boldsymbol{y}$ for inputs $\boldsymbol{\eta}$ from available \acrshort{ais} data.
-    \item Fit a \acrshort{gp} to the time-varying vector-field $\vec{f}: \mathcal{R}^3 \to \mathcal{R}^2$ 
+    \item Fit a \acrshort{gp} to the time-varying vector-field $\vec{f}: \mathcal{R}^3 \to \mathcal{R}^2$
     \item Simulate the vessel as it is moving through the vector field $\vec{f}$, using either \acrshort{ekf}-based prediction or sequential monte carlo.
 \end{enumerate}
 
@@ -41,18 +41,18 @@ The key variables for this chapter are summarized in \cref{table:dyngp_key_varia
 \begin{table}[h]
     \centering
     \begin{tabular}{ll}
-        \textit{\textbf{Variable}}               & \textit{\textbf{Description}}                          \\ \hline
-        $\boldsymbol{x}_t \in \mathcal{R}^2$     & Vessel position at step $t$ in EPSG:3857 coordinates   \\
+        \textit{\textbf{Variable}}               & \textit{\textbf{Description}}                                      \\ \hline
+        $\boldsymbol{x}_t \in \mathcal{R}^2$     & Vessel position at step $t$ in EPSG:3857 coordinates               \\
         $\tau_t \in \mathcal{R}$                 & Timestamp at step $t$, number of seconds since start of trajectory \\
-        $\mathcal{X}_t \in [0, 360)$             & Vessel's course over ground in degrees at step $t$     \\
-        $v_t \in \mathcal{R}$                    & Vessel's speed over ground in knots at step $t$        \\
-        $\boldsymbol{P}_t \in \mathcal{R}^{2x2}$ & State Covariance at step $t$                           \\
+        $\mathcal{X}_t \in [0, 360)$             & Vessel's course over ground in degrees at step $t$                 \\
+        $v_t \in \mathcal{R}$                    & Vessel's speed over ground in knots at step $t$                    \\
+        $\boldsymbol{P}_t \in \mathcal{R}^{2x2}$ & State Covariance at step $t$                                       \\
     \end{tabular}
     \caption{Key variables}
     \label{table:dyngp_key_variables}
 \end{table}
 
-Note that throughout this chapter, some of the notation used in \cref{sec:gp} will be relaxed in order to reduce the notational complexity. More specifically, the \acrshort{gp} is always assumed to be conditioned on available data, i.e. $p\big(\vec{f}(\boldsymbol{x})\big) = p\big(\vec{f}(\boldsymbol{x}) \; | \; \vec{f}(X)\big)$. 
+Note that throughout this chapter, some of the notation used in \cref{sec:gp} will be relaxed in order to reduce the notational complexity. More specifically, the \acrshort{gp} is always assumed to be conditioned on available data, i.e. $p\big(\vec{f}(\boldsymbol{x})\big) = p\big(\vec{f}(\boldsymbol{x}) \; | \; \vec{f}(X)\big)$.
 
 \section{EKF trajectory prediction}
 Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict trajectories using the prediction procedure used by \textit{\acrfull{ekf}}. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}.
@@ -152,7 +152,7 @@ Once we have the likelihood for each of the possible outcomes, the association p
     \beta_i = \frac{\Pr\{a_t=i \; | \; Z\}}{\sum_{k=0}^M \Pr\{a_t=k \; | \; Z\}}
 \end{equation}
 
-We can then update the predicted step using the Kalman update procedure for each the measurements, conditioned on the assocication $a_t$. As the measurements $\boldsymbol{z}_t^{a_t > 0}$ are known values, the state innovation $\boldsymbol{v}_t^{a_t>0} \triangleq \boldsymbol{z}_t^{a_t>0} - \hat{\boldsymbol{z}}_t$ is distributed according to the measurement prediction $\hat{\boldsymbol{z}}_t$ . 
+We can then update the predicted step using the Kalman update procedure for each the measurements, conditioned on the assocication $a_t$. As the measurements $\boldsymbol{z}_t^{a_t > 0}$ are known values, the state innovation $\boldsymbol{v}_t^{a_t>0} \triangleq \boldsymbol{z}_t^{a_t>0} - \hat{\boldsymbol{z}}_t$ is distributed according to the measurement prediction $\hat{\boldsymbol{z}}_t$ .
 
 \begin{equation}
     \boldsymbol{v}_t^{a_t>0} \sim \mathcal{N}(\boldsymbol{z}_t^{a_t>0} - \hat{\boldsymbol{x}}_t, S_t)
@@ -161,8 +161,8 @@ The updated state for each measurement is then given the normal \acrshort{ekf} u
 
 \begin{equation}
     \boldsymbol{x}_t^{a_t > 0} = \hat{\boldsymbol{x}}_t + \boldsymbol{W}_t \boldsymbol{v}_t^{a_t > 0}
-\end{equation} where $\boldsymbol{W}_t \triangleq \hat{\boldsymbol{P}}_t \boldsymbol{S}_t^{-1}$ is the Kalman gain. 
- The updated state of the vessel for all measurements can be described as a Gaussian Mixture Model over the $M+1$ different modes weighted by the association probabilites, i.e.
+\end{equation} where $\boldsymbol{W}_t \triangleq \hat{\boldsymbol{P}}_t \boldsymbol{S}_t^{-1}$ is the Kalman gain.
+The updated state of the vessel for all measurements can be described as a Gaussian Mixture Model over the $M+1$ different modes weighted by the association probabilites, i.e.
 \begin{equation}
     p(\boldsymbol{x_t}) = \underbrace{\beta_0 \mathcal{N}(\boldsymbol{x}_t \; | \; \hat{\boldsymbol{x}}_t, \hat{\boldsymbol{P}}_t)}_{\text{No measurements are valid}} + \sum_{k=1}^M \underbrace{\beta_k \mathcal{N}\big(\boldsymbol{x}_t | \boldsymbol{x}_t^{a_k}, \boldsymbol{P}_t^{a_k}\big)}_{\text{Measurement $k$ is valid}}
 \end{equation}
@@ -186,9 +186,7 @@ While we could consider all available measurement at each timestep, it is in pra
 \end{equation}
 
 
-
-
-Combining this update procedure with the GP-EKF prediction procedure in \cref{alg:gp_ekf_prediction}, the predicted trajectory can be tuned to favor areas with a large number of samples, effectively pulling the state towards areas with available samples. In regions with samples spread evenly around the predicted state, then the \acrshort{pdaf}'s effect is negligible (assuming proper tuning).
+By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in \cref{alg:gp_ekf_prediction}, the predicted trajectory can be tuned to favor areas with a large number of samples, effectively pulling the state towards areas with available samples. In regions with samples spread evenly around the predicted state, then the \acrshort{pdaf}'s effect is negligible (assuming proper tuning).
 
 \begin{figure}
     \centering
@@ -209,6 +207,8 @@ Combining this update procedure with the GP-EKF prediction procedure in \cref{al
 \subsection{Tuning PDAF parameters}
 We want the model to prioritize the prediction model, as it would otherwise be stuck since the measurements do not change over time. As the measurements are not originating from the target vessel, we also expect a lot of noise in the measurements themselves. In practice, this boils down to using a significant measurement noise $\boldsymbol{R}$ and a relatively low detection probability $P_D$ before tuning the clutter rate to achieve good results.
 
+However, finding a set of parameters that works well across different trajectories turns out to be challenging. Parameters which improves the prediction for one trajectory, may do more harm than good on another. The performance of using PDAF will be explored further in \cref{chap:stat_testing}.
+
 \section{Implementation details}
 This chapter has so far only discussed how $\vec{f}$ could be used to simulate trajectories. This section will discuss how the \acrshort{gp}s introduced in \cref{sec:gp} can be applied.
 
@@ -221,7 +221,7 @@ As $\vec{f}$ models the speed, rather than the position of the trajectories, the
 \end{enumerate}
 
 \begin{align}\label{eq:finite_difference}
-\boldsymbol{y}_t = \frac{\boldsymbol{x}_{t+1} - \boldsymbol{x}_t}{\tau_{t+1} - \tau_t}
+    \boldsymbol{y}_t = \frac{\boldsymbol{x}_{t+1} - \boldsymbol{x}_t}{\tau_{t+1} - \tau_t}
 \end{align}
 
 
@@ -265,8 +265,7 @@ Inspired by the prediction step used by \textit{particle filters} \cite{sensorfu
 
 The derivation of the Sequential Monte-Carlo approach is embarrassingly simple as this method trades high computational complexity for more straightforward mathematics. Instead of analytical propagation of uncertainty, many trajectories are simulated through random sampling and used to express the uncertainty empirically. We can this way describe the uncertainty for any trajectory distribution, though at the cost of considerable computational complexity. We also lose the convenience of parametric distributions described using only a few parameters.
 
-Given a set $N$ particles at time $t$, $\{\boldsymbol{x}^1_t, \boldsymbol{x}^2_t, \cdots, \boldsymbol{x}^N_t\}$, the next state can be sampled
-
+$N$ different trajectories are initialized with similar initial conditions. The trajectories are then simulated by drawing independent increments from $\vec{f}$ using the approach described in \cref{sec:gp_samples}, conditioned on the current state of each trajectory. The result is visualized in \cref{fig:gp_particle} for $N=500$ trajectories.
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/dyngp/gp_particle.pdf}
@@ -275,13 +274,15 @@ Given a set $N$ particles at time $t$, $\{\boldsymbol{x}^1_t, \boldsymbol{x}^2_t
 \end{figure}
 
 \section{Other design choices}
-
-
-
 \subsection{Why is $\vec{f}$ time-varying?}
-The time component was initially included to handle trajectories with sharp turns better. If $\vec{f}$ only relied on position, the \acrshort{gp} would have no way of expressing that the speed vector at position $\boldsymbol{x}$ might change over time. The time component was later found to have the additional benefit of also explaining uncertainty due to difference in velocity between similar paths, as the vector-field not only depend on the predicted position, but also on the predicted timestamp.
+The time component was initially included to handle trajectories with sharp turns better. If $\vec{f}$ only relied on position, the \acrshort{gp} would have no way of expressing that the speed vector at position $\boldsymbol{x}$ might change over time. The time component was later found to explain some of the variability in the velocity estimates, yielding better uncertainty estimates.
 
 In practice, the \acrshort{ml} approach will, in many cases, yield very large lengthscales\footnote{In fact, the time lengthscale tends to reach a maximum value during optimization} for the time-components of the kernel, effectively disabling the time dependency. The time component is therefore only really used when the dataset contains a lot of time-dependent noise.
+
+\subsection{Standardizing the training outputs $Y$}
+\textit{Standardization} is the process of converting the data into a standard unit of measurement, which in practice involves transforming the data to have zero mean and unit variance. This is useful when comparing measurements of different scales.
+
+The proposed GP-EKF implementation works well with and without standardized input data, but standardization has one important benefit. While the current implementation allow seperate kernel hyperparameters for each input dimension in $\boldsymbol{\nu}$, the kernel is assumed to be identical for each of the outputs in $\vec{f}$. The scale parameters $\sigma_i$ in the kernel therefore represents the variability of \textbf{both} output dimensions at once. However, with standardized training outputs $Y$, the scale parameters $\sigma_i$ are relative to the standard deviation of the training data. This way, the \acrshort{gp} can express different level of uncertianty for each output dimension, while still sharing the same kernel. Allowing separate kernels is a possible extensions, but is assumed to further complicate the hyperparameter selection.
 
 \section{Summary}
 This chapter has so far introduced a lot of new concepts, so that it might be nice with a summary of the overall pipeline:
@@ -295,5 +296,5 @@ This chapter has so far introduced a lot of new concepts, so that it might be ni
     \item The \acrshort{ekf} procedure in \cref{alg:gp_ekf_prediction} is called repeadetly, using the current state of the target vessel as initial conditions. At each step, the \acrshort{pdaf} update procedure can be used as well if desired. Sequential Monte-Carlo can alternatively be used to simulate multimodal trajectories.
 \end{enumerate}
 
-The only parameters which need manual tuning are the time increment $\Delta \tau$ and the initial covariance $\boldsymbol{P}_0$. All other parameters are learned from the data. 
+The only parameters which need manual tuning are the time increment $\Delta \tau$ and the initial covariance $\boldsymbol{P}_0$. All other parameters are learned from the data.
 

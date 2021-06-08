@@ -85,7 +85,7 @@ This interpretation of a \acrshort{gp} might seem a bit odd at first. The key ob
 Any \acrshort{gp} by Definition \ref{def:gp} can therefore be viewed as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
 
 \subsection{A quick note on vector notation}
-We use two different notations for vector values in order to differentiate between two common cases:
+Different notations for vector values is used to differentiate between three common cases:
 \begin{description}
 \item[Bold letters] are used to indicate a single, multivariate value. $f(\boldsymbol{x})$ is the scalar function $f$ evaluated at the multivariate input $\boldsymbol{x}$. In practice, this implies the input is $\boldsymbol{x} \in \mathcal{R}^{1 x M}$ with $M\geq 2$ columns. 
 \item[Capital letters] such as $X$, are used to indicate multiple (potentially multivariate) samples. $f(X)$ is the scalar function $f$ evaluated at each row in $X$. In practice this implies that the input $X \in \mathcal{R}^{N x M}$ with $N \geq 2$ rows (samples) and $M \geq 1$ columns (dimensions).
@@ -93,7 +93,7 @@ We use two different notations for vector values in order to differentiate betwe
 \end{description}
 
 \subsection{Introduction to kernels}
-The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this thesis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The key idea behind kernels is that the kernels may, in many cases, be simpler to compute than the input vectors themselves if the input space is complex. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Kernel functions are discussed in greater detail in \cref{sec:kernels}.
+The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this thesis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Kernel functions are discussed in greater detail in \cref{sec:kernels}.
 
 The kernel must be positive definite to produce a valid covariance matrix, which requires that
 
@@ -101,7 +101,7 @@ The kernel must be positive definite to produce a valid covariance matrix, which
     k(\boldsymbol{x}, \boldsymbol{x}') = k(\boldsymbol{x}', \boldsymbol{x})
 \end{equation}
 
-The resulting covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cdot)$ on all pairs on inputs, i.e.
+The covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cdot)$ on all pairs on inputs, i.e.
 \begin{equation} 
     K(X, X)_{ij} = k(\boldsymbol{x}_i, \boldsymbol{x}_j) \quad \forall i, j
 \end{equation}
@@ -110,7 +110,7 @@ The resulting covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cd
 So far, we have only specified the prior distribution for $f$. As a \acrshort{gp} is by definition a multivariate Gaussian Distribution, the posterior conditional in \cref{eq:multivariate_gaussian_conditional} can be used to condition $f$ on observed values. 
 As an example, we use a simple \acrshort{gp} for $f$ with mean $m$ and kernel $k$.
 
-Let $\boldsymbol{f}_* \triangleq f(X_*)$ denote the function evaluated at test points $X_*$. Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we want to update our prior beliefs after observing $\boldsymbol{y} = f(X) + \epsilon$ at multiple inputs $X$ to get the posterior belief $p(\boldsymbol{f}_* \; | X, \boldsymbol{y}, X_*)$.
+Let $\boldsymbol{f}_* \triangleq f(X_*)$ denote the function evaluated at test points $X_*$. Before any observations are made we can only rely on prior information as shown in \cref{fig:gp_prior}. From a Bayesian perspective, we want to update our prior beliefs about $\boldsymbol{f}_*$ after observing noisy values $\boldsymbol{y} = f(X) + \epsilon$ at multiple inputs $X$ to get the posterior belief $p(\boldsymbol{f}_* \; | X, \boldsymbol{y}, X_*)$.
 
 The joint distribution of $\boldsymbol{y}$ and $\boldsymbol{f}_*$ is given by 
 
@@ -120,7 +120,7 @@ The joint distribution of $\boldsymbol{y}$ and $\boldsymbol{f}_*$ is given by
     \end{bmatrix} \; \bigg| \begin{bmatrix}
         m(X) \\ m(X_*)
     \end{bmatrix},  \begin{bmatrix}
-        K(X, X) & K(X, X_*) \\ K(X_*, X) & K(X_*, X_*)
+        K(X, X) + \sigma I & K(X, X_*) \\ K(X_*, X) & K(X_*, X_*)
     \end{bmatrix}\bigg)
 \end{equation}
 
@@ -128,8 +128,8 @@ The posterior distribution $p(\boldsymbol{f}_* | \boldsymbol{y})$ can easily be 
 \begin{subequations}\label{eq:gp_conditional}
 \begin{align}
     p(\boldsymbol{f}_* | \boldsymbol{y}) &= \mathcal{N}(f \; | \; \boldsymbol{\mu}_{\boldsymbol{f}_*|\boldsymbol{y}}, \boldsymbol{\Sigma}_{\boldsymbol{f}_*|\boldsymbol{y}})\\
-    \mathbb{E}[\boldsymbol{f}_*] =  \boldsymbol{\mu}_{\boldsymbol{f}_* | \boldsymbol{y}} &= m(X_*) + K(X_*, X) \; K(X, X)^{-1} \; (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean}\\
-    \mathbb{V}[\boldsymbol{f}_*] = \boldsymbol{\Sigma}_{\boldsymbol{f}_* | \boldsymbol{y}} &= K(X_*, X_*) - K(X_*, X)  K(X, X)^{-1} \; K(X, X_*)\label{eq:gp_conditional_var}
+    \mathbb{E}[\boldsymbol{f}_*] =  \boldsymbol{\mu}_{\boldsymbol{f}_* | \boldsymbol{y}} &= m(X_*) + K(X_*, X) \; \big(K(X, X) + \sigma I\big)^{-1} \; (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean}\\
+    \mathbb{V}[\boldsymbol{f}_*] = \boldsymbol{\Sigma}_{\boldsymbol{f}_* | \boldsymbol{y}} &= K(X_*, X_*) - K(X_*, X)  \big(K(X, X) + \sigma I\big)^{-1} \; K(X, X_*)\label{eq:gp_conditional_var}
 \end{align}
 \end{subequations}
 
@@ -142,7 +142,7 @@ As the notation quickly gets messy for the general case, we also introduce a sho
 \end{align}
 \end{subequations}
 
-In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing number of samples. To avoid numerical instability, using the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root. \cref{eq:gp_conditional} can then be computed using $L$. A small diagonal entry is also usually added to the kernel matrix, i.e., $K' = K + \sigma I$ to model noisy observations. This modification also improves the numerical stability, so a small value is recommended even if the observations are noise-free \cite{scikit-learn}.
+In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing number of samples. To avoid numerical instability, using the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root. \cref{eq:gp_conditional} can then be computed using $L$. The diagonal entry $\sigma I$ added to the kernel matrix is intended to model noisy observations. However, it also improves the numerical stability, so a small value is recommended even if the observations are noise-free \cite{scikit-learn}.
 \begin{subequations}
 \begin{align}
     \begin{split}
@@ -157,9 +157,9 @@ In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing
 \end{subequations}
 
 This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A simple \acrshort{gp} before and after conditioning is shown in \cref{fig:gp_simple}
-\begin{algorithm}[h]
+
+\begin{algorithm}[H]
 \begin{algorithmic}[1]
-    
 \Procedure{GP-PREDICT}{$X_*$, $\boldsymbol{y}$, $k$, $X$}
     \State $L = cholesky\big(K(X, X) + \sigma I\big)$
     \State $\boldsymbol{\alpha} = L^\intercal \backslash (L \backslash \boldsymbol{y})$
@@ -196,7 +196,6 @@ This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A s
     \end{bmatrix}\big) 
 \end{equation}
 
-\section{Model Selection}
 \section{Kernels}\label{sec:kernels}
 This section will introduce some relevant kernels for this thesis. However, many more kernels are available in the literature. 
 \subsection{Stationary Kernels}
@@ -205,7 +204,7 @@ Stationary kernels are kernels which only depends on $\boldsymbol{r} = \boldsymb
 As the name implies, the constant kernel is a kernel that is independent of the input.
 
 \begin{equation}
-    k(\boldsymbol{r}) = \sigma^2
+    k(\boldsymbol{\cdot}) = \sigma^2
 \end{equation}
 
 \subsubsection{White kernel}
@@ -265,7 +264,7 @@ The name \textit{marginal likelihood} comes from the fact that the latent functi
     p(\boldsymbol{y} \; | \; X, \boldsymbol{\theta}) = \int_{\boldsymbol{f}} p\big(\boldsymbol{y} \;| \; \boldsymbol{f}\big) p\big(\boldsymbol{f} \; |\; m(X), K(X, X)\big) d\boldsymbol{f}
 \end{equation}
 
-\section{Sampling from a Gaussian Process}
+\section{Sampling from a Gaussian Process}\label{sec:gp_samples}
 As the \acrshort{gp} is a jointly Gaussian distribution, we can draw random samples from it as with any other multivariate Gaussian.
 
 \begin{equation}\label{eq:gp_samples}
@@ -290,7 +289,7 @@ The standard derivation of the \acrshort{gp} requires inverting the kernel matri
 For simple functions, it often works well only to use a representable subset of the data. However, throwing away the majority of available data is not an elegant solution to the problem. 
 \subsection{Variational Gaussian Process}
 
-\subsubsection{A short introduciton to Variational Inference}\todo[]{This may be a bit out of scope, consider removing}
+\subsubsection{A short introduction to Variational Inference}\todo[]{This may be a bit out of scope, consider removing}
 Variational Inference was covered thoroughly in a previous specialization project \cite{mellbye}. A quick introduction of the necessary concepts is included here, and more details can be found in \cite{mellbye, murphy}.
 
 In many cases, using the true posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ turns out to be challenging. Calculating the posterior using Bayes Rule requires a normalizing constant $p(\mathcal{D})$, which quickly becomes infeasible unless the distributions are simple. The true posterior are therefore often assumed only to be known up to a normalizing constant, i.e.

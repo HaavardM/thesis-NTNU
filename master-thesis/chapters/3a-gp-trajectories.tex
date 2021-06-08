@@ -3,7 +3,7 @@ As a first attempt on using \acrshort{gp}s for trajectory prediction, a direct a
 
 \begin{subequations}\label{eq:gp_direct}
 \begin{align}
-    \boldsymbol{f}(\boldsymbol{x}) &= \boldsymbol{p}_{t+\tau} \label{eq:gp_direct_f}, \quad \boldsymbol{x} = \begin{bmatrix} \boldsymbol{p}_t & \psi_t & v_t & \tau\end{bmatrix}\\
+    \boldsymbol{f}(\boldsymbol{x}) &= \boldsymbol{p}_{\tau} \label{eq:gp_direct_f}, \quad \boldsymbol{x} = \begin{bmatrix} \boldsymbol{p}_0 & \psi_0 & v_0 & \tau\end{bmatrix}\\
     \boldsymbol{f}(\boldsymbol{x}) &\sim \text{GP}(\boldsymbol{m}(\boldsymbol{x}), K(\boldsymbol{x}, \boldsymbol{x}))\label{eq:gp_direct_f_dist}
 \end{align} 
 \end{subequations}
@@ -12,19 +12,31 @@ The model could then be queried about likely future positions by evaluating $\bo
 
 The conceptual benefits of this formulation include:
 \begin{description}
-    \item[Continuous formulation] The model directly models the position at any time $t+\tau$ and do not require discretization. 
+    \item[Continuous formulation] The model directly models the position at any time $t+\tau$ and does not require discretization. 
+    \item[Conceptually easy] This formulation directly expresses the unknown trajectory, making it easy to reason about conceptually.
     \item[Simple Problem formulation] The model requires few components.
     \item[Easy incorporation of available AIS data] The reported \acrshort{cog} and \acrshort{sog} can easily be incorporated into the similarity measure, utilizing more of the available data.
 \end{description}
 
-However, this formulation turned out to be impractical to work with, and the idea was abandoned after several attempts to get it to work. The attempted method and the issues which followed are discussed in this chapter.
+However, this formulation was impractical to work with and was abandoned after several attempts to get it to work. The attempted method and the issues which followed are discussed in this chapter.
 
 
 \section{Implementation}
 A large number of input dimensions pose a challenge as it requires large amounts of data, which is infeasible using the exact \acrshort{gp}. Two different approximations were attempted.
 
+\begin{enumerate}
+    \item Selecting only a subset of the data which is relevant for a given prediction. Based on the initial conditions in $\boldsymbol{x}$, a subset of representative trajectories can be selected and used for training. The exact \acrshort{gp} formulation in \cref{alg:gp_prediction} can then be used, though it requires both hyperparameter tuning and recalculating Cholesky decomposition $L$ for each query input $x$.
+    \item Approximating the \acrshort{gp} using the \acrshort{svgp}, the entire dataset can be used at the cost of increased model complexity. It is also an approximation method, so there are a few tradeoffs when using \acrshort{svgp}. The benefit is that a \acrshort{gp} can be trained once for a large area and be used for multiple predictions.
+\end{enumerate}
+
 \subsection{Excact GP with a subset of data}
-When making a prediction, only a subset of the \acrshort{ais} data is relevant for any given query. Trajectories with very different initial conditions than the query input should be safe to ignore, leaving only a subset of relevant trajectories to use for training. This way, we can still use the exact \acrshort{gp} formulation and avoid the additional complexity of \acrshort{gp} approximations. 
+When making a prediction, only a subset of the \acrshort{ais} data is relevant for any given query. Trajectories with very different initial conditions than the query input should be safe to ignore, leaving only a subset of relevant trajectories to use for training. This way, we can still use the exact \acrshort{gp} formulation and avoid the additional complexity of \acrshort{gp} approximations. The following requirements need to be satisfied for the trajectories used to train the \acrshort{gp}:
+\begin{enumerate}
+    \item The initial position of the trajectory must be close to the queried position $\boldsymbol{p}_0$. In this thesis, a cutoff was used at $500$ meters from $\boldsymbol{p}_0$.
+    \item The initial \acrshort{cog} must be close to the queried heading $\mathcal{X}_0$. A cutoff at $\pm 10^\circ$ for the \acrshort{cog} was used in this thesis.
+    \item The initial \acrshort{sog} must be close to the queried velocity $v_0$. A cutoff at $\pm 5 \text{m/s}$ for the \acrshort{sog} was used in this thesis.
+\end{enumerate} 
+
 \subsection{Sparse Variational Gaussian Process}
 While filtering the data before making a prediction works well for isolated cases, it does not scale well. The model needs to be retrained for each query, which results in a significant performance penalty in practical applications. As an alternative, we can attempt to use the \acrshort{svgp} instead to train a single \acrshort{gp} which can be used for any queries in an area. The training time will be a lot longer but can be performed in advance. 
 

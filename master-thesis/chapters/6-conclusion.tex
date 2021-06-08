@@ -1,1 +1,11 @@
 \chapter{Conclusion}
+
+\section{Future Work}
+There are several possible extensions to the GP-EKF:
+\begin{enumerate}
+    \item Include a time-dependency in the PDAF-update step and filter out measurements which are unrealistic.
+    \item Allow independent kernels for each output dimension
+    \item Combine \acrshort{gp} approximations with the GP-EKF to use as much of the available data as possible.
+    \item Reducing the computational complexity of the GP-EKF by speeding up the hyperparameter optimization.
+    \item A better prior, such as the \acrshort{cvm}, may be used as a prior for the function.  
+\end{enumerate}
