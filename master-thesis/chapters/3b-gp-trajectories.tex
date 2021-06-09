@@ -14,7 +14,7 @@ In this section, a similar method is proposed for long-term vessel prediction. T
         \boldsymbol{\mathcal{T}}_k & = \boldsymbol{x}_k + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
     \end{align}
 \end{subequations}
-The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. 
+The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field} . 
 
 \begin{equation}\label{eq:gp_vec_field}
 \vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_x (\boldsymbol{\eta})\\ f_y (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(0, \ \begin{bmatrix}
@@ -52,7 +52,7 @@ The key variables for this chapter are summarized in \cref{table:dyngp_key_varia
     \label{table:dyngp_key_variables}
 \end{table}
 
-Note that throughout this chapter, some of the notation used in \cref{sec:gp} will be relaxed in order to reduce the notational complexity. More specifically, the \acrshort{gp} is always assumed to be conditioned on available data, i.e. $p\big(\vec{f}(\boldsymbol{x})\big) = p\big(\vec{f}(\boldsymbol{x}) \; | \; \vec{f}(X)\big)$.
+Note that throughout this chapter, some of the notation used in \cref{sec:gp} will be relaxed in order to reduce the notational complexity. More specifically, the \acrshort{gp}s in this chapter is always assumed to be conditioned on available data, i.e. $p\big(\vec{f}(\boldsymbol{x})\big) = p\big(\vec{f}(\boldsymbol{x}) \; | \; \boldsymbol{y} \big)$.
 
 \section{EKF trajectory prediction}
 Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict trajectories using the prediction procedure used by \textit{\acrfull{ekf}}. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}.
@@ -60,12 +60,12 @@ Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict 
 During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state, i.e. the \acrshort{ekf} prediction model, $g_t(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
 
 \begin{equation}\label{eq:gp_ekf_prediction}
-    \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}_t(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1}, \tau_t)
+    \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}_t(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})
 \end{equation}
 
-Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, we need to linearize the prediction in order to propagate the state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}_*$ can be computed using \cref{eq:gp_jacobian}. We also define $\boldsymbol{\eta} \triangleq \begin{bmatrix}
+Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, it is neccessary to linearize the prediction in order to propagate the state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}_*$ can be computed using \cref{eq:gp_jacobian}. To simplify the notation for the \acrshort{gp} inputs, a new variable $\boldsymbol{\eta} \triangleq \begin{bmatrix}
         \boldsymbol{x} & t
-    \end{bmatrix}$ to simplify the notation for the \acrshort{gp} inputs.
+    \end{bmatrix}$ is defined.
 
 \begin{equation}\label{eq:gp_ekf_prediction_jac}
     \boldsymbol{G}_t = \frac{\partial \boldsymbol{g}_t(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1}, \tau_t)}{\partial \boldsymbol{x}_{t-1}}
@@ -84,7 +84,7 @@ Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linea
     \end{split}
 \end{align}
 
-We can then predict the state uncertainty using \cref{eq:gp_ekf_prediction_uncertianty}, propagating the previous uncertainty $\boldsymbol{P}_{t-1}$ using the linearized prediction model $\boldsymbol{G}_t$ and adding the prediction uncertianty $\mathbb{V}[\vec{f}]$.
+The state uncertainty can then be predicted using \cref{eq:gp_ekf_prediction_uncertianty}, propagating the previous uncertainty $\boldsymbol{P}_{t-1}$ using the linearized prediction model $\boldsymbol{G}_t$ and adding the prediction uncertianty $\mathbb{V}[\vec{f}]$.
 
 \begin{equation}\label{eq:gp_ekf_prediction_uncertianty}
     \boldsymbol{P}_t = \boldsymbol{G}_t^\intercal \boldsymbol{P}_{t-1} \boldsymbol{G}_t + \mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1}, \tau_t)]
@@ -123,21 +123,21 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
 
 
 \section{Incorporating vessel position}
-While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. Looking at the available data in \cref{fig:gp_ekf_with_pdaf}, we want the prediction to converge towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, we want weak feedback that may compensate for minor prediction errors.
+While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. Looking at the available data in \cref{fig:gp_ekf_with_pdaf}, it would be desirable if the prediction converged towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, weak feedback compensating for minor prediction errors.
 
-As we do not have any actual position measurements of the vessel's future position, we need to express somehow that the available training data are \textbf{potential} measurements, which at any timestep may or may not originate from the vessel. Incorporating vessel position becomes a data association problem, for which we can look to target tracking for inspiration.
+As no actual position measurements of the vessel's future position are available, the available training data are considered as \textbf{potential} measurements, which at any timestep may or may not originate from the vessel. Incorporating vessel position becomes a data association problem, for which one can look to target tracking for inspiration.
 
-The \textit{\acrfull{pdaf}} is a method commonly used in target tracking which combines data association and filtering. The following introduction to \acrshort{pdaf} is mostly inspired by \cite{sensorfusjon}, with some adaptations to fit our problem better. As single target tracking and data association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here. For more details, see \cite{sensorfusjon,bar1995multitarget}
+The \textit{\acrfull{pdaf}} is a method commonly used in target tracking which combines data association and filtering. The following introduction to \acrshort{pdaf} is mostly inspired by \cite{sensorfusjon}, with some adaptations to fit the current problem better. As single target tracking and data association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here. For more details, see \cite{sensorfusjon,bar1995multitarget}
 
-In this section, we will consider all measurements in the available training set as virtual \footnote{By virtual, we mean a measurement that did not actually originate from the target vessel, but rather a measurement that could potentially originate from our target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. We will use the same assumption as the \acrshort{pdaf}, where we assume \textbf{at most one} measurement originating from the target to reduce the computational complexity significantly \cite{sensorfusjon}. As we do not have proper measurements of the vessel's position in the future, we expect most of the measurements to be clutter, forcing the model to primarily trust its predictions.
+In this section, all measurements in the available training set are considered as virtual \footnote{Virtual meaning a measurement that did not actually originate from the target vessel, but rather a measurement that could potentially originate from the target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. Similar to the \acrshort{pdaf}, it is assumed \textbf{at most one} measurement originating from the target to reduce the computational complexity significantly \cite{sensorfusjon}. As no proper measurements of the vessel's actual position, most of the measurements are assumed to be clutter, forcing the model to primarily trust its predictions.
 
-Given the predicted state $\hat{\boldsymbol{x}}_t$, we expect any real measurement to be distributed around this state due to some measurement noise. Following the notation used by \acrshort{ekf}, and using the measurement model $h(\boldsymbol{x}) = \boldsymbol{x} \implies H = \frac{\partial h (\boldsymbol{x})}{\partial \boldsymbol{x}} = I$, the predicted measurement distribution is expressed as in \cref{eq:gp_ekf_pdaf_measurement} where we define the innovation covariance $\boldsymbol{S}_t \triangleq \hat{\boldsymbol{P}}_t + \boldsymbol{R}$ and $\boldsymbol{R}$ is the measurement noise.
+Given the predicted state $\hat{\boldsymbol{x}}_t$, any real measurement is expected to be distributed around this state due to some measurement noise. Following the notation used by \acrshort{ekf}, and using the measurement model $h(\boldsymbol{x}) = \boldsymbol{x} \implies H = \frac{\partial h (\boldsymbol{x})}{\partial \boldsymbol{x}} = I$, the predicted measurement distribution is expressed as in \cref{eq:gp_ekf_pdaf_measurement} where the innovation covariance is defined as $\boldsymbol{S}_t \triangleq \hat{\boldsymbol{P}}_t + \boldsymbol{R}$ and $\boldsymbol{R}$ is the measurement noise.
 
 \begin{equation} \label{eq:gp_ekf_pdaf_measurement}
     \hat{\boldsymbol{z}}_t \sim \mathcal{N}(\hat{\boldsymbol{x}}_t, \boldsymbol{S}_{t}) = \mathcal{N}(\hat{\boldsymbol{x}}_t, \hat{\boldsymbol{P}}_t + \boldsymbol{R})
 \end{equation}
 
-There is also the possibility that none of the measurements originated from the target, i.e., we only observe clutter. The choice of a good clutter model is a complicated topic, but we will here use the Poisson clutter model. As the measurements are not actual measurements from our target, it is difficult to assign meaning to any clutter model. It, therefore, simply boils down to which parameters we need to tune\footnote{We here pretend that the trajectory prediction can be seen as a target tracking problem. The clutter parameters, therefore, need to be interpreted in the context of target tracking, not trajectory prediction.} and the Poisson clutter model should already be familiar to anyone with experience in target tracking.
+There is also the possibility that none of the measurements originated from the target, i.e., all observations are clutter. The choice of a good clutter model is a complicated topic, but the Poisson clutter model is used in this thesis. As the measurements are not actual measurements from the target, it is difficult to assign meaning to any clutter model. It, therefore, simply boils down to which parameters need to be tuned \footnote{The trajectory prediction is here considered to be target tracking of future position. The clutter parameters, therefore, need to be interpreted in the context of target tracking, not trajectory prediction.} and the Poisson clutter model should already be familiar to anyone with experience in target tracking.
 According to the Poisson clutter model, the association probabilities are given by \cref{eq:pdaf_clutter_association_prob} \cite{sensorfusjon}, where $a_t$ is a discrete variable following a Categorical distribution where $a_t=k > 0$ denotes that measurement $k$ originated from the target. $a_t = 0$ is the special case when none of the measurements originated from the target, i.e., the predicted state should not be updated. $Z$ here denotes a matrix of all the measurements (positions) available in the training data and is independent of time, i.e., all measurements are always potential candidates. $\lambda$ denotes the clutter rate, and $P_D$ denotes the probability of detecting the target vessel.
 \begin{equation}\label{eq:pdaf_clutter_association_prob}
     \Pr\{a_t | Z\} \propto \begin{cases}
@@ -146,29 +146,29 @@ According to the Poisson clutter model, the association probabilities are given 
     \end{cases}
 \end{equation}
 
-Once we have the likelihood for each of the possible outcomes, the association probabilities $\boldsymbol{\beta}$ can be computed by normalizing the likelihood.
+Using the likelihood for each of the possible outcomes, the association probabilities $\boldsymbol{\beta}$ can be computed by normalizing the likelihood, i.e.
 
 \begin{equation}
     \beta_i = \frac{\Pr\{a_t=i \; | \; Z\}}{\sum_{k=0}^M \Pr\{a_t=k \; | \; Z\}}
 \end{equation}
 
-We can then update the predicted step using the Kalman update procedure for each the measurements, conditioned on the assocication $a_t$. As the measurements $\boldsymbol{z}_t^{a_t > 0}$ are known values, the state innovation $\boldsymbol{v}_t^{a_t>0} \triangleq \boldsymbol{z}_t^{a_t>0} - \hat{\boldsymbol{z}}_t$ is distributed according to the measurement prediction $\hat{\boldsymbol{z}}_t$ .
+The predicted state can then by updated using the Kalman update procedure for each the measurements individually. As the measurements $\boldsymbol{z}_t^{a_t > 0}$ are known values, the state innovation $\boldsymbol{v}_t^{a_t>0} \triangleq \boldsymbol{z}_t^{a_t>0} - \hat{\boldsymbol{z}}_t$ is distributed according to the measurement prediction $\hat{\boldsymbol{z}}_t$.
 
 \begin{equation}
     \boldsymbol{v}_t^{a_t>0} \sim \mathcal{N}(\boldsymbol{z}_t^{a_t>0} - \hat{\boldsymbol{x}}_t, S_t)
 \end{equation}
-The updated state for each measurement is then given the normal \acrshort{ekf} update step
+The updated state for each measurement is then given by the normal \acrshort{ekf} update step
 
 \begin{equation}
     \boldsymbol{x}_t^{a_t > 0} = \hat{\boldsymbol{x}}_t + \boldsymbol{W}_t \boldsymbol{v}_t^{a_t > 0}
 \end{equation} where $\boldsymbol{W}_t \triangleq \hat{\boldsymbol{P}}_t \boldsymbol{S}_t^{-1}$ is the Kalman gain.
-The updated state of the vessel for all measurements can be described as a Gaussian Mixture Model over the $M+1$ different modes weighted by the association probabilites, i.e.
+The updated state of the vessel over all possible measurements can be described as a Gaussian Mixture Model over the $M+1$ different modes weighted by the association probabilites, i.e.
 \begin{equation}
     p(\boldsymbol{x_t}) = \underbrace{\beta_0 \mathcal{N}(\boldsymbol{x}_t \; | \; \hat{\boldsymbol{x}}_t, \hat{\boldsymbol{P}}_t)}_{\text{No measurements are valid}} + \sum_{k=1}^M \underbrace{\beta_k \mathcal{N}\big(\boldsymbol{x}_t | \boldsymbol{x}_t^{a_k}, \boldsymbol{P}_t^{a_k}\big)}_{\text{Measurement $k$ is valid}}
 \end{equation}
 
 
-Moment reduction is then used to combined the different hypothesises into a single unimodal Gaussian distribution, i.e. we want to find a Gaussian distribution that matches the first and second moment (mean and variance) of the Gaussian mixture. The mean and variance of the resulting distribution is given by \cref{eq:pdaf_moment_mean} and \cref{eq:pdaf_moment_var} respectively, where we use $\boldsymbol{v}_t \triangleq \sum_{a_t > 0} \beta_t^{a_t} \boldsymbol{v}_t^{a_k}$.
+Moment reduction is then used to combined the different hypothesises into a single unimodal Gaussian distribution, i.e. a Gaussian distribution is fitted to the first and second moment (mean and variance) of the Gaussian mixture. The mean and variance of the resulting distribution is given by \cref{eq:pdaf_moment_mean} and \cref{eq:pdaf_moment_var} respectively, using $\boldsymbol{v}_t \triangleq \sum_{a_t > 0} \beta_t^{a_t} \boldsymbol{v}_t^{a_k}$.
 
 \begin{subequations}
     \begin{align}
@@ -179,7 +179,7 @@ Moment reduction is then used to combined the different hypothesises into a sing
     \end{align}
 \end{subequations}
 
-While we could consider all available measurement at each timestep, it is in practice more convenient only to include a subset which is close enough to our predicted state. As we want this measurement \textit{gate} to scale with the uncertainty, we select the gated subset as \cref{eq:pdaf_gate} where $g$ is the number of standard deviations we want to consider.
+While available measurement could be used at each timestep, it is in practice more convenient only to include a subset which is close enough to the predicted state. As this measurement \textit{gate} should scale with the uncertainty, the gated subset is selected as \cref{eq:pdaf_gate} where $g$ is the number of standard deviations the method should consider.
 
 \begin{equation} \label{eq:pdaf_gate}
     \mathcal{G} = \big\{ \boldsymbol{z} \; | \; (\boldsymbol{z} - \hat{\boldsymbol{x}}_t)^\intercal S^{-1} (\boldsymbol{z} - \hat{\boldsymbol{x}}_t) < g^2 \big\}
@@ -205,9 +205,9 @@ By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in 
 \end{figure}
 
 \subsection{Tuning PDAF parameters}
-We want the model to prioritize the prediction model, as it would otherwise be stuck since the measurements do not change over time. As the measurements are not originating from the target vessel, we also expect a lot of noise in the measurements themselves. In practice, this boils down to using a significant measurement noise $\boldsymbol{R}$ and a relatively low detection probability $P_D$ before tuning the clutter rate to achieve good results.
+The model should primarily trust the prediction model, as it would otherwise get stuck as the measurements do not change over time. As the measurements do not originate from the target vessel, it is also expected to be a lot of noise in the measurements themselves. In practice, the tuning boils down to using a significant measurement noise $\boldsymbol{R}$ and a relatively low detection probability $P_D$ before tuning the clutter rate to achieve good results.
 
-However, finding a set of parameters that works well across different trajectories turns out to be challenging. Parameters which improves the prediction for one trajectory, may do more harm than good on another. The performance of using PDAF will be explored further in \cref{chap:stat_testing}.
+However, finding a set of parameters that works well across different trajectories turns out to be challenging. Parameters that improve the prediction for one trajectory may do more harm than good on another. The performance of using PDAF will be explored further in \cref{chap:stat_testing}.
 
 \section{Implementation details}
 This chapter has so far only discussed how $\vec{f}$ could be used to simulate trajectories. This section will discuss how the \acrshort{gp}s introduced in \cref{sec:gp} can be applied.
@@ -241,7 +241,7 @@ The kernel was, after trial and error, selected as the sum of three kernels. Thi
 \end{equation}
 
 \begin{description}
-    \item[Long term trend $k_0$] is a \acrshort{rbf} kernel intended to cover the long-term behaviour of the trajectories, i.e. a smooth component describing the overall trend of the trajectories. The lengthscales of this kernel are assumed to be large.
+    \item[Long term trend $k_0$] is a \acrshort{rbf} kernel intended to cover the long-term behavior of the trajectories, i.e., a smooth component describing the overall trend of the trajectories. The lengthscales of this kernel are assumed to be large.
     \item[Dependent noise $k_1$] is a \acrshort{rbf} kernel intended to model the variability between different trajectories not well explained by $k_0$. The lengthscales are assumed to be short.
     \item[Independent noise $\delta(i, j)$] is a white kernel intended to model any remaining error as \textit{\acrfull{iid}}.
 \end{description}
@@ -261,10 +261,9 @@ Several other kernels were also attempted. The kernels were compared using the $
 \section{Simulating trajectories using Gaussian Process Sequential Monte Carlo}
 The Kalman-based prediction scheme proposed in the previous section works well as long as a single Gaussian distribution can sufficiently explain the uncertainty. However, in branching trajectories, minor differences in position early in the predicted trajectory might have significant effects on the following predictions. The result is a multimodal trajectory distribution, which a Kalman-based approach is not able to express.
 
-Inspired by the prediction step used by \textit{particle filters} \cite{sensorfusjon}, the idea of sampling trajectories can be used to explore the multimodal trajectory distribution. While inspired by the particle filter, this approach will from now on be referred to as \textit{Sequential Monte-Carlo} to avoid confusion\footnote{An important part of the particle filter is weighting the particles based on available measurements. As we only perform sampling of trajectories, Sequential Monte-Carlo seems like a better fit.}. and to follow the same naming convention as used by \cite{pedestrian}.
+Inspired by the prediction step used by \textit{particle filters} \cite{sensorfusjon}, the idea of sampling trajectories can be used to explore the multimodal trajectory distribution. While inspired by the particle filter, this approach will from now on be referred to as \textit{Sequential Monte-Carlo} to avoid confusion\footnote{An important part of the particle filter is weighting the particles based on available measurements. As only sampling of trajectories is performed, Sequential Monte-Carlo seems like a better fit.}. and to follow the same naming convention as used by \cite{pedestrian}.
 
-The derivation of the Sequential Monte-Carlo approach is embarrassingly simple as this method trades high computational complexity for more straightforward mathematics. Instead of analytical propagation of uncertainty, many trajectories are simulated through random sampling and used to express the uncertainty empirically. We can this way describe the uncertainty for any trajectory distribution, though at the cost of considerable computational complexity. We also lose the convenience of parametric distributions described using only a few parameters.
-
+The derivation of the Sequential Monte-Carlo approach is embarrassingly simple as this method trades high computational complexity for more straightforward mathematics. Instead of analytical propagation of uncertainty, many trajectories are simulated through random sampling and used to express the uncertainty empirically. The uncertainty for any trajectory distribution can be described, though at the cost of considerable computational complexity.
 $N$ different trajectories are initialized with similar initial conditions. The trajectories are then simulated by drawing independent increments from $\vec{f}$ using the approach described in \cref{sec:gp_samples}, conditioned on the current state of each trajectory. The result is visualized in \cref{fig:gp_particle} for $N=500$ trajectories.
 \begin{figure}[h]
     \centering
@@ -280,20 +279,20 @@ The time component was initially included to handle trajectories with sharp turn
 In practice, the \acrshort{ml} approach will, in many cases, yield very large lengthscales\footnote{In fact, the time lengthscale tends to reach a maximum value during optimization} for the time-components of the kernel, effectively disabling the time dependency. The time component is therefore only really used when the dataset contains a lot of time-dependent noise.
 
 \subsection{Standardizing the training outputs $Y$}
-\textit{Standardization} is the process of converting the data into a standard unit of measurement, which in practice involves transforming the data to have zero mean and unit variance. This is useful when comparing measurements of different scales.
+\textit{Standardization}\todo[]{find source} is the process of converting the data into a standard unit of measurement, which in practice involves transforming the data to have zero mean and unit variance. This is useful when comparing measurements of different scales.
 
-The proposed GP-EKF implementation works well with and without standardized input data, but standardization has one important benefit. While the current implementation allow seperate kernel hyperparameters for each input dimension in $\boldsymbol{\nu}$, the kernel is assumed to be identical for each of the outputs in $\vec{f}$. The scale parameters $\sigma_i$ in the kernel therefore represents the variability of \textbf{both} output dimensions at once. However, with standardized training outputs $Y$, the scale parameters $\sigma_i$ are relative to the standard deviation of the training data. This way, the \acrshort{gp} can express different level of uncertianty for each output dimension, while still sharing the same kernel. Allowing separate kernels is a possible extensions, but is assumed to further complicate the hyperparameter selection.
+The proposed GP-EKF implementation works well with and without standardized input data, but standardization has one important benefit. While the current implementation allows separate kernel hyperparameters for each input dimension in $\boldsymbol{\eta}$, the kernel is assumed to be identical for each of the outputs in $\vec{f}$. The scale parameters $\sigma_i$ in the kernel therefore represents the variability of \textbf{both} output dimensions at once. However, with standardized training outputs $Y$, the scale parameters $\sigma_i$ are relative to the standard deviation of the training data. This way, the \acrshort{gp} can express different level of uncertianty for each output dimension, while still sharing the same kernel. Allowing separate kernels is a possible extensions, but is assumed to further complicate the hyperparameter selection.
 
 \section{Summary}
 This chapter has so far introduced a lot of new concepts, so that it might be nice with a summary of the overall pipeline:
 
 \begin{enumerate}
     \item The raw \acrshort{ais} data is first grouped and sorted to get fixed-length trajectory vectors.
-    \item Based on the target vessel's current state, such as position, \acrshort{cog} and \acrshort{sog}, trajectories with similar initial conditions are selected from the training set.
+    \item Based on the target vessel's current state, such as position, \acrshort{cog} and \acrshort{sog}, trajectories with similar initial conditions is selected from the training set.
     \item Training inputs $\boldsymbol{\eta}$ and outputs $\boldsymbol{y}$ for $\vec{f}$ are generated from the training trajectories.
     \item The kernel hyperparameters are optimized using \acrshort{ml} in order to find the parameters which best explains the training data.
     \item The training data and kernel can then used to get the conditional distribution for $\vec{f}$.
-    \item The \acrshort{ekf} procedure in \cref{alg:gp_ekf_prediction} is called repeadetly, using the current state of the target vessel as initial conditions. At each step, the \acrshort{pdaf} update procedure can be used as well if desired. Sequential Monte-Carlo can alternatively be used to simulate multimodal trajectories.
+    \item The \acrshort{ekf} procedure in \cref{alg:gp_ekf_prediction} is called repeatedly, using the current state of the target vessel as initial conditions. At each step, the \acrshort{pdaf} update procedure can be used as well if desired. Sequential Monte-Carlo can alternatively be used to simulate multimodal trajectories.
 \end{enumerate}
 
 The only parameters which need manual tuning are the time increment $\Delta \tau$ and the initial covariance $\boldsymbol{P}_0$. All other parameters are learned from the data.

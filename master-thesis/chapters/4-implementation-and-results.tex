@@ -1,23 +1,55 @@
 \chapter{Statistical Testing of GP-EKF}\label{chap:stat_testing}
 Inspired by \cite{hexeberg}, we will test the performance of the model for straight-line trajectories and curved trajectories independently.
 
-\section{Metrics}
+\section{Method}
 \subsection{Trajectory Error}
 The trajectory error is found by comparing the predicted position with the ground truth. As the predicted trajectory is simulated in discrete time, the points with the closest timestamps are used for comparison. With $\Delta T = 10\text{ seconds}$, the maximum error in time is $\frac{\Delta T}{2} = 5 \text{ seconds}$, which is considered to be acceptable considering the time-horizon of between $15$ and $30$ minutes. 
 \subsection{Path Error}
 The path error is defined as the closest point in the predicted trajectory to each point in the ground truth, under the constraint that the corresponding predicted timestamps must be monotonically increasing. In other words, the path cannot move backward in time. Linear interpolation is used to get the path error at fixed timestamps to simplify the comparison. 
 
+\subsection{Normalized Estimation Error Squared}
+In order for the uncertainty estimates to provide any value, it is important that the predictions are consistent. In this context, the term consistency is borrowed from the term \textit{filter consistency} used when tuning Kalman filters \cite{sensorfusjon}. The idea is that prediction errors, on average, should scale with the state covariance. In other words, the model should not place a lot of confidence in a prediction that is wrong while being highly confident when a prediction is correct. Consistency can also be interpreted using a frequentistic interpretation of probability, where after many predictions, the state uncertainty should reflect the actual error rate. 
+
+The \textit{\acrfull{nees}} is a metric that can be used to quantify consistency and is given by 
+\begin{equation}
+    \text{NEES} = (\boldsymbol{x} - \hat{\boldsymbol{x}})^\intercal \boldsymbol{P}^{-1} (\boldsymbol{x} - \hat{\boldsymbol{x}})
+\end{equation}
+
+Assuming the prediction error follows a Gaussian distribution, the \acrshort{nees} follows a Chi-Squared distribution which can be used to form a confidence interval. Comparing the prediction errors with this confidence interval can then be used to get a sense of whether the estimated state uncertainty is consistent. 
+
 \subsection{Interpolation}
 Linear interpolation is used to compare the error at fixed timestamps between samples. The error for short trajectories is not extrapolated.
 
-\section{Straigth-line trajectories}
-We use the first $100$ randomly sampled trajectories satisfying the following requirements:
+\subsection{Baseline - Constant Velocity Model}
+As a basis of comparison, the \textit{\acrfull{cvm}} method is used as a baseline. The model use the initial \acrshort{cog} and \acrshort{sog} to predict a straight line, where the vessel is assumed to keep a constant velocity and heading. 
+
+\subsection{Sanitizing the dataset for a given test trajectory}
+Due to the way trajectories are generated from the \acrshort{ais} dataset, there will be large overlaps between trajectories. Dividing the trajectories into a train and test is insufficient, as parts of a test trajectory might also exist in the training set. Instead, the full dataset is available for training, but all trajectories with identical MMSI and date as the test trajectory are removed. The date requirement ensures that trajectories for the same vessel on any other day can be used for training.
+
+\subsection{Straigth-line trajectories}
+The GP-EKF is first compared to the \acrshort{cvm} on simple straight-line trajectories. The GP-EKF should ideally perform identically or better than the \acrshort{cvm}.
+The statistics are based on $350$ randomly sampled trajectories that satisfy the following requirements:
 \begin{enumerate}
-    \item The sum of subsequent changes in \acrshort{cog} must be less than $30$ degrees, i.e., the trajectory must be close to a straight line.
-    \item There must be sufficient data available for training in the neighborhood around the initial starting point, with similar initial heading and speed.
+    \item The sum of subsequent changes in \acrshort{cog} must be less than $30$ degrees, i.e. $\sum_i |(\mathcal{X}_{t+1} - \mathcal{X}_t)| \leq 30^\circ$. This requirement ensures a straight-line trajectory.
+    \item There must be sufficient data available for training in the neighborhood around the initial starting point, with similar initial heading and speed. After sanitizing the dataset and removing irrelevant trajectories, at least $3$ trajectories need to be available for training. 
+    \item The overall duration of the trajectories must be between $15$ and $30$ minutes. 
 \end{enumerate}
 
-\begin{table}[h]
+
+
+
+\subsection{Curved Trajectories}
+The GP-EKF is then compared to the \acrshort{cvm} on curved trajectories. The GP-EKF should ideally perform drastically better than the \acrshort{cvm}.
+The statistics are based on $350$ randomly sampled trajectories that satisfy the following requirements:
+\begin{enumerate}
+    \item The sum of subsequent changes in \acrshort{cog} must be greater than $40$ degrees, i.e. $\sum_i |(\mathcal{X}_{t+1} - \mathcal{X}_t)| \geq 40^\circ$. This requirement ensures a straight-line trajectory.
+    \item There must be sufficient data available for training in the neighborhood around the initial starting point, with similar initial heading and speed. After sanitizing the dataset and removing irrelevant trajectories, at least $3$ trajectories need to be available for training. 
+    \item The overall duration of the trajectories must be between $15$ and $30$ minutes. 
+\end{enumerate}
+
+\section{Results}
+The results for straight-line and curved trajectories are available in \cref{table:stats_straight_line_error} and \cref{table:stats_curved_error} respectively. \todo[]{add examples in appendix?}
+\begin{table}
     \begin{subtable}{\textwidth}
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
@@ -68,19 +100,10 @@ We use the first $100$ randomly sampled trajectories satisfying the following re
         \label{table:stats_straight_path_err}
     \end{subtable}
     \caption{Error summary for $350$ straight-line trajectories. Mean and median summary statistics are calculated for the trajectory and path error at fixed timestamps. Linear interpolation is used between samples. Errors for short trajectories are not extrapolated, and therefore not included in the $20$ and $25$ minute bins.}
-    \label{table:stats_straigh_line_error}
+    \label{table:stats_straight_line_error}
 \end{table}
 
-
-
-\section{Curved Trajectories}
-We use the first $100$ randomly sampled trajectories satisfying the following requirements:
-\begin{enumerate}
-    \item The sum of subsequent changes in \acrshort{cog} must be greater than $40$ degrees, i.e., the trajectory must be close to a straight line.
-    \item There must be sufficient data available for training in the neighborhood around the initial starting point, with similar initial heading and speed.
-\end{enumerate}
-
-\begin{table}[h]
+\begin{table}
     \begin{subtable}{\textwidth}
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
@@ -134,8 +157,9 @@ We use the first $100$ randomly sampled trajectories satisfying the following re
     \label{table:stats_curved_error}
 \end{table}
 
-\section{Comparing GP-EKF to CVM}
-As expected, the CVM method struggles with curved trajectories, leading to large trajectory errors. The GP-EKF approach performs significantly better, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_curved_gp_ekf_cvm}.
+
+\section{Discussion}
+\subsection{Comparing GP-EKF to CVM}
 \begin{figure}[h]
     \centering
     \makebox[\textwidth][c]{
@@ -151,9 +175,10 @@ As expected, the CVM method struggles with curved trajectories, leading to large
     \caption{GP-EKF compared to the CVM method on $350$ random trajectories. As expected, the \acrshort{cvm} yields large trajectory errors on curved trajectories. The GP-EKF performs consistently better, with lower median error as well as lower spread. However, on straight-line trajectories, the methods behave comparably.}
     \label{fig:stats_curved_gp_ekf_cvm}
 \end{figure}
+As expected, the CVM method struggles with curved trajectories, leading to large trajectory errors. The GP-EKF approach performs significantly better, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_curved_gp_ekf_cvm}.
 
-\section{Effect of the PDAF update}
-\begin{figure}[h]
+\subsection{Effect of the PDAF update}
+\begin{figure}
     \centering
     \makebox[\textwidth][c]{
         \begin{subfigure}{0.65\textwidth}
@@ -166,12 +191,15 @@ As expected, the CVM method struggles with curved trajectories, leading to large
         \end{subfigure}
     }
     \caption{GP-EKF with and without PDAF on curved trajectories for $350$ trajectories. While there are some slight differences, the \acrshort{pdaf} does not appear to have any considerable effect on the trajectory errors.}
-    \label{fig:stats_curved_gp_ekf_with_or_without_pdaf}
+    \label{fig:stats_gp_ekf_with_or_without_pdaf}
 \end{figure}
 
-\section{Finite Difference vs. COG/SOG from AIS}
+The \acrshort{pdaf} step for GP-EKF was initially proposed to fix an issue where the GP-EKF would predict turns prematurely. The idea was that the \acrshort{pdaf} update would pull the predictions back towards available position measurements if the predictions were far away from available training data. In practice, however, it turned out to be challenging to find a set of parameters for the \acrshort{pdaf} which works well across a wide range of trajectories. When comparing the performance of GP-EKF with and without the update step in \cref{fig:stats_gp_ekf_with_or_without_pdaf}, there seems to be little actual gain from the added complexity of \acrshort{pdaf}.  
+
+
+\subsection{Finite Difference vs. COG/SOG from AIS}
 A key design choice for the GP-EKF is which data source to use for training. The model can either be trained using the \acrshort{cog} and \acrshort{sog} values contained in the \acrshort{ais} samples or by calculating numerical derivatives of the position through a finite-difference approach. Comparing trajectory error for both approaches on the same test set favors the finite-difference approach, as seen in \cref{fig:stats_curved_gp_ekf_fd_vs_cog}. The finite difference approach performs consistently better, with lower median error and less spread. However, by ignoring the time component, looking at the path errors in \cref{table:stats_curved_path_err} supports the opposite, where the path errors are lower for the \acrshort{cog}/\acrshort{sog} approach. This may indicate that the issue is due to imprecise velocity estimates from the \acrshort{sog} while using the course from the \acrshort{cog} works well.
-\begin{figure}[h]
+\begin{figure}
     \centering
     \makebox[\textwidth][c]{
         \begin{subfigure}{0.65\textwidth}
