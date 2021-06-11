@@ -1,10 +1,10 @@
 \chapter{Learning trajectories directly from data}
-As a first attempt on using \acrshort{gp}s for trajectory prediction, a direct approach was attempted. The idea was to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{p}_t$, \acrshort{cog} $\psi_t$ and \acrshort{sog} $v_t$ to a position at time $t+\tau$. The method is formulated in mathematical terms in \cref{eq:gp_direct}. 
+As a first attempt on using \acrshort{gp}s for trajectory prediction, a direct approach was attempted. The idea was to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{x}_0$, \acrshort{cog} $\psi_0$ and \acrshort{sog} $v_0$ to a position at time $\tau$. The method is formulated in mathematical terms in \cref{eq:gp_direct}. 
 
 \begin{subequations}\label{eq:gp_direct}
 \begin{align}
-    \boldsymbol{f}(\boldsymbol{x}) &= \boldsymbol{p}_{\tau} \label{eq:gp_direct_f}, \quad \boldsymbol{x} = \begin{bmatrix} \boldsymbol{p}_0 & \psi_0 & v_0 & \tau\end{bmatrix}\\
-    \boldsymbol{f}(\boldsymbol{x}) &\sim \text{GP}(\boldsymbol{m}(\boldsymbol{x}), K(\boldsymbol{x}, \boldsymbol{x}))\label{eq:gp_direct_f_dist}
+    \boldsymbol{f}(\boldsymbol{\eta}) &= \boldsymbol{x}_{\tau} \label{eq:gp_direct_f}, \quad \boldsymbol{\eta} = \begin{bmatrix} \boldsymbol{x}_0 & \psi_0 & v_0 & \tau\end{bmatrix}\\
+    \boldsymbol{f}(\boldsymbol{\eta}) &\sim \text{GP}(\boldsymbol{m}(\boldsymbol{\eta}), K(\boldsymbol{\eta}, \boldsymbol{\eta}))\label{eq:gp_direct_f_dist}
 \end{align} 
 \end{subequations}
 
@@ -21,21 +21,23 @@ The conceptual benefits of this formulation include:
 However, this formulation was impractical to work with and was abandoned after several attempts to get it to work. The attempted method and the issues which followed are discussed in this chapter.
 
 
-\section{Implementation}
-A large number of input dimensions pose a challenge as it requires large amounts of data, which is infeasible using the exact \acrshort{gp}. Two different approximations were attempted.
+\section{Method}
+While simple, the formulation in \cref{eq:gp_direct} still lead to quite a lot of complexity due to the number of input parameters. A large number of input dimensions requires large amounts of data, which is infeasible using the exact \acrshort{gp}. Two different approximations were instead attempted and will be discussed in this section.
 
 \begin{enumerate}
     \item Selecting only a subset of the data which is relevant for a given prediction. Based on the initial conditions in $\boldsymbol{x}$, a subset of representative trajectories can be selected and used for training. The exact \acrshort{gp} formulation in \cref{alg:gp_prediction} can then be used, though it requires both hyperparameter tuning and recalculating Cholesky decomposition $L$ for each query input $x$.
     \item Approximating the \acrshort{gp} using the \acrshort{svgp}, the entire dataset can be used at the cost of increased model complexity. It is also an approximation method, so there are a few tradeoffs when using \acrshort{svgp}. The benefit is that a \acrshort{gp} can be trained once for a large area and be used for multiple predictions.
 \end{enumerate}
 
-\subsection{Excact GP with a subset of data}
-When making a prediction, only a subset of the \acrshort{ais} data is relevant for any given query. Trajectories with very different initial conditions than the query input should be safe to ignore, leaving only a subset of relevant trajectories to use for training. This way, we can still use the exact \acrshort{gp} formulation and avoid the additional complexity of \acrshort{gp} approximations. The following requirements need to be satisfied for the trajectories used to train the \acrshort{gp}:
+\subsection{Excact GP using only a subset of the data}
+The kernel matrix $K$ for all available data will be approximately sparse. Only a subset of the \acrshort{ais} data is actually relevant for any given query. Trajectories with very different initial conditions than the query input should be safe to ignore, leaving only a subset of relevant trajectories to use for training. This way, we can still use the exact \acrshort{gp} formulation and avoid the additional complexity of \acrshort{gp} approximations. The following requirements need to be satisfied for the trajectories used to train the \acrshort{gp}:
 \begin{enumerate}
-    \item The initial position of the trajectory must be close to the queried position $\boldsymbol{p}_0$. In this thesis, a cutoff was used at $500$ meters from $\boldsymbol{p}_0$.
-    \item The initial \acrshort{cog} must be close to the queried heading $\mathcal{X}_0$. A cutoff at $\pm 10^\circ$ for the \acrshort{cog} was used in this thesis.
-    \item The initial \acrshort{sog} must be close to the queried velocity $v_0$. A cutoff at $\pm 5 \text{m/s}$ for the \acrshort{sog} was used in this thesis.
+    \item The initial position of the trajectory must be close to the queried position $\boldsymbol{p}_0$.
+    \item The initial \acrshort{cog} must be close to the queried heading $\mathcal{X}_0$.
+    \item The initial \acrshort{sog} must be close to the queried velocity $v_0$.
 \end{enumerate} 
+
+The excact \acrshort{gp} formulation from \cref{chap:theory} can then be applied, optimizing \cref{eq:gp_log_marginal_likelihood} to perform model selection and using \cref{alg:gp_prediction} to perform predictions. 
 
 \subsection{Sparse Variational Gaussian Process}
 While filtering the data before making a prediction works well for isolated cases, it does not scale well. The model needs to be retrained for each query, which results in a significant performance penalty in practical applications. As an alternative, we can attempt to use the \acrshort{svgp} instead to train a single \acrshort{gp} which can be used for any queries in an area. The training time will be a lot longer but can be performed in advance. 
@@ -45,9 +47,12 @@ While filtering the data before making a prediction works well for isolated case
 We attempted multiple types of kernels. 
 
 \section{Implementation}
-The model is implemented in \textit{GPFlow} \cite{GPflow2017}, a \acrshort{gp} framework built on the well-known \textit{tensorflow} \cite{tensorflow2015-whitepaper} library. GPFlow has several implementations of \acrshort{gp}s, including both excact implementation and \acrshort{svgp} we have discussed earlier. We will here utilize the \acrshort{svgp} implementation to learn a sparse approximation of \cref{eq:gp_direct} direcly from all available data. 
+The excact \acrshort{gp} formulation was implemented using the \texttt{GaussianProcessRegressor} from the popular Python library, \textit{sciki-learn} \cite{scikit-learn}. The library support all kernels introduced in \cref{chap:theory} and supports hyperparameter optimization using multiple restarts to avoid bad local optimas. 
 
-For optimization, the stochastic gradient optimizer \textit{ADAM} should be familiar for anyone working with Neural Networks. With only a few lines of code, the \acrshort{elbo} can be optimized to get a variational approximation of the true posterior distribution.
+For the \acrshort{svgp} implementation, the Python library \textit{GPFlow} \cite{GPflow2017} built on the well-known \textit{tensorflow} \cite{tensorflow2015-whitepaper} library was used. GPFlow has several implementations of approximate \acrshort{gp}s, including the acrshort{svgp}. For optimization, the stochastic gradient descent optimizer \textit{ADAM} should be familiar for anyone working with Neural Networks. This optimizer was selected to optimize both the inducing variables as well as the hyperparameters through \textit{mini batching}. Mini Batching is an optimization technique used in combination with stochastic optimization, where a random subset of the training set is used in each iteration instead of the full dataset. This way, big datasets can be used to train the model.\todo[]{This is from memory, find a source}
+
+\subsection{Choice of kernel}
+
 
 \section{Results}
 

@@ -281,6 +281,11 @@ which yields a way to convert indendent standard normal samples into samples fro
     \boldsymbol{f}_* = \bar{\boldsymbol{f}}_* + L Z, \quad Z \sim \mathcal{N}(0, I)
 \end{equation}
 
+\section{Standardization}
+\textit{Standardization}\todo[]{find source} is the process of converting the data into a standard unit of measurement, which in practice involves transforming the data to have zero mean and unit variance. This is useful when comparing measurements of different scales.
+
+The proposed \acrshort{gp} implementation works well with and without standardized input data, but standardization has one important benefit. While the current implementation allows separate kernel hyperparameters for each input dimension in $\boldsymbol{x}$, the kernel is assumed to be identical for each of the outputs of $\vec{f}$. The kernel, therefore, represents the variability of \textbf{both} output dimensions at once. However, with standardized training outputs $Y$, the kernel is relative to the standard deviation of the training data. This way, the \acrshort{gp} can express the different levels of uncertainty for each output dimension while still sharing the same kernel. An even more flexible approach would be to allow separate kernels for each dimension, though at the cost of more complex hyperparameter tuning.
+
 \section{Approximate methods}
 The standard derivation of the \acrshort{gp} requires inverting the kernel matrix, either through the Cholesky Decomposition or directly. The computational complexity of the Cholesky decomposition is $\frac{n^3}{6}$ and $\frac{n^2}{2}$ for solving triangular systems \cite{rasmussen}. This may be acceptable for sparse datasets but makes \acrshort{gp}s infeasible for Big Data applications. 
 

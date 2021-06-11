@@ -53,8 +53,8 @@ The key variables for this chapter are summarized in \cref{table:dyngp_key_varia
 \end{table}
 
 Note that throughout this chapter, some of the notation used in \cref{sec:gp} will be relaxed in order to reduce the notational complexity. More specifically, the \acrshort{gp}s in this chapter is always assumed to be conditioned on available data, i.e. $p\big(\vec{f}(\boldsymbol{x})\big) = p\big(\vec{f}(\boldsymbol{x}) \; | \; \boldsymbol{y} \big)$.
-
-\section{EKF trajectory prediction}
+\section{Method}
+\subsection{EKF trajectory prediction}
 Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict trajectories using the prediction procedure used by \textit{\acrfull{ekf}}. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}.
 
 During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state, i.e. the \acrshort{ekf} prediction model, $g_t(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
@@ -105,24 +105,9 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
     \label{alg:gp_ekf_prediction}
 \end{algorithm}
 
-\begin{figure}
-    \centering
-    \begin{subfigure}{\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf.pdf}
-        \caption{Trajectory plotted against the vector-field $\vec{f}(\boldsymbol{x})$. The ellipses show the $95\%$ credibility interval for the predicted trajectory at the ground-truth timestamps.}
-    \end{subfigure}
-    \begin{subfigure}{\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_state.pdf}
-        \caption{$2\sigma$ credibility interval for the trajectory plotted against time}
-    \end{subfigure}
-    \caption{Predicted position using \cref{alg:gp_ekf_prediction}}
-    \label{fig:gp_ekf}
-\end{figure}
 
 
-\section{Incorporating vessel position}
+\subsection{Incorporating vessel position}
 While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. Looking at the available data in \cref{fig:gp_ekf_with_pdaf}, it would be desirable if the prediction converged towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, weak feedback compensating for minor prediction errors.
 
 As no actual position measurements of the vessel's future position are available, the available training data are considered as \textbf{potential} measurements, which at any timestep may or may not originate from the vessel. Incorporating vessel position becomes a data association problem, for which one can look to target tracking for inspiration.
@@ -204,13 +189,25 @@ By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in 
     \label{fig:gp_ekf_with_pdaf}
 \end{figure}
 
-\subsection{Tuning PDAF parameters}
+\subsubsection{Tuning PDAF parameters}
 The model should primarily trust the prediction model, as it would otherwise get stuck as the measurements do not change over time. As the measurements do not originate from the target vessel, it is also expected to be a lot of noise in the measurements themselves. In practice, the tuning boils down to using a significant measurement noise $\boldsymbol{R}$ and a relatively low detection probability $P_D$ before tuning the clutter rate to achieve good results.
 
 However, finding a set of parameters that works well across different trajectories turns out to be challenging. Parameters that improve the prediction for one trajectory may do more harm than good on another. The performance of using PDAF will be explored further in \cref{chap:stat_testing}.
 
-\section{Implementation details}
-This chapter has so far only discussed how $\vec{f}$ could be used to simulate trajectories. This section will discuss how the \acrshort{gp}s introduced in \cref{sec:gp} can be applied.
+\subsection{Simulating trajectories using Gaussian Process Sequential Monte Carlo}
+The Kalman-based prediction scheme proposed in the previous section works well as long as a single Gaussian distribution can sufficiently explain the uncertainty. However, in branching trajectories, minor differences in position early in the predicted trajectory might have significant effects on the following predictions. The result is a multimodal trajectory distribution, which a Kalman-based approach is not able to express.
+
+Inspired by the prediction step used by \textit{particle filters} \cite{sensorfusjon}, the idea of sampling trajectories can be used to explore the multimodal trajectory distribution. While inspired by the particle filter, this approach will from now on be referred to as \textit{Sequential Monte-Carlo} to avoid confusion\footnote{An important part of the particle filter is weighting the particles based on available measurements. As only sampling of trajectories is performed, Sequential Monte-Carlo seems like a better fit.}. and to follow the same naming convention as used by \cite{pedestrian}.
+
+The derivation of the Sequential Monte-Carlo approach is embarrassingly simple as this method trades high computational complexity for more straightforward mathematics. Instead of analytical propagation of uncertainty, many trajectories are simulated through random sampling and used to express the uncertainty empirically. The uncertainty for any trajectory distribution can be described, though at the cost of considerable computational complexity.
+$N$ different trajectories are initialized with similar initial conditions. The trajectories are then simulated by drawing independent increments from $\vec{f}$ using the approach described in \cref{sec:gp_samples}, conditioned on the current state of each trajectory. The result is visualized in \cref{fig:gp_particle} for $N=500$ trajectories.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{figures/dyngp/gp_particle.pdf}
+    \caption{}
+    \label{fig:gp_particle}
+\end{figure}
+
 
 \subsection{Feature Engineering}
 As $\vec{f}$ models the speed, rather than the position of the trajectories, the \acrshort{ais} needs some preprocessing before it can be used for training. There are two potential sources for the training samples $\boldsymbol{y}$:
@@ -258,32 +255,8 @@ Several other kernels were also attempted. The kernels were compared using the $
     \item[\acrshort{rbf} + Rational-Quadratic + \acrshort{iid}]
 \end{description}
 
-\section{Simulating trajectories using Gaussian Process Sequential Monte Carlo}
-The Kalman-based prediction scheme proposed in the previous section works well as long as a single Gaussian distribution can sufficiently explain the uncertainty. However, in branching trajectories, minor differences in position early in the predicted trajectory might have significant effects on the following predictions. The result is a multimodal trajectory distribution, which a Kalman-based approach is not able to express.
 
-Inspired by the prediction step used by \textit{particle filters} \cite{sensorfusjon}, the idea of sampling trajectories can be used to explore the multimodal trajectory distribution. While inspired by the particle filter, this approach will from now on be referred to as \textit{Sequential Monte-Carlo} to avoid confusion\footnote{An important part of the particle filter is weighting the particles based on available measurements. As only sampling of trajectories is performed, Sequential Monte-Carlo seems like a better fit.}. and to follow the same naming convention as used by \cite{pedestrian}.
-
-The derivation of the Sequential Monte-Carlo approach is embarrassingly simple as this method trades high computational complexity for more straightforward mathematics. Instead of analytical propagation of uncertainty, many trajectories are simulated through random sampling and used to express the uncertainty empirically. The uncertainty for any trajectory distribution can be described, though at the cost of considerable computational complexity.
-$N$ different trajectories are initialized with similar initial conditions. The trajectories are then simulated by drawing independent increments from $\vec{f}$ using the approach described in \cref{sec:gp_samples}, conditioned on the current state of each trajectory. The result is visualized in \cref{fig:gp_particle} for $N=500$ trajectories.
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=\textwidth]{figures/dyngp/gp_particle.pdf}
-    \caption{}
-    \label{fig:gp_particle}
-\end{figure}
-
-\section{Other design choices}
-\subsection{Why is $\vec{f}$ time-varying?}
-The time component was initially included to handle trajectories with sharp turns better. If $\vec{f}$ only relied on position, the \acrshort{gp} would have no way of expressing that the speed vector at position $\boldsymbol{x}$ might change over time. The time component was later found to explain some of the variability in the velocity estimates, yielding better uncertainty estimates.
-
-In practice, the \acrshort{ml} approach will, in many cases, yield very large lengthscales\footnote{In fact, the time lengthscale tends to reach a maximum value during optimization} for the time-components of the kernel, effectively disabling the time dependency. The time component is therefore only really used when the dataset contains a lot of time-dependent noise.
-
-\subsection{Standardizing the training outputs $Y$}
-\textit{Standardization}\todo[]{find source} is the process of converting the data into a standard unit of measurement, which in practice involves transforming the data to have zero mean and unit variance. This is useful when comparing measurements of different scales.
-
-The proposed GP-EKF implementation works well with and without standardized input data, but standardization has one important benefit. While the current implementation allows separate kernel hyperparameters for each input dimension in $\boldsymbol{\eta}$, the kernel is assumed to be identical for each of the outputs in $\vec{f}$. The scale parameters $\sigma_i$ in the kernel therefore represents the variability of \textbf{both} output dimensions at once. However, with standardized training outputs $Y$, the scale parameters $\sigma_i$ are relative to the standard deviation of the training data. This way, the \acrshort{gp} can express different level of uncertianty for each output dimension, while still sharing the same kernel. Allowing separate kernels is a possible extensions, but is assumed to further complicate the hyperparameter selection.
-
-\section{Summary}
+\subsection{Summary}
 This chapter has so far introduced a lot of new concepts, so that it might be nice with a summary of the overall pipeline:
 
 \begin{enumerate}
@@ -296,4 +269,21 @@ This chapter has so far introduced a lot of new concepts, so that it might be ni
 \end{enumerate}
 
 The only parameters which need manual tuning are the time increment $\Delta \tau$ and the initial covariance $\boldsymbol{P}_0$. All other parameters are learned from the data.
+
+
+\section{Implementation}
+The GP-EKF required more flexibility during development. Due to the need for calculating the gradient $\frac{\delta \vec{f}}{\delta \boldsymbol{x}}$, it became impractical to use any existing libraries. Paired with the simple implementation of \cref{alg:gp_prediction}, it was easier to implement it from the ground up.
+The GP-EKF was therefore implemented directly in Python using only \textit{scipy}\cite{scipy} and \textit{numpy}\cite{numpy} to speed up linear algebra routines. The Cholesky decomposition in \cref{alg:gp_prediction} was computed using \texttt{scipy.linalg.cho\_factor}, which calls a highly optimized LAPACK routine. Similarily, \texttt{scipy.linalg.solve\_\-trianglular} was used to solve the lower triangular system of equations by forward substitution. The implementation of GP-EKF and the \acrshort{pdaf} update was then straightforward using the equations introduced in this chapter. 
+
+
+
+\section{Result}
+
+
+\section{Discussion}
+\subsection{Why is $\vec{f}$ time-varying?}
+The time component was initially included to handle trajectories with sharp turns better. If $\vec{f}$ only relied on position, the \acrshort{gp} would have no way of expressing that the speed vector at position $\boldsymbol{x}$ might change over time. The time component was later found to explain some of the variability in the velocity estimates, yielding better uncertainty estimates.
+
+In practice, the \acrshort{ml} approach will, in many cases, yield very large lengthscales\footnote{In fact, the time lengthscale tends to reach a maximum value during optimization} for the time-components of the kernel, effectively disabling the time dependency. The time component is therefore only really used when the dataset contains a lot of time-dependent noise.
+
 
