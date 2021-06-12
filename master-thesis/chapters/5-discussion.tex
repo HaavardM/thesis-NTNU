@@ -1,1 +1,7 @@
-\chapter{Discussion \& Conclusion}\label{chap:discussion}
+\chapter{Discussion \& Final Remarks}\label{chap:discussion}
+
+\section{GP-EKF: PDAF Update}
+The \acrshort{pdaf} step for GP-EKF was initially proposed to fix an issue where the GP-EKF would predict turns prematurely. The idea was that the \acrshort{pdaf} update would pull the predictions back towards available position measurements if the predictions were far away from available training data. In practice, however, it turned out to be challenging to find a set of parameters for the \acrshort{pdaf} which works well across a wide range of trajectories. It could be tuned to improve specific predictions where the GP-EKF struggles, but the tuning would negatively affect other predictions. The results from statistical testing in \cref{chap:stat_testing} does not indicate any benefit of using the \acrshort{pdaf} update. The results may perhaps be improved with more tuning efforts, though this is itself a limitation of the \acrshort{pdaf} update. Both the direct \acrshort{gp} implementation and the GP-EKF are both purely data-driven and all parameters are estimated from available data. The \acrshort{pdaf} update severly limits the flexibility of the model. 
+
+\section{Shared Independent Kernel}
+In this thesis, the kernel is assumed shared for each output dimension of any vector-valued \acrshort{gp}s. 
