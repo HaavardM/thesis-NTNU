@@ -1,5 +1,5 @@
 \chapter{Statistical Testing}\label{chap:stat_testing}
-Inspired by \cite{hexeberg}, we will test the performance of the models for straight-line trajectories and curved trajectories independently.
+Inspired by \cite{hexeberg}, the performance of the proposed models will be compared on straight-line and curved trajectories independently.
 
 \section{Method}
 \subsection{Trajectory Error}
@@ -18,7 +18,7 @@ The \textit{\acrfull{nees}} is a metric that can be used to quantify consistency
 Assuming the prediction error follows a Gaussian distribution, the \acrshort{nees} follows a Chi-Squared distribution which can be used to form a confidence interval. Comparing the prediction errors with this confidence interval can then be used to get a sense of whether the estimated state uncertainty is consistent with the actual error rate.
 
 \subsection{Interpolation}
-Linear interpolation is used to compare the error at fixed timestamps between samples. The error for short trajectories is not extrapolated.
+Linear interpolation is used to compare the metrics at fixed timestamps between samples. The error for short trajectories is not extrapolated.
 
 \subsection{Baseline - Constant Velocity Model}
 As a basis of comparison, the \textit{\acrfull{cvm}} method is used as a baseline. The model use the initial \acrshort{cog} and \acrshort{sog} to predict a straight line, where the vessel is assumed to keep a constant velocity and heading.
@@ -28,7 +28,7 @@ Due to the way trajectories are generated from the \acrshort{ais} dataset, there
 
 \subsection{Straigth-line trajectories}
 The GP-EKF is first compared to the \acrshort{cvm} on simple straight-line trajectories. The GP-EKF should ideally perform identically or better than the \acrshort{cvm}.
-The statistics are based on $350$ randomly sampled trajectories that satisfy the following requirements:
+The statistics are based on $350$ randomly sampled trajectories without replacement that satisfy the following requirements:
 \begin{enumerate}
     \item The sum of subsequent changes in \acrshort{cog} must be less than $30$ degrees, i.e. $\sum_i |(\mathcal{X}_{t+1} - \mathcal{X}_t)| \leq 30^\circ$. This requirement ensures a straight-line trajectory.
     \item There must be sufficient data available for training in the neighborhood around the initial starting point, with similar initial heading and speed. After sanitizing the dataset and removing irrelevant trajectories, at least $3$ trajectories need to be available for training.
@@ -182,7 +182,7 @@ The results for straight-line and curved trajectories are available in \cref{tab
     \caption{GP-EKF compared to the CVM method on $350$ random trajectories. As expected, the \acrshort{cvm} yields large trajectory errors on curved trajectories. The GP-EKF performs consistently better, with lower median error as well as lower spread. However, on straight-line trajectories, the methods behave comparably.}
     \label{fig:stats_curved_posgp_cvm}
 \end{figure}
-The Direct GP approach performs significantly better than the , with overall lower spread and median trajectory error as depicted in \cref{fig:stats_curved_gp_ekf_cvm}.
+The Direct GP approach performs slightly worse than the \acrshort{cvm} on straight-line trajectories, while it performs significantly better on curved trajectories, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_curved_gp_ekf_cvm}.
 
 \subsection{Comparing GP-EKF to CVM}
 \begin{figure}[h]
@@ -200,7 +200,7 @@ The Direct GP approach performs significantly better than the , with overall low
     \caption{GP-EKF compared to the CVM method on $350$ random trajectories. As expected, the \acrshort{cvm} yields large trajectory errors on curved trajectories. The GP-EKF performs consistently better, with lower median error as well as lower spread. However, on straight-line trajectories, the methods behave comparably.}
     \label{fig:stats_curved_gp_ekf_cvm}
 \end{figure}
-As expected, the CVM method struggles with curved trajectories, leading to large trajectory errors. The GP-EKF approach performs significantly better, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_curved_gp_ekf_cvm}.
+The GP-EKF approach performs significantly better than the \acrshort{cvm} on curved trajectories, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_curved_gp_ekf_cvm}.
 
 \subsection{Effect of the PDAF update}
 \begin{figure}

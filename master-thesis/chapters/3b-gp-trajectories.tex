@@ -1,39 +1,26 @@
 \chapter{GP-EKF: Non-parametric dynamic system using AIS tracking data}
-One of the significant issues with the direct approach is the unimodal assumption of using a \acrshort{gp}. It works well as long as vessels agree on a specific trajectory but fails as soon as there are multiple branching trajectories.
+One of the significant issues with the direct approach is the unimodal assumption of using a \acrshort{gp}. It works well as long as vessels agree on a specific trajectory but fails as soon as there are multiple branching trajectories. To solve this problem, a nonparametric dynamical model is proposed in this chapter and used to simulate vessel trajectories. This chapter was inspired by \cite{pedestrian,gpekf,vehicle_gp_prediction}.
 
-In \cite{pedestrian}, a \acrshort{gp} was used to model the trajectory patterns of pedestrians tracked using computer vision. Rather than directly describing trajectories, the paper proposed to simulate trajectories from a non-parametric dynamical model $\Delta\boldsymbol{x}_{t+1} = \vec{f}(\boldsymbol{x}_t)$ where the increments are expressed using a \acrshort{gp}. The trajectories were then simulated using two different approaches:
-\begin{enumerate}
-    \item By assuming $p(\boldsymbol{x})$ is always uni-modal and Gaussian, the GP-EKF introduced in \cite{gpekf} was used to simulate the trajectory for multiple timesteps, using the dynamical \acrshort{gp} model as the prediction model. This formulation is unable to express multimodal uncertainty.
-    \item To retain the inherent multimodality, a sequential Monte-Carlo approach (i.e., the prediction step of a particle filter) was used to keep track of multiple modes (i.e., branching trajectories) at the cost of computational complexity.
-\end{enumerate}
 
-In this section, a similar method is proposed for long-term vessel prediction. The vessel trajectory $\boldsymbol{\mathcal{T}}$ can be expressed using the dynamical system
+
+The vessel trajectory $\boldsymbol{\mathcal{T}}$ can be expressed using the dynamical system
 \begin{subequations}
     \begin{align}
         \boldsymbol{x}_{k+1}       & = \boldsymbol{x}_k + \vec{f}(\boldsymbol{x}_k,\tau_k)\Delta \tau            \\
         \boldsymbol{\mathcal{T}}_k & = \boldsymbol{x}_k + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
     \end{align}
 \end{subequations}
-The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field} . 
+The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. The output dimensions are assumed to be independent. 
 
 \begin{equation}\label{eq:gp_vec_field}
-\vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_x (\boldsymbol{\eta})\\ f_y (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(0, \ \begin{bmatrix}
-    K(\boldsymbol{\eta}, \boldsymbol{\eta}') & 0 \\ 0 & K(\boldsymbol{\eta}, \boldsymbol{\eta}')
-\end{bmatrix}\big)
+\vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_x (\boldsymbol{\eta})\\ f_y (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(0, \; k(\boldsymbol{\eta}, \boldsymbol{\eta}')\big)
 \end{equation}
-
-The benefits of this formulation include:
-\begin{description}
-    \item[Easy incorporation of existing data] The model can easily be trained on partial data. Only the gradients of any historical trajectories are really needed.
-    \item[Few constraining assumptions] The dynamical model is not constrained by any specific parametrization while still allowing prior knowledge such as smoothness to be incorporated into the model.
-    \item[Branching trajectories] The dynamical formulation only assumes Gaussian increments, while the full trajectory may still be multimodal. Though not analytically tractable, the multimodal trajectory can be found using sampling-based methods.
-\end{description}
 
 The pipeline for making predictions using available \acrshort{ais} data will now be introduced in greater detail, but can be summarized as:
 \begin{enumerate}
     \item Calculate trajectory gradients $\boldsymbol{y}$ for inputs $\boldsymbol{\eta}$ from available \acrshort{ais} data.
     \item Fit a \acrshort{gp} to the time-varying vector-field $\vec{f}: \mathcal{R}^3 \to \mathcal{R}^2$
-    \item Simulate the vessel as it is moving through the vector field $\vec{f}$, using either \acrshort{ekf}-based prediction or sequential monte carlo.
+    \item Simulate the vessel as it is moving through the vector field $\vec{f}$, using either \acrshort{ekf}-based prediction or Sequential Monte Carlo.
 \end{enumerate}
 
 \section{Notation and variables}
@@ -55,15 +42,15 @@ The key variables for this chapter are summarized in \cref{table:dyngp_key_varia
 Note that throughout this chapter, some of the notation used in \cref{sec:gp} will be relaxed in order to reduce the notational complexity. More specifically, the \acrshort{gp}s in this chapter is always assumed to be conditioned on available data, i.e. $p\big(\vec{f}(\boldsymbol{x})\big) = p\big(\vec{f}(\boldsymbol{x}) \; | \; \boldsymbol{y} \big)$.
 \section{Method}
 \subsection{EKF trajectory prediction}
-Once the dynamics $\vec{f}_*$ is conditioned on data, it can be used to predict trajectories using the prediction procedure used by \textit{\acrfull{ekf}}. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}.
+Once the dynamics $\vec{f}$ is conditioned on data using \cref{alg:gp_prediction}, it can be used to predict trajectories using the prediction procedure used by the \textit{\acrfull{ekf}}. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}.
 
-During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state, i.e. the \acrshort{ekf} prediction model, $g_t(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
+During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state. In other words, the \acrshort{ekf} prediction model, $g_t(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
 
 \begin{equation}\label{eq:gp_ekf_prediction}
     \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}_t(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})
 \end{equation}
 
-Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, it is neccessary to linearize the prediction in order to propagate the state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}_*$ can be computed using \cref{eq:gp_jacobian}. To simplify the notation for the \acrshort{gp} inputs, a new variable $\boldsymbol{\eta} \triangleq \begin{bmatrix}
+Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, it is neccessary to linearize the prediction in order to propagate the previous state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}$ can be computed using \cref{eq:gp_jacobian}. To simplify the notation for the \acrshort{gp} inputs, a new variable $\boldsymbol{\eta} \triangleq \begin{bmatrix}
         \boldsymbol{x} & t
     \end{bmatrix}$ is defined.
 
@@ -105,6 +92,22 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
     \label{alg:gp_ekf_prediction}
 \end{algorithm}
 
+\begin{figure}
+    \centering
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf.pdf}
+        \caption{Trajectory plotted against the vector-field $\vec{f}(\boldsymbol{x})$. The ellipses show the $95\%$ credibility interval for the predicted trajectory at the ground-truth timestamps.}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_state.pdf}
+        \caption{$95\%$ credibility interval for the trajectory plotted against time}
+    \end{subfigure}
+    \caption{Predicted position using GP-EKF}
+    \label{fig:gp_ekf}
+\end{figure}
+
 
 
 \subsection{Incorporating vessel position}
@@ -114,7 +117,7 @@ As no actual position measurements of the vessel's future position are available
 
 The \textit{\acrfull{pdaf}} is a method commonly used in target tracking which combines data association and filtering. The following introduction to \acrshort{pdaf} is mostly inspired by \cite{sensorfusjon}, with some adaptations to fit the current problem better. As single target tracking and data association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here. For more details, see \cite{sensorfusjon,bar1995multitarget}
 
-In this section, all measurements in the available training set are considered as virtual \footnote{Virtual meaning a measurement that did not actually originate from the target vessel, but rather a measurement that could potentially originate from the target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. Similar to the \acrshort{pdaf}, it is assumed \textbf{at most one} measurement originating from the target to reduce the computational complexity significantly \cite{sensorfusjon}. As no proper measurements of the vessel's actual position, most of the measurements are assumed to be clutter, forcing the model to primarily trust its predictions.
+In this section, all measurements in the available training set are considered as virtual \footnote{Virtual meaning a measurement that did not actually originate from the target vessel, but rather a measurement that could potentially originate from the target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. Similar to the \acrshort{pdaf}, it is assumed \textbf{at most one} measurement originating from the target to reduce the computational complexity significantly \cite{sensorfusjon}. As there are no proper measurements of the vessel's actual position in the future, most of the measurements are assumed to be clutter, forcing the model to primarily trust its predictions.
 
 Given the predicted state $\hat{\boldsymbol{x}}_t$, any real measurement is expected to be distributed around this state due to some measurement noise. Following the notation used by \acrshort{ekf}, and using the measurement model $h(\boldsymbol{x}) = \boldsymbol{x} \implies H = \frac{\partial h (\boldsymbol{x})}{\partial \boldsymbol{x}} = I$, the predicted measurement distribution is expressed as in \cref{eq:gp_ekf_pdaf_measurement} where the innovation covariance is defined as $\boldsymbol{S}_t \triangleq \hat{\boldsymbol{P}}_t + \boldsymbol{R}$ and $\boldsymbol{R}$ is the measurement noise.
 
@@ -122,7 +125,7 @@ Given the predicted state $\hat{\boldsymbol{x}}_t$, any real measurement is expe
     \hat{\boldsymbol{z}}_t \sim \mathcal{N}(\hat{\boldsymbol{x}}_t, \boldsymbol{S}_{t}) = \mathcal{N}(\hat{\boldsymbol{x}}_t, \hat{\boldsymbol{P}}_t + \boldsymbol{R})
 \end{equation}
 
-There is also the possibility that none of the measurements originated from the target, i.e., all observations are clutter. The choice of a good clutter model is a complicated topic, but the Poisson clutter model is used in this thesis. As the measurements are not actual measurements from the target, it is difficult to assign meaning to any clutter model. It, therefore, simply boils down to which parameters need to be tuned \footnote{The trajectory prediction is here considered to be target tracking of future position. The clutter parameters, therefore, need to be interpreted in the context of target tracking, not trajectory prediction.} and the Poisson clutter model should already be familiar to anyone with experience in target tracking.
+There is also the possibility that none of the measurements originated from the target and all observations are clutter. The choice of a good clutter model is a complicated topic, but the Poisson clutter model is used in this thesis. As the measurements are not actual measurements from the target, it is difficult to assign meaning to any clutter model. It, therefore, simply boils down to which parameters need to be tuned \footnote{The trajectory prediction is here considered to be target tracking of future position. The clutter parameters, therefore, need to be interpreted in the context of target tracking, not trajectory prediction.} and the Poisson clutter model should already be familiar to anyone with experience in target tracking.
 According to the Poisson clutter model, the association probabilities are given by \cref{eq:pdaf_clutter_association_prob} \cite{sensorfusjon}, where $a_t$ is a discrete variable following a Categorical distribution where $a_t=k > 0$ denotes that measurement $k$ originated from the target. $a_t = 0$ is the special case when none of the measurements originated from the target, i.e., the predicted state should not be updated. $Z$ here denotes a matrix of all the measurements (positions) available in the training data and is independent of time, i.e., all measurements are always potential candidates. $\lambda$ denotes the clutter rate, and $P_D$ denotes the probability of detecting the target vessel.
 \begin{equation}\label{eq:pdaf_clutter_association_prob}
     \Pr\{a_t | Z\} \propto \begin{cases}
@@ -222,7 +225,7 @@ As $\vec{f}$ models the speed, rather than the position of the trajectories, the
 \end{align}
 
 
-However, in practice, the dataset contains several contradicting trajectories. In a given area, vessels may move in opposite directions or with vastly different speeds. Therefore, the data needs to be filtered based on the relevance for the prediction, using the target vessel's position, \acrshort{cog} and \acrshort{sog} as decision parameters. The following pipeline is used to select relevant trajectories for training, given the vessel's current state:
+However, in practice, the dataset contains several contradicting trajectories. In a given area, vessels may move in opposite directions or with vastly different speeds. Therefore, the data is clustered based on the trajectories' initial conditions and the appropriate cluster for prediction is selected using the target vessel's current position, \acrshort{cog} and \acrshort{sog}. A very simple pipeline is used in this thesis to cluster relevant trajectories for training, given the vessel's current state:
 \begin{enumerate}
     \item The distance between the target vessel and the initial position of the training trajectories must be less than $1000$ meters.
     \item The initial \acrshort{cog} of the training trajectories must be within $\pm 10^\circ$.
@@ -230,7 +233,7 @@ However, in practice, the dataset contains several contradicting trajectories. I
 \end{enumerate}
 
 
-\subsection{Selecting a good kernel}
+\subsection{Choice of kernel}
 The kernel was, after trial and error, selected as the sum of three kernels. This kernel attempts to model the data as a combination of a long-term trend, dependent noise, and independent noise
 
 \begin{equation}\label{eq:gp_ekf_kernel}
@@ -240,19 +243,20 @@ The kernel was, after trial and error, selected as the sum of three kernels. Thi
 \begin{description}
     \item[Long term trend $k_0$] is a \acrshort{rbf} kernel intended to cover the long-term behavior of the trajectories, i.e., a smooth component describing the overall trend of the trajectories. The lengthscales of this kernel are assumed to be large.
     \item[Dependent noise $k_1$] is a \acrshort{rbf} kernel intended to model the variability between different trajectories not well explained by $k_0$. The lengthscales are assumed to be short.
-    \item[Independent noise $\delta(i, j)$] is a white kernel intended to model any remaining error as \textit{\acrfull{iid}}.
+    \item[Independent noise $\delta(i, j)$] is a white kernel intended to model any remaining error as \acrshort{iid}.
 \end{description}
 
+
 \subsection{Optimizing the hyperparameters}
-Independent lengthscales are used for each of the elements in $\boldsymbol{\eta}$, which in total yields $9$ hyperparameters to select. The hyperparameters are optimized using the \acrshort{ml} approach discussed in \cref{sec:gp_mle}. The implementation is readily available in the popular \textit{scikit-learn} \cite{scikit-learn} Python package. In order to avoid bad local optima, $10$ restarts with random initial conditions were used. After optimization, the parameters can be inspected to verify that the hyperparameters match our expectations.
+Independent lengthscales are used for each of the elements in $\boldsymbol{\eta}$, which in total yields $9$ hyperparameters to select. The hyperparameters are optimized using the \acrshort{ml} approach discussed in \cref{sec:gp_mle}. The implementation is readily available in the popular \textit{scikit-learn} \cite{scikit-learn} Python package. In order to avoid bad local optima, $10$ restarts with random initial conditions were used.
 
 \subsection{Alternative kernel choices}
 Several other kernels were also attempted. The kernels were compared using the $R^2$ score for the test set in order to compare how well the \acrshort{gp} is able to express the variability between trajectories using different kernels.
 
 \begin{description}
-    \item[\acrshort{rbf} + \acrshort{iid} noise] was only able to express the long-term trend of the trajectories, but was unable to express uncertainty due to local variations. In practice, the optimization was unable to converge towards good hyperparameters, indicating an issue with the kernel specification.
-    \item[\acrshort{rbf} + Matern + \acrshort{iid} noise] was tried with $\nu=\frac{1}{2}$, $\nu=\frac{3}{2}$ and $\nu=\frac{5}{2}$ without showing any benefits over the simpler \acrshort{rbf} based kernel in \cref{eq:gp_ekf_kernel}.
-    \item[\acrshort{rbf} + Rational-Quadratic + \acrshort{iid}]
+    \item[\acrshort{rbf} + White] was only able to express the long-term trend of the trajectories, but was unable to express uncertainty due to local variations. In practice, the optimization was in several cases unable to converge towards good hyperparameters, indicating an issue with the kernel specification.
+    \item[\acrshort{rbf} + Matern + White] was tried with $\nu=\frac{1}{2}$, $\nu=\frac{3}{2}$ and $\nu=\frac{5}{2}$ without showing any benefits over the simpler \acrshort{rbf} based kernel in \cref{eq:gp_ekf_kernel}.
+    \item[\acrshort{rbf} + Rational-Quadratic + White]
 \end{description}
 
 
@@ -272,12 +276,8 @@ The only parameters which need manual tuning are the time increment $\Delta \tau
 
 
 \section{Implementation}
-The GP-EKF required more flexibility during development. Due to the need for calculating the gradient $\frac{\delta \vec{f}}{\delta \boldsymbol{x}}$, it became impractical to use any existing libraries. Paired with the simple implementation of \cref{alg:gp_prediction}, it was easier to implement it from the ground up.
+The GP-EKF required more flexibility during development. Due to the need for calculating the gradient $\frac{\delta \vec{f}}{\delta \boldsymbol{x}}$, it became impractical to use existing \acrshort{gp} implementations. Due to the simple implementation of \cref{alg:gp_prediction}, it was easier to implement it from the ground up.
 The GP-EKF was therefore implemented directly in Python using only \textit{scipy}\cite{scipy} and \textit{numpy}\cite{numpy} to speed up linear algebra routines. The Cholesky decomposition in \cref{alg:gp_prediction} was computed using \texttt{scipy.linalg.cho\_factor}, which calls a highly optimized LAPACK routine. Similarily, \texttt{scipy.linalg.solve\_\-trianglular} was used to solve the lower triangular system of equations by forward substitution. The implementation of GP-EKF and the \acrshort{pdaf} update was then straightforward using the equations introduced in this chapter. 
-
-
-
-\section{Result}
 
 
 \section{Discussion}

@@ -4,14 +4,12 @@
 The reader is assumed to be already comfortable with basic probability theory. Some concepts are nevertheless included here, mainly to introduce the mathematical notation used throughout this thesis. 
 
 \subsection{Probability Distributions}
-The notation $p(X)$ is used to denote the probability distribution of the random variable $X$, regardless of $X$ being discrete or random. Whether $p(X)$ refers to the \textit{\acrfull{pdf}} for continous random variables or \textit{\acrfull{pmf}} for discrete random variables therefore depend on the context. 
-
-For the probability of a specific event occuring, the notation $\Pr\{X=x\}$ and $\Pr\{X \leq x\}$ are instead. This is always a real number, i.e. $\Pr\{\cdot\} \in (0, 1)$. 
+The notation $p(X)$ is used to denote the probability distribution of the random variable $X$, regardless of $X$ being discrete or random. Whether $p(X)$ refers to the \textit{\acrfull{pdf}} for continous random variables or \textit{\acrfull{pmf}} for discrete random variables therefore depend on the context. For the probability of a specific event occuring, the notation $\Pr\{X=x\}$ and $\Pr\{X \leq x\}$ will be used instead. The result is always a real number, i.e. $\Pr\{\cdot\} \in (0, 1)$. 
 
 \subsection{Joint Distribution}
-
+The notation $p(A, B)$ is used to denote the joint probability of events $A$ and $B$. It is the probability of both events occurring at once.
 \subsection{Conditional Distribution}
-The notation $A | B$ is used to express the event $A$ occurring given the known occurrence of $B$. In the context of probability distributions, $p(A | B)$ denotes the probability of $A$ occurring, given that the event $B$ has happened.
+The notation $A | B$ is used to express the event $A$ occurring given the known occurrence of event $B$. In the context of probability distributions, $p(A | B)$ denotes the probability of $A$ occurring, given that the event $B$ has happened.
 
 \subsection{Interpretation of Probability}
 This thesis will heavily rely on a Bayesian interpretation of probability. Without going into unnecessary philosophical details, the Bayesian view interprets probabilities as beliefs rather than relative frequencies\footnote{The interpretation of probabilities as the relative frequency of outcomes from repeated trials is what is often taught in statistics courses and is called the \textit{frequentist} interpretation.}. 
@@ -91,7 +89,7 @@ Different notations for vector values is used to differentiate between three com
 \end{description}
 
 \subsection{Introduction to kernels}
-The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this thesis be referred to as a \textit{kernel}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Kernel functions are discussed in greater detail in \cref{sec:kernels}.
+The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this thesis be referred to as \textit{kernels}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Kernel functions are discussed in greater detail in \cref{sec:kernels}.
 
 The kernel must be positive definite to produce a valid covariance matrix, which requires that
 
@@ -120,8 +118,7 @@ The joint distribution of $\boldsymbol{y}$ and $\boldsymbol{f}_*$ is given by
         K(X, X) + \sigma I & K(X, X_*) \\ K(X_*, X) & K(X_*, X_*)
     \end{bmatrix}\bigg)
 \end{equation}
-
-The posterior distribution $p(\boldsymbol{f}_* | \boldsymbol{y})$ is computed using the posterior conditional distribution in \cref{eq:multivariate_gaussian_conditional}.
+and the posterior distribution $p(\boldsymbol{f}_* | \boldsymbol{y})$ is computed using the posterior conditional distribution in \cref{eq:multivariate_gaussian_conditional}.
 \begin{subequations}\label{eq:gp_conditional}
 \begin{align}
     p(\boldsymbol{f}_* | \boldsymbol{y}) &= \mathcal{N}(f \; | \; \boldsymbol{\mu}_{\boldsymbol{f}_*|\boldsymbol{y}}, \boldsymbol{\Sigma}_{\boldsymbol{f}_*|\boldsymbol{y}})\\
@@ -139,7 +136,7 @@ As the notation quickly gets messy for the general case, the shorthand notation 
 \end{align}
 \end{subequations}
 
-In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing number of samples. To avoid numerical instability, using the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root \todo[]{Citation?}. \cref{eq:gp_conditional} can then be computed using $L$. The diagonal entry $\sigma I$ added to the kernel matrix is intended to model noisy observations. It also improves the numerical stability, so a small value is recommended even if the observations are noise-free \cite{scikit-learn}.
+In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing number of samples. To avoid numerical instability, using the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root \todo[]{Citation?}. \cref{eq:gp_conditional} can then be computed using $L$. The diagonal entry $\sigma I$ added to the kernel matrix is intended to model noisy observations while, in practice, it also improves the numerical stability. A small value is therefore recommended even if the observations are noise-free \cite{scikit-learn}.
 \begin{subequations}
 \begin{align}
     \begin{split}
@@ -153,7 +150,7 @@ In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing
 \end{align}
 \end{subequations}
 
-This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A simple \acrshort{gp} before and after conditioning is shown in \cref{fig:gp_simple}
+The whole procedure boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A simple \acrshort{gp} before and after conditioning is shown in \cref{fig:gp_simple}
 
 \begin{algorithm}[H]
 \begin{algorithmic}[1]
@@ -194,7 +191,7 @@ This boils down to \cref{alg:gp_prediction} as proposed by \cite{rasmussen}. A s
 \end{equation}
 
 \section{Kernels}\label{sec:kernels}
-This section will introduce some relevant kernels for this thesis. However, many more kernels are available in the literature. 
+This section will introduce some relevant kernels for this thesis. Many more kernels are available in the literature. 
 \subsection{Stationary Kernels}
 Stationary kernels are kernels which only depends on $\boldsymbol{r} = \boldsymbol{x} - \boldsymbol{x'}$ and is usually specified as a function of a single variable.
 \subsubsection{Constant Kernel}
@@ -205,11 +202,11 @@ As the name implies, the constant kernel is a kernel that is independent of the 
 \end{equation}
 
 \subsubsection{White kernel}
-The \textit{White Kernel} is useful for modeling whitenoise in a system as independently and identically normally distributed \cite{scikit-learn}. Note that adding this kernel is similar, but not identical to the noise term added to the training kernel in \cref{alg:gp_prediction}, as this kernel also affect the prediction input. The white kernel is given by
+The \textit{White Kernel} is useful for modeling whitenoise in a system as \acrshort{iid} \cite{scikit-learn}. The white kernel is given by
 \begin{equation}
-    k(\boldsymbol{r}) = \delta_{ij} (r) \sigma^2
+    k(\boldsymbol{x}_i, \boldsymbol{x}_j) = \delta_{ij} \sigma^2
 \end{equation}
-where $\delta_{ij}$ is the Kronecker-delta.
+where $\delta_{ij}$ is the Kronecker-delta which is $1$ if $i=j$ and $0$ otherwise. This is the same as the noise term added in \cref{alg:gp_prediction}.
 
 \subsubsection{Radial Basis Function}\label{sec:kernels_rbf}
 The \textit{\acrfull{rbf}} kernel, also referred to as \textit{squared exponential kernel}, is one of the most frequently used kernels, and is given by the covariance function in \cref{sec:kernels_rbf}. The scaling parameter $l$ is the \textit{charactheristic length scale} and can intuitively be thought of as a smoothness parameter. This kernel yields infinitely differentiable functions, meaning that any functions drawn from a \acrshort{gp} with this kernel are very smooth\cite{rasmussen}.
@@ -234,7 +231,7 @@ Further mathematical details can be found in \cite[sec.~4.2]{rasmussen} as it is
 
 
 \subsection{Combining multiple kernels}
-Kernels can be mixed and matched through multiplication and addition, where the behavior of the individual kernels can be combined to describe more complex functions. A simple example is using the constant kernel to scale the covariance of other functions. Kernels can also be applied to only specific input dimensions in order t
+Kernels can be mixed and matched through multiplication and addition, where the behavior of the individual kernels can be combined to describe more complex functions. A simple example is using the constant kernel to scale the covariance of other functions. Different kernels can also be used for each input dimension.
 \section{Hyperparameter selection}
 Manually tuning the kernel hyperparameters is tedious and time-consuming, motivating the need for automatic selection of parameters. This section will discuss an automated approach for hyperparameter selection with \acrshort{gp}s.
 
@@ -322,7 +319,7 @@ The best surrogate density can therefore be found by maximizing the \textit{\acr
 \subsubsection{Sparse Variational Gaussian Process}
 To deal with the computational complexity of \acrshort{gp}s, \cite{Titsias2008VariationalMS} introduced the \textit{\acrfull{svgp}}. A short introduction is included here. 
 
-Rather than directly using all the available training data directly, one can instead attempt to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data.
+Rather than directly using all the available training data directly, one can instead attempt to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data. \todo[]{Not finished!!}
 
 
 
