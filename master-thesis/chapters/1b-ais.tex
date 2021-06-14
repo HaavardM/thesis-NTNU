@@ -1,11 +1,25 @@
 \chapter{AIS}
 
+The \textit{\acrfull{ais}} is a vessel-to-vessel communication system, which allows vessels to share vital information about their current state.
+
 \section{The Dataset}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics{figures/ais_map.pdf}
+        \caption{Full dataset. The red areas marks the subset which will be used for testing purposes.}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics{figures/ais_map_zoom.pdf}
+        \caption{Zoomed-in version of the subset used in this thesis.}
+    \end{subfigure}
+    \caption{The available \acrshort{ais} data used in this thesis. }
+\end{figure}
 
 
 \section{From individual samples to trajectories}\label{sec:from_ais_to_traj}
-The raw \acrshort{ais} samples can be converted into trajectory vectors using the following pipeline.
-\begin{enumerate}
-    \item Raw \acrshort{ais} samples are first sorted by timestamp and grouped by MMSI.
-    \item Each sample is considered the starting point for a trajectory, and the leading $N$ samples are collected into a vector. $N$ is a fixed number of samples. Samples with fewer than $N$ leading samples are ignored.
-\end{enumerate}
+\acrshort{ais} samples with identical MMSI and less than $15$ minutes between subsequent samples are considered part of the same trajectory. The $15$ minute requirement is added to make sure samples before and after docking are considered separate trajectories.
+

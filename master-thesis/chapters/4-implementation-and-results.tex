@@ -180,8 +180,8 @@ The results for straight-line and curved trajectories are available in \cref{tab
 \end{table}
 
 
-\subsection{Comparing Direct GP to CVM}
-\begin{figure}[h]
+\subsection{Comparing direct GP to CVM}
+\begin{figure}
     \centering
     \makebox[\textwidth][c]{
         \begin{subfigure}{0.65\textwidth}
@@ -193,14 +193,11 @@ The results for straight-line and curved trajectories are available in \cref{tab
             \caption{Curved Trajectories}
         \end{subfigure}
     }
-    \caption{GP-EKF compared to the CVM method on $350$ random trajectories. As expected, the \acrshort{cvm} yields large trajectory errors on curved trajectories. The GP-EKF performs consistently better, with lower median error as well as lower spread. However, on straight-line trajectories, the methods behave comparably.}
-    \label{fig:stats_curved_posgp_cvm}
-\end{figure}
-The Direct GP approach performs slightly worse than the \acrshort{cvm} on straight-line trajectories, while it performs significantly better on curved trajectories, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_curved_gp_ekf_cvm}.
+    \caption{The direct GP compared to the GP-EKF method on $350$ random trajectories. On straight-line trajectories, the GP-EKF performs slighty better. The direct GP approach do, however, perform significantly better on curved trajectories.}
+    \label{fig:stats_posgp_cvm}
 
-\subsection{Comparing GP-EKF to CVM}
-\begin{figure}[h]
-    \centering
+    \vspace{0.5cm}
+
     \makebox[\textwidth][c]{
         \begin{subfigure}{0.65\textwidth}
             \includegraphics[width=\textwidth]{figures/straight_line_stats/gp_vs_cvm_3.pdf}
@@ -212,12 +209,32 @@ The Direct GP approach performs slightly worse than the \acrshort{cvm} on straig
         \end{subfigure}
     }
     \caption{GP-EKF compared to the CVM method on $350$ random trajectories. As expected, the \acrshort{cvm} yields large trajectory errors on curved trajectories. The GP-EKF performs consistently better, with lower median error as well as lower spread. However, on straight-line trajectories, the methods behave comparably.}
-    \label{fig:stats_curved_gp_ekf_cvm}
+    \label{fig:stats_gp_ekf_cvm}
 \end{figure}
-The GP-EKF approach performs significantly better than the \acrshort{cvm} on curved trajectories, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_curved_gp_ekf_cvm}.
+The Direct GP approach performs slightly worse than the \acrshort{cvm} on straight-line trajectories, while it performs significantly better on curved trajectories, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_gp_ekf_cvm}.
+
+\subsection{Comparing GP-EKF to CVM}
+The GP-EKF approach performs significantly better than the \acrshort{cvm} on curved trajectories, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_gp_ekf_cvm}.
+
+\subsection{Comparing Direct GP to GP-EKF}
+\begin{figure}
+    \centering
+    \makebox[\textwidth][c]{
+        \begin{subfigure}{0.65\textwidth}
+            \includegraphics[width=\textwidth]{figures/straight_line_stats/gp_vs_ekf.pdf}
+            \caption{Straight-Line Trajectories}
+        \end{subfigure}
+        \begin{subfigure}{0.65\textwidth}
+            \includegraphics[width=\textwidth]{figures/curved_line_stats/gp_vs_ekf.pdf}
+            \caption{Curved Trajectories}
+        \end{subfigure}
+    }
+    \caption{GP-EKF compared to the CVM method on $350$ random trajectories. As expected, the \acrshort{cvm} yields large trajectory errors on curved trajectories. The GP-EKF performs consistently better, with lower median error as well as lower spread. However, on straight-line trajectories, the methods behave comparably.}
+    \label{fig:stats_direct_gp_vs_ekf_cvm}
+\end{figure}
 
 \subsection{Effect of the PDAF update}
-\begin{figure}
+\begin{figure}[h]
     \centering
     \makebox[\textwidth][c]{
         \begin{subfigure}{0.65\textwidth}
@@ -231,15 +248,9 @@ The GP-EKF approach performs significantly better than the \acrshort{cvm} on cur
     }
     \caption{GP-EKF with and without PDAF on curved trajectories for $350$ trajectories. While there are some slight differences, the \acrshort{pdaf} does not appear to have any considerable effect on the trajectory errors.}
     \label{fig:stats_gp_ekf_with_or_without_pdaf}
-\end{figure}
 
-When comparing the performance of GP-EKF with and without the update step in \cref{fig:stats_gp_ekf_with_or_without_pdaf}, there seems to be little actual gain from the added complexity of \acrshort{pdaf}.
+    \vspace{0.5cm}
 
-
-\subsection{Finite Difference vs. COG/SOG from AIS}
-A key design choice for the GP-EKF is which data source to use for training. The model can either be trained using the \acrshort{cog} and \acrshort{sog} values contained in the \acrshort{ais} samples or by calculating numerical derivatives of the position through a finite-difference approach. Comparing trajectory error for both approaches on the same test set favors the finite-difference approach, as seen in \cref{fig:stats_curved_gp_ekf_fd_vs_cog}. The finite difference approach performs consistently better, with lower median error and less spread. However, by ignoring the time component, looking at the path errors in \cref{table:stats_curved_path_err} supports the opposite, where the path errors are lower for the \acrshort{cog}/\acrshort{sog} approach. This may indicate that the issue is due to imprecise velocity estimates from the \acrshort{sog} while using the course from the \acrshort{cog} works well.
-\begin{figure}
-    \centering
     \makebox[\textwidth][c]{
         \begin{subfigure}{0.65\textwidth}
             \includegraphics{figures/straight_line_stats/gp_cog_vs_fd.pdf}
@@ -251,12 +262,22 @@ A key design choice for the GP-EKF is which data source to use for training. The
         \end{subfigure}
     }
     \caption{GP-EKF using finite differences and the \acrshort{cog} and \acrshort{sog} from the AIS dataset on $350$ trajectories. The finite differences approach performs consistently better, with lower median error and spread.}
-    \label{fig:stats_curved_gp_ekf_fd_vs_cog}
+    \label{fig:stats_gp_ekf_fd_vs_cog}
 \end{figure}
+
+When comparing the performance of GP-EKF with and without the update step in \cref{fig:stats_gp_ekf_with_or_without_pdaf}, there seems to be little actual gain from the added complexity of \acrshort{pdaf}.
+
+
+\subsection{Finite Difference vs. COG/SOG from AIS}
+\begin{figure}[h]
+    \centering
+
+\end{figure}
+A key design choice for the GP-EKF is which data source to use for training. The model can either be trained using the \acrshort{cog} and \acrshort{sog} values contained in the \acrshort{ais} samples or by calculating numerical derivatives of the position through a finite-difference approach. Comparing trajectory error for both approaches on the same test set favors the finite-difference approach, as seen in \cref{fig:stats_gp_ekf_fd_vs_cog}. The finite difference approach performs consistently better, with lower median error and less spread. However, by ignoring the time component, looking at the path errors in \cref{table:stats_curved_path_err} supports the opposite, where the path errors are lower for the \acrshort{cog}/\acrshort{sog} approach. This may indicate that the issue is due to imprecise velocity estimates from the \acrshort{sog} while using the course from the \acrshort{cog} works well.
 
 
 \section{Consistency}
-\begin{figure}[h]
+\begin{figure}
     \centering
     \makebox[\textwidth][c]{
         \begin{subfigure}{0.65\textwidth}
@@ -281,7 +302,7 @@ The estimated quartiles \acrshort{nees} for straight-line and curved trajectorie
 
 On straight-line trajectories, the $25\%$ and $50\%$ quartiles correspond well with the theoretical values for the $\mathcal{X}^2$ distribution for all methods. The \acrshort{pdaf} update step does, however, reduce the predicted uncertainty, leading to increased overconfidence. In addition, the estimated \acrshort{nees} distribution has a much fatter right-tail than the theoretical $\mathcal{X}^2$ distribution, leading to an estimated $75\%$ quartile far outside the theoretical values.
 
-On curved trajectories, the GP-EKF with and without PDAF is consistently overconfident. The theoretical quartiles are not plotted due to the large y-axis. The direct \acrshort{gp} approach performs significantly better, which is why a separate plot in \cref{fig:stats_curved_nees_direct} is added to compare it to theoretical quartiles. 
+On curved trajectories, the GP-EKF with and without PDAF is consistently overconfident. The theoretical quartiles are not plotted due to the large y-axis. The direct \acrshort{gp} approach performs significantly better, which is why a separate plot in \cref{fig:stats_curved_nees_direct} is added to compare it to theoretical quartiles.
 
 
 
