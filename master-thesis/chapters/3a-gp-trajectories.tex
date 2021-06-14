@@ -1,4 +1,4 @@
-\chapter{Learning trajectories directly from data}
+\chapter{Model trajectories directly using a Gaussian Process}\label{chap:direct_gp}
 The first method proposed is to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{x}_0$, \acrshort{cog} $\psi_0$ and \acrshort{sog} $v_0$ to a position at timestamp $\tau$ in the future. The method is formulated in mathematical terms in \cref{eq:gp_direct}. 
 
 \begin{subequations}\label{eq:gp_direct}
@@ -19,10 +19,10 @@ The conceptual benefits of this formulation include:
 \end{description}
 
 \section{Method}
-While simple, the formulation in \cref{eq:gp_direct} still leads to quite a lot of complexity due to the number of input parameters. The method formulation should in theory be able to express a wide range of trajectories, but in practice the method is limited by the computational complexity.
+While simple, the formulation in \cref{eq:gp_direct} still leads to quite a lot of complexity due to the number of input parameters. The method formulation should, in theory, be able to express a wide range of trajectories, but in practice, the method is limited by the computational complexity.
 
-\subsection{Excact GP using only a subset of the data}
-The kernel matrix $K$ for all available data will be approximately sparse. Only a subset of the \acrshort{ais} data is actually relevant for any given input query. Trajectories with very different initial conditions than the query input should be safe to ignore, leaving only a subset of relevant trajectories to use for training. This way, the exact \acrshort{gp} formulation can still be used.
+\subsection{Selecting representable trajectories for training}
+The kernel matrix $K$ for all available data will be approximately sparse. Only a subset of the \acrshort{ais} data is relevant for any given input query. Trajectories with very different initial conditions than the query input should be safe to ignore, leaving only a subset of relevant trajectories to use for training. This way, the exact \acrshort{gp} formulation can still be used.
 In this thesis, the training trajectories are selected from the following requirements:
 \begin{enumerate}
     \item The initial position of the trajectory must be close to the queried position $\boldsymbol{x}_0$. In this thesis, a fixed threshold $\Delta \boldsymbol{x}$ is used.
@@ -30,7 +30,7 @@ In this thesis, the training trajectories are selected from the following requir
     \item The initial \acrshort{sog} must be close to the queried velocity $v_0$. In this thesis, a fixed threshold $\Delta v$ is used.
 \end{enumerate} 
 
-This is a very simplistic approach to clustering, as new \acrshort{gp}s needs to be trained for each query. A possible extensions to this work is to perform clustering beforehand, and train a \acrshort{gp} for each cluster instead. 
+This is a very simplistic approach to clustering, as new \acrshort{gp}s needs to be trained for each query. A possible extension to this work is to perform clustering beforehand and fit a \acrshort{gp} for each cluster instead. 
 
 \section{Implementation}
 The excact \acrshort{gp} formulation was implemented using the \texttt{GaussianProcessRegressor} from the popular Python library, \textit{sciki-learn} \cite{scikit-learn}. The library support all kernels introduced in \cref{chap:theory} and supports hyperparameter optimization using multiple restarts to avoid bad local optimas. 
@@ -39,7 +39,7 @@ The excact \acrshort{gp} formulation was implemented using the \texttt{GaussianP
 The kernel was selected after trial and error as the sum of a single \acrshort{rbf} kernel and a White kernel.
 
 \begin{equation}\label{eq:direct_gp_kernel}
-    k(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) = \sigma_0 k_0(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) + \sigma_2 \delta(i, j)
+    k(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) = \sigma_0 k_0(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) + \sigma_1 \delta(i, j)
 \end{equation}
 
 \begin{description}
@@ -47,22 +47,14 @@ The kernel was selected after trial and error as the sum of a single \acrshort{r
     \item[Independent noise $\delta(i, j)$] is a white kernel intended to model any remaining error as \acrshort{iid}.
 \end{description} 
 
-A wide range of other kernels were attempted, such as the Rational Quadratic and Matern class. None of these kernels performed consistently better than \cref{eq:direct_gp_kernel}. A sum of several \acrshort{rbf} kernels gave similar results, but were dropped after signs of overfitting. The current kernel was preferred due to its simplicity. 
+A wide range of other kernels was attempted, such as the Rational Quadratic and Matern class. None of these kernels performed consistently better than \cref{eq:direct_gp_kernel}. A sum of several \acrshort{rbf} kernels gave comparable results but was dropped after signs of overfitting. The current kernel was, in the end, preferred due to its simplicity. 
+
+\section{Alternative implementation: The SVGP}
+A separate implementation based on the \acrshort{svgp} was also attempted. The goal was to fit the \acrshort{gp} directly to the entire dataset, avoiding the need for selecting a representable subset. In addition, the goal was to see whether the \acrshort{svgp} was able to summarize the entire dataset sufficiently.
+
+For the \acrshort{svgp} implementation, the Python library \textit{GPFlow} \cite{GPflow2017} built on the well-known \textit{tensorflow} \cite{tensorflow2015-whitepaper} library was used. GPFlow has several implementations of approximate \acrshort{gp}s, including the \acrshort{svgp}. For optimization, the stochastic gradient descent optimizer \textit{ADAM} should be familiar for anyone working with Neural Networks. This optimizer was selected to optimize both the inducing variables as well as the hyperparameters through \textit{mini batching}. Mini Batching is an optimization technique used in combination with stochastic optimization, where a random subset of the training set is used in each iteration instead of the full dataset. This way, big datasets can be used to train the model.\todo[]{This is from memory, find a source}
 
 
 
-
-
-
-%For the \acrshort{svgp} implementation, the Python library \textit{GPFlow} \cite{GPflow2017} built on the well-known \textit{tensorflow} \cite{tensorflow2015-whitepaper} library was used. GPFlow has several implementations of approximate \acrshort{gp}s, including the \acrshort{svgp}. For optimization, the stochastic gradient descent optimizer \textit{ADAM} should be familiar for anyone working with Neural Networks. This optimizer was selected to optimize both the inducing variables as well as the hyperparameters through \textit{mini batching}. Mini Batching is an optimization technique used in combination with stochastic optimization, where a random subset of the training set is used in each iteration instead of the full dataset. This way, big datasets can be used to train the model.\todo[]{This is from memory, find a source}
-
-
-\section{Limitations}
-
-\subsection{Branching Trajectories}
-This approach works well for unimodal trajectory distribution, where there are only minor variations between the trajectories used for training. However, this approach can only express unimodal trajectory distributions due to the Gaussian assumption. In the case of branching trajectories, this method therefore fails as a single Gaussian distribution is attempting to describe several modes at once. The result is a prediction mean somewhere inbetween the branching trajectories and with large uncertainty. 
-
-\subsection{Independent Outputs}
-The current formulation assumes independent output dimensions.As a result, the model is unable to express any covariance between the two. In practice, this assumption turns out to be unrealistic as limits the uncertianty to fixed directions only. A better parametrization would perhaps be assume independent lateral and longitudinal components instead, similar to \cite{gp_ais_trajectory}. Decomposing into course and velocity would allow the model more fine-grained control to express uncertianty only in specific directions. Another approach could be to relax the assumption of independent output dimension, though it is unclear how this would be achieved in practice. 
 
 

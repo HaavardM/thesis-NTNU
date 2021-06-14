@@ -1,5 +1,5 @@
 \chapter{GP-EKF: Non-parametric dynamic system using AIS tracking data}
-One of the significant issues with the direct approach is the unimodal assumption of using a \acrshort{gp}. It works well as long as vessels agree on a specific trajectory but fails as soon as there are multiple branching trajectories. To solve this problem, a nonparametric dynamical model is proposed in this chapter and used to simulate vessel trajectories. This chapter was inspired by \cite{pedestrian,gpekf,vehicle_gp_prediction}.
+One of the significant issues with the direct approach is the unimodal assumption of using a \acrshort{gp}. It works well as long as vessels agree on a specific trajectory but fails as soon as there are multiple branching trajectories. A non-parametric dynamical model is proposed in this chapter and used to simulate vessel trajectories to solve this problem. This chapter was inspired by \cite{pedestrian,gpekf,vehicle_gp_prediction}.
 
 
 
@@ -13,7 +13,7 @@ The vessel trajectory $\boldsymbol{\mathcal{T}}$ can be expressed using the dyna
 The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. The output dimensions are assumed to be independent. 
 
 \begin{equation}\label{eq:gp_vec_field}
-\vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_x (\boldsymbol{\eta})\\ f_y (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(0, \; k(\boldsymbol{\eta}, \boldsymbol{\eta}')\big)
+\vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_x (\boldsymbol{\eta})\\ f_y (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(0 , \; k(\boldsymbol{\eta}, \boldsymbol{\eta}')\big)
 \end{equation}
 
 The pipeline for making predictions using available \acrshort{ais} data will now be introduced in greater detail, but can be summarized as:
@@ -125,8 +125,8 @@ Given the predicted state $\hat{\boldsymbol{x}}_t$, any real measurement is expe
     \hat{\boldsymbol{z}}_t \sim \mathcal{N}(\hat{\boldsymbol{x}}_t, \boldsymbol{S}_{t}) = \mathcal{N}(\hat{\boldsymbol{x}}_t, \hat{\boldsymbol{P}}_t + \boldsymbol{R})
 \end{equation}
 
-There is also the possibility that none of the measurements originated from the target and all observations are clutter. The choice of a good clutter model is a complicated topic, but the Poisson clutter model is used in this thesis. As the measurements are not actual measurements from the target, it is difficult to assign meaning to any clutter model. It, therefore, simply boils down to which parameters need to be tuned \footnote{The trajectory prediction is here considered to be target tracking of future position. The clutter parameters, therefore, need to be interpreted in the context of target tracking, not trajectory prediction.} and the Poisson clutter model should already be familiar to anyone with experience in target tracking.
-According to the Poisson clutter model, the association probabilities are given by \cref{eq:pdaf_clutter_association_prob} \cite{sensorfusjon}, where $a_t$ is a discrete variable following a Categorical distribution where $a_t=k > 0$ denotes that measurement $k$ originated from the target. $a_t = 0$ is the special case when none of the measurements originated from the target, i.e., the predicted state should not be updated. $Z$ here denotes a matrix of all the measurements (positions) available in the training data and is independent of time, i.e., all measurements are always potential candidates. $\lambda$ denotes the clutter rate, and $P_D$ denotes the probability of detecting the target vessel.
+There is also the possibility that none of the measurements originated from the target and all observations are clutter. A good clutter model is a complicated topic, but the Poisson clutter model is used in this thesis. As the measurements are not actual measurements from the target, it is difficult to assign meaning to any clutter model. It, therefore, simply boils down to which parameters need to be tuned \footnote{The trajectory prediction is here considered to be target tracking of future position. The clutter parameters, therefore, need to be interpreted in the context of target tracking, not trajectory prediction.} and the Poisson clutter model should already be familiar to anyone with experience in target tracking.
+According to the Poisson clutter model, the association probabilities are given by \cref{eq:pdaf_clutter_association_prob} \cite{sensorfusjon}, where $a_t$ is a discrete variable following a Categorical distribution where $a_t=k > 0$ denotes that measurement $k$ originated from the target. $a_t = 0$ is the special case when none of the measurements originated from the target, i.e., the predicted state should not be updated. $Z$ denotes a matrix of all the measurements (positions) available in the training data and is independent of time, i.e., all measurements are always potential candidates. $\lambda$ denotes the clutter rate, and $P_D$ denotes the probability of detecting the target vessel.
 \begin{equation}\label{eq:pdaf_clutter_association_prob}
     \Pr\{a_t | Z\} \propto \begin{cases}
         \lambda (1 - P_D)                                                                 & a_t = 0 \\
@@ -167,7 +167,7 @@ Moment reduction is then used to combined the different hypothesises into a sing
     \end{align}
 \end{subequations}
 
-While available measurement could be used at each timestep, it is in practice more convenient only to include a subset which is close enough to the predicted state. As this measurement \textit{gate} should scale with the uncertainty, the gated subset is selected as \cref{eq:pdaf_gate} where $g$ is the number of standard deviations the method should consider.
+While available measurement could be used at each timestep, it is in practice more convenient only to include a subset that is close enough to the predicted state. As this measurement \textit{gate} should scale with the uncertainty, the gated subset is selected as \cref{eq:pdaf_gate} where $g$ is the number of standard deviations the method should consider.
 
 \begin{equation} \label{eq:pdaf_gate}
     \mathcal{G} = \big\{ \boldsymbol{z} \; | \; (\boldsymbol{z} - \hat{\boldsymbol{x}}_t)^\intercal S^{-1} (\boldsymbol{z} - \hat{\boldsymbol{x}}_t) < g^2 \big\}
@@ -193,14 +193,14 @@ By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in 
 \end{figure}
 
 \subsubsection{Tuning PDAF parameters}
-The model should primarily trust the prediction model, as it would otherwise get stuck as the measurements do not change over time. As the measurements do not originate from the target vessel, it is also expected to be a lot of noise in the measurements themselves. In practice, the tuning boils down to using a significant measurement noise $\boldsymbol{R}$ and a relatively low detection probability $P_D$ before tuning the clutter rate to achieve good results.
+The model should primarily trust the prediction model, as it would get stuck as the measurements do not change over time. As the measurements do not originate from the target vessel, it is also expected to be a lot of noise in the measurements themselves. In practice, the tuning boils down to using a significant measurement noise $\boldsymbol{R}$ and a relatively low detection probability $P_D$ before tuning the clutter rate to achieve good results.
 
 However, finding a set of parameters that works well across different trajectories turns out to be challenging. Parameters that improve the prediction for one trajectory may do more harm than good on another. The performance of using PDAF will be explored further in \cref{chap:stat_testing}.
 
 \subsection{Simulating trajectories using Gaussian Process Sequential Monte Carlo}
-The Kalman-based prediction scheme proposed in the previous section works well as long as a single Gaussian distribution can sufficiently explain the uncertainty. However, in branching trajectories, minor differences in position early in the predicted trajectory might have significant effects on the following predictions. The result is a multimodal trajectory distribution, which a Kalman-based approach is not able to express.
+The Kalman-based prediction scheme proposed in the previous section works well as long as a single Gaussian distribution can sufficiently explain the uncertainty. However, in branching trajectories, minor differences in position early in the predicted trajectory might significantly affect the following predictions. The result is a multimodal trajectory distribution, which a Kalman-based approach is not able to express.
 
-Inspired by the prediction step used by \textit{particle filters} \cite{sensorfusjon}, the idea of sampling trajectories can be used to explore the multimodal trajectory distribution. While inspired by the particle filter, this approach will from now on be referred to as \textit{Sequential Monte-Carlo} to avoid confusion\footnote{An important part of the particle filter is weighting the particles based on available measurements. As only sampling of trajectories is performed, Sequential Monte-Carlo seems like a better fit.}. and to follow the same naming convention as used by \cite{pedestrian}.
+Inspired by the prediction step used by \textit{particle filters} \cite{sensorfusjon}, the idea of sampling trajectories can be used to explore the multimodal trajectory distribution. While inspired by the particle filter, this approach will from now on be referred to as \textit{Sequential Monte-Carlo} to avoid confusion\footnote{a vital part of the particle filter is weighting the particles based on available measurements. As only sampling of trajectories is performed, Sequential Monte-Carlo seems like a better fit.}. and to follow the same naming convention as used by \cite{pedestrian}.
 
 The derivation of the Sequential Monte-Carlo approach is embarrassingly simple as this method trades high computational complexity for more straightforward mathematics. Instead of analytical propagation of uncertainty, many trajectories are simulated through random sampling and used to express the uncertainty empirically. The uncertainty for any trajectory distribution can be described, though at the cost of considerable computational complexity.
 $N$ different trajectories are initialized with similar initial conditions. The trajectories are then simulated by drawing independent increments from $\vec{f}$ using the approach described in \cref{sec:gp_samples}, conditioned on the current state of each trajectory. The result is visualized in \cref{fig:gp_particle} for $N=500$ trajectories.
@@ -225,13 +225,13 @@ As $\vec{f}$ models the speed, rather than the position of the trajectories, the
 \end{align}
 
 
-However, in practice, the dataset contains several contradicting trajectories. In a given area, vessels may move in opposite directions or with vastly different speeds. Therefore, the data is clustered based on the trajectories' initial conditions and the appropriate cluster for prediction is selected using the target vessel's current position, \acrshort{cog} and \acrshort{sog}. A very simple pipeline is used in this thesis to cluster relevant trajectories for training, given the vessel's current state:
-\begin{enumerate}
-    \item The distance between the target vessel and the initial position of the training trajectories must be less than $1000$ meters.
-    \item The initial \acrshort{cog} of the training trajectories must be within $\pm 10^\circ$.
-    \item The initial \acrshort{sog} of the training trajectories must be within $\pm 5$ knots.
-\end{enumerate}
+However, in practice, the dataset contains several contradicting trajectories. In a given area, vessels may move in opposite directions or with vastly different speeds. Therefore, the data is clustered based on the trajectories' initial conditions, and the appropriate cluster for prediction is selected using the target vessel's current position, \acrshort{cog} and \acrshort{sog}. A straightforward pipeline is used in this thesis to cluster relevant trajectories for training, given the vessel's current state. Note that this is the same pipeline used in \cref{chap:direct_gp}, but is restated here for completeness.
 
+\begin{enumerate}
+    \item The initial position of the trajectory must be close to the queried position $\boldsymbol{x}_0$. In this thesis, a fixed threshold $\Delta \boldsymbol{x}$ is used.
+    \item The initial \acrshort{cog} must be close to the queried heading $\mathcal{X}_0$. In this thesis, a fixed threshold $\Delta \mathcal{X}$ is used. 
+    \item The initial \acrshort{sog} must be close to the queried velocity $v_0$. In this thesis, a fixed threshold $\Delta v$ is used.
+\end{enumerate} 
 
 \subsection{Choice of kernel}
 The kernel was, after trial and error, selected as the sum of three kernels. This kernel attempts to model the data as a combination of a long-term trend, dependent noise, and independent noise
@@ -251,7 +251,7 @@ The kernel was, after trial and error, selected as the sum of three kernels. Thi
 Independent lengthscales are used for each of the elements in $\boldsymbol{\eta}$, which in total yields $9$ hyperparameters to select. The hyperparameters are optimized using the \acrshort{ml} approach discussed in \cref{sec:gp_mle}. The implementation is readily available in the popular \textit{scikit-learn} \cite{scikit-learn} Python package. In order to avoid bad local optima, $10$ restarts with random initial conditions were used.
 
 \subsection{Alternative kernel choices}
-Several other kernels were also attempted. The kernels were compared using the $R^2$ score for the test set in order to compare how well the \acrshort{gp} is able to express the variability between trajectories using different kernels.
+Several other kernels were also attempted. The kernels were compared using the $R^2$ score for the test set in order to compare how well the \acrshort{gp} can express the variability between trajectories using different kernels.
 
 \begin{description}
     \item[\acrshort{rbf} + White] was only able to express the long-term trend of the trajectories, but was unable to express uncertainty due to local variations. In practice, the optimization was in several cases unable to converge towards good hyperparameters, indicating an issue with the kernel specification.
@@ -267,7 +267,7 @@ This chapter has so far introduced a lot of new concepts, so that it might be ni
     \item The raw \acrshort{ais} data is first grouped and sorted to get fixed-length trajectory vectors.
     \item Based on the target vessel's current state, such as position, \acrshort{cog} and \acrshort{sog}, trajectories with similar initial conditions is selected from the training set.
     \item Training inputs $\boldsymbol{\eta}$ and outputs $\boldsymbol{y}$ for $\vec{f}$ are generated from the training trajectories.
-    \item The kernel hyperparameters are optimized using \acrshort{ml} in order to find the parameters which best explains the training data.
+    \item The kernel hyperparameters are optimized using \acrshort{ml} to find the parameters which best explains the training data.
     \item The training data and kernel can then used to get the conditional distribution for $\vec{f}$.
     \item The \acrshort{ekf} procedure in \cref{alg:gp_ekf_prediction} is called repeatedly, using the current state of the target vessel as initial conditions. At each step, the \acrshort{pdaf} update procedure can be used as well if desired. Sequential Monte-Carlo can alternatively be used to simulate multimodal trajectories.
 \end{enumerate}

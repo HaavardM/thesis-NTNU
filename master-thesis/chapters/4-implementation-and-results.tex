@@ -8,7 +8,7 @@ The trajectory error is found by comparing the predicted position with the groun
 The path error is defined as the closest point in the predicted trajectory to each point in the ground truth, under the constraint that the corresponding predicted timestamps must be monotonically increasing. In other words, the path cannot move backward in time. Linear interpolation is used to get the path error at fixed timestamps to simplify the comparison.
 
 \subsection{Normalized Estimation Error Squared}
-In order for the uncertainty estimates to provide any value, it is important that the predictions are consistent. In this context, the term consistency is borrowed from the term \textit{filter consistency} used when tuning Kalman filters \cite{sensorfusjon}. The idea is that prediction errors, on average, should scale with the state covariance. In other words, the model should not place a lot of confidence in a prediction that is wrong while being highly confident when a prediction is correct. Consistency can also be interpreted using a frequentistic interpretation of probability, where after many predictions, the state uncertainty should reflect the actual error rate.
+For the uncertainty estimates to provide any value, the predictions must be consistent. In this context, the term consistency is borrowed from the term \textit{filter consistency} used when tuning Kalman filters \cite{sensorfusjon}. The idea is that prediction errors, on average, should scale with the state covariance. In other words, the model should not place a lot of confidence in a prediction that is wrong while being highly confident when a prediction is correct. Consistency can also be interpreted using a frequentistic interpretation of probability, where after many predictions, the state uncertainty should reflect the actual error rate.
 
 The \textit{\acrfull{nees}} is a metric that can be used to quantify consistency and is given by
 \begin{equation}
@@ -21,10 +21,10 @@ Assuming the prediction error follows a Gaussian distribution, the \acrshort{nee
 Linear interpolation is used to compare the metrics at fixed timestamps between samples. The error for short trajectories is not extrapolated.
 
 \subsection{Baseline - Constant Velocity Model}
-As a basis of comparison, the \textit{\acrfull{cvm}} method is used as a baseline. The model use the initial \acrshort{cog} and \acrshort{sog} to predict a straight line, where the vessel is assumed to keep a constant velocity and heading.
+As a basis of comparison, the \textit{\acrfull{cvm}} method is used as a baseline. The model uses the initial \acrshort{cog} and \acrshort{sog} to predict a straight line, where the vessel is assumed to keep a constant velocity and heading.
 
 \subsection{Sanitizing the dataset for a given test trajectory}
-Due to the way trajectories are generated from the \acrshort{ais} dataset, there will be large overlaps between trajectories. Dividing the trajectories into a train and test is insufficient, as parts of a test trajectory might also exist in the training set. Instead, the full dataset is available for training, but all trajectories with identical MMSI and date as the test trajectory are removed. The date requirement ensures that trajectories for the same vessel on any other day can be used for training.
+Due to the way trajectories are generated from the \acrshort{ais} dataset, there will be large overlaps between trajectories. Dividing the trajectories into a train and test is insufficient, as parts of a test trajectory might also exist in the training set. Instead, the full dataset is available for training, but all trajectories with identical MMSI and date as the test trajectory are removed. The date requirement ensures that trajectories for the same vessel can be used for training on any other day.
 
 \subsection{Straigth-line trajectories}
 The GP-EKF is first compared to the \acrshort{cvm} on simple straight-line trajectories. The GP-EKF should ideally perform identically or better than the \acrshort{cvm}.
@@ -45,6 +45,20 @@ The statistics are based on $350$ randomly sampled trajectories that satisfy the
     \item The sum of subsequent changes in \acrshort{cog} must be greater than $40$ degrees, i.e. $\sum_i |(\mathcal{X}_{t+1} - \mathcal{X}_t)| \geq 40^\circ$. This requirement ensures a straight-line trajectory.
     \item There must be sufficient data available for training in the neighborhood around the initial starting point, with similar initial heading and speed. After sanitizing the dataset and removing irrelevant trajectories, at least $3$ trajectories need to be available for training.
     \item The overall duration of the trajectories must be between $15$ and $30$ minutes.
+\end{enumerate}
+
+
+\section{The Methods}
+Both the direct \acrshort{gp} and the GP-EKF are used for testing.
+
+\subsection{GP-EKF}
+The GP-EKF is tested with and without the \acrshort{pdaf} update step to test whether there is any benefit of using the update step. The model is tested using both finite difference and the \acrshort{cog}/\acrshort{sog} from the \acrshort{ais} dataset. $4$ different GP-EKF instants are therefore included in this test.
+
+\subsection{Direct GP}
+Only the representable subset approach of the direct \acrshort{gp} approach is included in this testing for two reasons:
+\begin{enumerate}
+    \item All methods can use the same representative trajectories for training. As a result, it becomes easier to compare the different methods as the performance is not influenced by how the training data is selected.
+    \item The \acrshort{svgp} turned out to be very complicated to make work. Even after several hours of training, the model performed rather poorly, with unrealistic trajectory estimates. It was therefore decided that it was not worth the additional effort.
 \end{enumerate}
 
 \section{Results}
