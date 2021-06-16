@@ -1,5 +1,5 @@
 \chapter{Model trajectories directly using a Gaussian Process}\label{chap:direct_gp}
-The first method proposed is to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{x}_0$, \acrshort{cog} $\psi_0$ and \acrshort{sog} $v_0$ to a position at timestamp $\tau$ in the future. The method is formulated in mathematical terms in \cref{eq:gp_direct}. 
+The first method proposed is to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{x}_0$, \acrshort{cog} $\psi_0$ and \acrshort{sog} $v_0$ to a position at timestamp $\tau$ in the future. The method is formulated in mathematical terms in \cref{eq:gp_direct}. This will from now on be referred to as the \textit{Direct \acrshort{gp}} approach, as it directly utilizes a \acrshort{gp} to predict the trajectory. 
 
 \begin{subequations}\label{eq:gp_direct}
 \begin{align}
@@ -12,14 +12,14 @@ The model could then be queried about likely future positions by evaluating $\bo
 
 The conceptual benefits of this formulation include:
 \begin{description}
-    \item[Continuous formulation] The model directly models the position at any time $\tau$ and does not require discretization. It can therefore be queried for any continous timestamp $\tau$.
+    \item[Continuous formulation] The model directly models the position at any time $\tau$ and does not require discretization. It can therefore be queried for any continuous timestamp $\tau$.
     \item[Conceptually easy] This formulation directly expresses the unknown trajectory, making it conceptually simple to understand.
     \item[Simple Problem formulation] The model requires few components and builds directly on the \acrshort{gp}s introduced in \cref{chap:theory}.
     \item[Easy incorporation of available AIS data] The reported \acrshort{cog} and \acrshort{sog} can easily be incorporated into the similarity measure, utilizing more of the available data.
 \end{description}
 
 \section{Method}
-While simple, the formulation in \cref{eq:gp_direct} still leads to quite a lot of complexity due to the number of input parameters. The method formulation should, in theory, be able to express a wide range of trajectories, but in practice, the method is limited by the computational complexity.
+While simple, the formulation in \cref{eq:gp_direct} still leads to quite a lot of complexity due to the number of input parameters. The method formulation should, in theory, be able to express a wide range of different scenarios, but in practice, the method is limited by the computational complexity.
 
 \subsection{Selecting representable trajectories for training}
 The kernel matrix $K$ for all available data will be approximately sparse. Only a subset of the \acrshort{ais} data is relevant for any given input query. Trajectories with very different initial conditions than the query input should be safe to ignore, leaving only a subset of relevant trajectories to use for training. This way, the exact \acrshort{gp} formulation can still be used.
@@ -28,33 +28,23 @@ In this thesis, the training trajectories are selected from the following requir
     \item The initial position of the trajectory must be close to the queried position $\boldsymbol{x}_0$. In this thesis, a fixed threshold $\Delta \boldsymbol{x}$ is used.
     \item The initial \acrshort{cog} must be close to the queried heading $\mathcal{X}_0$. In this thesis, a fixed threshold $\Delta \mathcal{X}$ is used. 
     \item The initial \acrshort{sog} must be close to the queried velocity $v_0$. In this thesis, a fixed threshold $\Delta v$ is used.
+    \item If there are more than $N$ samples in the training set, then the samples are picked from the trajectories with the closest initial position. 
 \end{enumerate} 
 
 This is a very simplistic approach to clustering, as new \acrshort{gp}s needs to be trained for each query. A possible extension to this work is to perform clustering beforehand and fit a \acrshort{gp} for each cluster instead. 
 
-\section{Implementation}
-The excact \acrshort{gp} formulation was implemented using the \texttt{GaussianProcessRegressor} from the popular Python library, \textit{sciki-learn} \cite{scikit-learn}. The library support all kernels introduced in \cref{chap:theory} and supports hyperparameter optimization using multiple restarts to avoid bad local optimas. 
-
 \subsection{Choice of Kernel}
-The kernel was selected after trial and error as the sum of a single \acrshort{rbf} kernel and a White kernel.
+
+A good kernel choice was, after trial and error, found to be the sum of a two \acrshort{rbf} kernel and a White kernel. This gave the model some additional flexibility over a single \acrshort{rbf} kernel, which resulted in better predictions.
 
 \begin{equation}\label{eq:direct_gp_kernel}
-    k(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) = \sigma_0 k_0(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) + \sigma_1 \delta(i, j)
+    k(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) = \sigma_0 k_0(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) + \sigma_1 k_1(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) +  \sigma_2 \delta(i, j)
 \end{equation}
 
 \begin{description}
     \item[Long term trend $k_0$] is a \acrshort{rbf} kernel intended to cover the long-term behavior of the trajectories, i.e., a smooth component describing the overall trend of the trajectories. The lengthscales of this kernel are assumed to be large.
+    \item[Dependent noise $k_1$] is a \acrshort{rbf} kernel intended to model the variability between different trajectories not well explained by $k_0$. The lengthscales are assumed to be short.
     \item[Independent noise $\delta(i, j)$] is a white kernel intended to model any remaining error as \acrshort{iid}.
 \end{description} 
 
-A wide range of other kernels was attempted, such as the Rational Quadratic and Matern class. None of these kernels performed consistently better than \cref{eq:direct_gp_kernel}. A sum of several \acrshort{rbf} kernels gave comparable results but was dropped after signs of overfitting. The current kernel was, in the end, preferred due to its simplicity. 
-
-\section{Alternative implementation: The SVGP}
-A separate implementation based on the \acrshort{svgp} was also attempted. The goal was to fit the \acrshort{gp} directly to the entire dataset, avoiding the need for selecting a representable subset. In addition, the goal was to see whether the \acrshort{svgp} was able to summarize the entire dataset sufficiently.
-
-For the \acrshort{svgp} implementation, the Python library \textit{GPFlow} \cite{GPflow2017} built on the well-known \textit{tensorflow} \cite{tensorflow2015-whitepaper} library was used. GPFlow has several implementations of approximate \acrshort{gp}s, including the \acrshort{svgp}. For optimization, the stochastic gradient descent optimizer \textit{ADAM} should be familiar for anyone working with Neural Networks. This optimizer was selected to optimize both the inducing variables as well as the hyperparameters through \textit{mini batching}. Mini Batching is an optimization technique used in combination with stochastic optimization, where a random subset of the training set is used in each iteration instead of the full dataset. This way, big datasets can be used to train the model.\todo[]{This is from memory, find a source}
-
-
-
-
-
+A wide range of other kernels was attempted, such as the Rational Quadratic and Matern class. None of these kernels performed consistently better than \cref{eq:direct_gp_kernel}. The current kernel is preferred due to its simplicity. 

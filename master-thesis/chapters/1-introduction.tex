@@ -1,5 +1,10 @@
 \chapter{Introduction}
 % Something about the need for long-term prediction of vessel trajectories
+A robust \textit{\acrfull{colav}} system is an essential component of an autonomous vessel or vehicle operating in any human environment. This motivates the need for situational awareness, as the vessel needs to be aware of how future situations might unfold to make good choices. A crucial part of such situational awareness is how the vessel can predict the future behavior of nearby vessels. 
+
+A common approach for autonomous vessels today is to assume constant speed and course. It is a reasonable solution on the open sea, where larger vessels tend to move in a straight line for extended periods of time. However, it quickly fails when vessels are navigating in constrained areas such as fjords or close to shore.    
+
+
 % Something about Big Data AIS - the availability of data
 % Something about how we define long-term trajectory prediction
 \section{The Need For Quantifying Uncertianty}
@@ -18,13 +23,13 @@ The ability of a model to express uncertainty is therefore crucial. Ideally, the
 %.... somnething about why these previous fails
 
 \section{Thesis Structure}
-The Gaussian Process will be presented in the first chapter. Inspired by the excellent introduction in \cite{rasmussen}, the reasoning, intuition, and mathematics behind the Gaussian Process will be explored to lay the necessary foundation for the rest of this thesis. A basic understanding of calculus, statistics, and probability theory is assumed, but all necessary subjects are otherwise introduced.  
+The Gaussian Process will be presented in the first chapter. The chapter is inspired by the excellent introduction from \cite{rasmussen}, and the reasoning, intuition, and mathematics behind the Gaussian Process will be explored to lay the necessary foundation for the rest of this thesis. A basic understanding of calculus, statistics, and probability theory is assumed, but all necessary subjects are otherwise introduced.  
 
 Once the foundation for the Gaussian Processes has been covered, the next chapters will move on to the different ways they can be applied to the long-term prediction problem. In the following chapter, the first approach is introduced, where a vessel's trajectory is described as a function of time and modeled directly as a Gaussian Process. This method is similar to interpolating and averaging similar trajectories, though with the added benefit of quantifying the uncertainty.
 
-The following chapter then continues with a more indirect approach. The Gaussian Process is used as part of a dynamical system and then simulated iteratively to get the trajectories. This method is inspired by the work in \cite{pedestrian,gpekf}, and can be seen as an extension of the Kalman filter. Familiarity with sensor-fusion methods is beneficial but not required to follow the derivations.
+The following chapter then continues with a more indirect approach. The Gaussian Process is used as part of a dynamical system and then simulated iteratively to get the trajectories. This method is inspired by the work in \cite{pedestrian,gpekf}, and can be seen as an extension of the Kalman filter. Again, familiarity with sensor-fusion methods is beneficial but not required to follow the derivations.
 
-Once the methods are introduced in their respective chapter, statistical analysis of the methods will be performed. Both methods are applied on a real \acrshort{ais} dataset, and the results are compared to a simple, constant velocity model.  We will consider both the empirical results as well the more theoretical strengths and weaknesses. 
+Once the methods are introduced in their respective chapter, statistical analysis of the methods will be performed. Finally, both methods are applied on a real \acrshort{ais} dataset, and the results are compared to a simple, constant velocity model.  We will consider both the empirical results as well the more theoretical strengths and weaknesses. 
 
 Finally, we will summarize our findings, as well as discuss possible extensions to this work.
 

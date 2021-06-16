@@ -8,7 +8,7 @@ The trajectory error is found by comparing the predicted position with the groun
 The path error is defined as the closest point in the predicted trajectory to each point in the ground truth, under the constraint that the corresponding predicted timestamps must be monotonically increasing. In other words, the path cannot move backward in time. Linear interpolation is used to get the path error at fixed timestamps to simplify the comparison.
 
 \subsection{Normalized Estimation Error Squared}
-For the uncertainty estimates to provide any value, the predictions must be consistent. In this context, the term consistency is borrowed from the term \textit{filter consistency} used when tuning Kalman filters \cite{sensorfusjon}. The idea is that prediction errors, on average, should scale with the state covariance. In other words, the model should not place a lot of confidence in a prediction that is wrong while being highly confident when a prediction is correct. Consistency can also be interpreted using a frequentistic interpretation of probability, where after many predictions, the state uncertainty should reflect the actual error rate.
+For the uncertainty estimates to provide any value, the predictions must be consistent. In this context, the term consistency is borrowed from the term \textit{filter consistency} used when tuning Kalman filters \cite{sensorfusjon}. The idea is that prediction errors, on average, should scale with the state covariance. In other words, the model should not place much confidence in a prediction that is wrong while being highly confident when a prediction is correct. Consistency can also be interpreted using a frequentistic interpretation of probability, where after many predictions, the state uncertainty should reflect the actual error rate.
 
 The \textit{\acrfull{nees}} is a metric that can be used to quantify consistency and is given by
 \begin{equation}
@@ -24,11 +24,11 @@ Linear interpolation is used to compare the metrics at fixed timestamps between 
 As a basis of comparison, the \textit{\acrfull{cvm}} method is used as a baseline. The model uses the initial \acrshort{cog} and \acrshort{sog} to predict a straight line, where the vessel is assumed to keep a constant velocity and heading.
 
 \subsection{Sanitizing the dataset for a given test trajectory}
-Due to the way trajectories are generated from the \acrshort{ais} dataset, there will be large overlaps between trajectories. Dividing the trajectories into a train and test is insufficient, as parts of a test trajectory might also exist in the training set. Instead, the full dataset is available for training, but all trajectories with identical MMSI and date as the test trajectory are removed. The date requirement ensures that trajectories for the same vessel can be used for training on any other day.
+Due to the way trajectories are generated from the \acrshort{ais} dataset, there will be large overlaps between trajectories. Therefore, dividing the trajectories into a train and test is insufficient, as parts of a test trajectory might also exist in the training set. Instead, the entire dataset is available for training, but all trajectories with identical MMSI and date as the test trajectory are removed. The date requirement ensures that trajectories for the same vessel can be used for training on any other day.
 
 \subsection{Straigth-line trajectories}
 The GP-EKF is first compared to the \acrshort{cvm} on simple straight-line trajectories. The GP-EKF should ideally perform identically or better than the \acrshort{cvm}.
-The statistics are based on $350$ randomly sampled trajectories without replacement that satisfy the following requirements:
+The statistics are based on $350$ randomly sampled trajectories without replacement that satisfies the following requirements:
 \begin{enumerate}
     \item The sum of subsequent changes in \acrshort{cog} must be less than $30$ degrees, i.e. $\sum_i |(\mathcal{X}_{t+1} - \mathcal{X}_t)| \leq 30^\circ$. This requirement ensures a straight-line trajectory.
     \item There must be sufficient data available for training in the neighborhood around the initial starting point, with similar initial heading and speed. After sanitizing the dataset and removing irrelevant trajectories, at least $3$ trajectories need to be available for training.
@@ -48,21 +48,49 @@ The statistics are based on $350$ randomly sampled trajectories that satisfy the
 \end{enumerate}
 
 
-\section{The Methods}
-Both the direct \acrshort{gp} and the GP-EKF are used for testing.
+\section{Method implementation}
+The implementation details for each of the methods are described in this section.
 
 \subsection{GP-EKF}
 The GP-EKF is tested with and without the \acrshort{pdaf} update step to test whether there is any benefit of using the update step. The model is tested using both finite difference and the \acrshort{cog}/\acrshort{sog} from the \acrshort{ais} dataset. $4$ different GP-EKF instants are therefore included in this test.
 
+The GP-EKF required more flexibility during development. Due to the need for calculating the gradient $\frac{\delta \vec{f}}{\delta \boldsymbol{x}}$, it became impractical to use existing \acrshort{gp} implementations. Due to the simple implementation of \cref{alg:gp_prediction}, it was easier to implement it from the ground up.
+The GP-EKF was therefore implemented directly in Python using only \textit{scipy}\cite{scipy} and \textit{numpy}\cite{numpy} to speed up linear algebra routines. The Cholesky decomposition in \cref{alg:gp_prediction} was computed using \texttt{scipy.linalg.cho\_factor}, which calls a highly optimized LAPACK routine. Similarily, \texttt{scipy.linalg.solve\_\-trianglular} was used to solve the lower triangular system of equations by forward substitution. The implementation of GP-EKF and the \acrshort{pdaf} update was then straightforward using the equations introduced in this chapter.
+
+The hyperparameters were tuned using the \acrshort{gp} implementation in the popular \textit{scikit-learn} \cite{scikit-learn} Python package. $10$ random restarts were used during optimization to reduce the risk of bad local minima. Due to the wide variety of different scenarios on the training set, the hyperparameters are optimized for each iteration of the simulation. This way, the robustness of the optimization is indirectly tested, as any instance of a bad local optima is included in the results.
+
+The remaining parameters not found through \acrshort{ml} were tuned through trial and error on a few different trajectories.
+The initial state uncertainty is set to $\boldsymbol{P}_0 = 500^2 \cdot \boldsymbol{I}$, which was found to work well during development. The \acrshort{pdaf} parameters are available in \cref{table:stats_pdaf_params}.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{lll}
+        \textit{\textbf{Parameter}} &                  & \textit{\textbf{Value}}      \\ \hline
+        Measurement noise           & $\boldsymbol{R}$ & $200^2 \cdot \boldsymbol{I}$ \\
+        Detection Probability       & $p_D$            & $0.8$                        \\
+        Clutter Rate                & $\lambda$        & $10^{-3}$                    \\
+        Gate Size                   & $g$              & $2$
+    \end{tabular}
+    \caption{Parameters used for \acrshort{pdaf} update}
+    \label{table:stats_pdaf_params}
+\end{table}
+
+
 \subsection{Direct GP}
-Only the representable subset approach of the direct \acrshort{gp} approach is included in this testing for two reasons:
+The excact \acrshort{gp} formulation was implemented using the \texttt{GaussianProcessRegressor} from the popular Python library, \textit{sciki-learn} \cite{scikit-learn}. The library support all kernels introduced in \cref{chap:theory} and supports hyperparameter optimization using multiple restarts to avoid bad local optimas.
+
+
+%For the \acrshort{svgp} implementation, the Python library \textit{GPFlow} \cite{GPflow2017} built on the well-known \textit{tensorflow} \cite{tensorflow2015-whitepaper} library was used. GPFlow has several implementations of approximate \acrshort{gp}s, including the \acrshort{svgp}. For optimization, the stochastic gradient descent optimizer \textit{ADAM} should be familiar for anyone working with Neural Networks. This optimizer was selected to optimize both the inducing variables as well as the hyperparameters through \textit{mini batching}. Mini Batching is an optimization technique used in combination with stochastic optimization, where a random subset of the training set is used in each iteration instead of the full dataset. This way, big datasets can be used to train the model.\todo[]{This is from memory, find a source} 
+
+Only the exact formulation of the direct \acrshort{gp} approach is included in the following testing for two reasons:
 \begin{enumerate}
     \item All methods can use the same representative trajectories for training. As a result, it becomes easier to compare the different methods as the performance is not influenced by how the training data is selected.
-    \item The \acrshort{svgp} turned out to be very complicated to make work. Even after several hours of training, the model performed rather poorly, with unrealistic trajectory estimates. It was therefore decided that it was not worth the additional effort.
+    \item The \acrshort{svgp} turned out to be very complicated to make work. Even after several hours of training, the model performed rather poorly, with unrealistic trajectory estimates. It was decided that it was not worth the additional effort of performing statistical testing.
 \end{enumerate}
 
 \section{Results}
-The results for straight-line and curved trajectories are available in \cref{table:stats_straight_line_error} and \cref{table:stats_curved_error} respectively. \todo[]{add examples in appendix?}. As expected, the \acrshort{cvm} method performs well on the straight-line trajectories, while struggles on the curved trajectories.
+The results for straight-line and curved trajectories are available in \cref{table:stats_straight_line_error} and \cref{table:stats_curved_error} respectively. \todo[]{add examples in appendix?}.
+
 \begin{table}
     \begin{subtable}{\textwidth}
         \makebox[\textwidth][c]{
@@ -129,19 +157,19 @@ The results for straight-line and curved trajectories are available in \cref{tab
                         &                & Time [Minutes]    & 5    & 10   & 15   & 20    & 25    \\
                 Summary & Method         & Training Source   &      &      &      &       &       \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS  & 1282 & 3238 & 6127 & 10066 & 14604 \\
-                        & Direct GP      & Position          & 490  & 736  & 889  & 893   & 979   \\
-                        & GP-EKF         & COG/SOG from AIS  & 787  & 1614 & 2331 & 2909  & 3520  \\
-                        &                & Finite Difference & 709  & 1392 & 1835 & 2242  & 2380  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 722  & 1449 & 1986 & 2290  & 2310  \\
-                        &                & Finite Difference & 724  & 1355 & 1752 & 2098  & 2233  \\
+                Mean    & CVM            & COG/SOG from AIS  & 1944 & 4241 & 7093 & 10551 & 13532 \\
+                        & Direct GP      & Position          & 218  & 340  & 482  & 537   & 528   \\
+                        & GP-EKF         & COG/SOG from AIS  & 390  & 884  & 1511 & 2338  & 3697  \\
+                        &                & Finite Difference & 427  & 830  & 1203 & 1383  & 1262  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 303  & 530  & 723  & 838   & 948   \\
+                        &                & Finite Difference & 378  & 583  & 757  & 910   & 1127  \\
                 \midrule
-                Median  & CVM            & COG/SOG from AIS  & 875  & 2605 & 5419 & 10325 & 15008 \\
-                        & Direct GP      & Position          & 233  & 381  & 479  & 531   & 644   \\
-                        & GP-EKF         & COG/SOG from AIS  & 614  & 1258 & 1949 & 2521  & 3603  \\
-                        &                & Finite Difference & 512  & 982  & 1582 & 2049  & 2162  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 525  & 1101 & 1461 & 1457  & 1829  \\
-                        &                & Finite Difference & 534  & 922  & 1527 & 1890  & 2168  \\
+                Median  & CVM            & COG/SOG from AIS  & 1597 & 3630 & 6290 & 9629  & 12795 \\
+                        & Direct GP      & Position          & 113  & 166  & 227  & 259   & 276   \\
+                        & GP-EKF         & COG/SOG from AIS  & 238  & 530  & 994  & 1701  & 3108  \\
+                        &                & Finite Difference & 294  & 631  & 960  & 1254  & 1020  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 197  & 305  & 376  & 554   & 581   \\
+                        &                & Finite Difference & 270  & 379  & 432  & 543   & 667   \\
                 \bottomrule
             \end{tabular}
         }
@@ -153,22 +181,22 @@ The results for straight-line and curved trajectories are available in \cref{tab
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
                 \toprule
-                        &                & Time [Minutes]    & 5   & 10   & 15   & 20   & 25   \\
-                Summary & Method         & Training Source   &     &      &      &      &      \\
+                        &                & Time [Minutes]    & 5   & 10  & 15   & 20   & 25   \\
+                Summary & Method         & Training Source   &     &     &      &      &      \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS  & 484 & 1383 & 2793 & 4494 & 6105 \\
-                        & Direct GP      & Position          & 323 & 409  & 456  & 514  & 662  \\
-                        & GP-EKF         & COG/SOG from AIS  & 267 & 671  & 1383 & 2046 & 2870 \\
-                        &                & Finite Difference & 400 & 615  & 742  & 723  & 565  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 259 & 565  & 1054 & 1466 & 1678 \\
-                        &                & Finite Difference & 412 & 594  & 704  & 682  & 538  \\
+                Mean    & CVM            & COG/SOG from AIS  & 242 & 589 & 1148 & 1841 & 2590 \\
+                        & Direct GP      & Position          & 106 & 172 & 256  & 259  & 301  \\
+                        & GP-EKF         & COG/SOG from AIS  & 175 & 346 & 677  & 1110 & 1885 \\
+                        &                & Finite Difference & 218 & 354 & 501  & 458  & 330  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 157 & 266 & 374  & 429  & 666  \\
+                        &                & Finite Difference & 205 & 308 & 407  & 519  & 770  \\
                 \midrule
-                Median  & CVM            & COG/SOG from AIS  & 188 & 776  & 1867 & 3671 & 6797 \\
-                        & Direct GP      & Position          & 92  & 161  & 180  & 192  & 276  \\
-                        & GP-EKF         & COG/SOG from AIS  & 114 & 323  & 863  & 1340 & 2555 \\
-                        &                & Finite Difference & 227 & 398  & 481  & 437  & 344  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 130 & 264  & 512  & 789  & 916  \\
-                        &                & Finite Difference & 274 & 389  & 458  & 403  & 363  \\
+                Median  & CVM            & COG/SOG from AIS  & 106 & 343 & 751  & 1515 & 2350 \\
+                        & Direct GP      & Position          & 39  & 60  & 72   & 100  & 106  \\
+                        & GP-EKF         & COG/SOG from AIS  & 71  & 166 & 402  & 751  & 1715 \\
+                        &                & Finite Difference & 123 & 231 & 312  & 329  & 241  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 77  & 101 & 113  & 179  & 388  \\
+                        &                & Finite Difference & 121 & 189 & 219  & 257  & 309  \\
                 \bottomrule
             \end{tabular}
         }
@@ -179,44 +207,41 @@ The results for straight-line and curved trajectories are available in \cref{tab
     \label{table:stats_curved_error}
 \end{table}
 
-
-\subsection{Comparing direct GP to CVM}
 \begin{figure}
     \centering
     \makebox[\textwidth][c]{
         \begin{subfigure}{0.65\textwidth}
-            \includegraphics[width=\textwidth]{figures/straight_line_stats/gp_vs_cvm_1.pdf}
-            \caption{Straight-Line Trajectories}
+            \includegraphics[width=\textwidth]{figures/straight_line_stats/gp_vs_cvm_3.pdf}
         \end{subfigure}
         \begin{subfigure}{0.65\textwidth}
-            \includegraphics[width=\textwidth]{figures/curved_line_stats/gp_vs_cvm_1.pdf}
-            \caption{Curved Trajectories}
+            \includegraphics[width=\textwidth]{figures/straight_line_stats/gp_vs_cvm_1.pdf}
         \end{subfigure}
+
     }
-    \caption{The direct GP compared to the GP-EKF method on $350$ random trajectories. On straight-line trajectories, the GP-EKF performs slighty better. The direct GP approach do, however, perform significantly better on curved trajectories.}
-    \label{fig:stats_posgp_cvm}
+    \caption{GP-EKF and direct GP compared to the \acrshort{cvm} method on $350$ random \textbf{straight-line} trajectories. The GP-EKF performs slightly better, though both methods perform better than the \acrshort{cvm}, especcially on long-term predictions.}
+    \label{fig:stats_curved_vs_cvm}
 
     \vspace{0.5cm}
 
     \makebox[\textwidth][c]{
-        \begin{subfigure}{0.65\textwidth}
-            \includegraphics[width=\textwidth]{figures/straight_line_stats/gp_vs_cvm_3.pdf}
-            \caption{Straight-Line Trajectories}
-        \end{subfigure}
+
         \begin{subfigure}{0.65\textwidth}
             \includegraphics[width=\textwidth]{figures/curved_line_stats/gp_vs_cvm_3.pdf}
-            \caption{Curved Trajectories}
+        \end{subfigure}
+        \begin{subfigure}{0.65\textwidth}
+            \includegraphics[width=\textwidth]{figures/curved_line_stats/gp_vs_cvm_1.pdf}
         \end{subfigure}
     }
-    \caption{GP-EKF compared to the CVM method on $350$ random trajectories. As expected, the \acrshort{cvm} yields large trajectory errors on curved trajectories. The GP-EKF performs consistently better, with lower median error as well as lower spread. However, on straight-line trajectories, the methods behave comparably.}
-    \label{fig:stats_gp_ekf_cvm}
+    \caption{GP-EKF and direct \acrshort{gp} compared to the CVM method on $350$ random \textbf{curved} trajectories. Both methods perform considerly better than the \acrshort{cvm}, and the direct \acrshort{gp} performs the best with low trajectory error and low spread.}
+    \label{fig:stats_straight_vs_cvm}
 \end{figure}
-The Direct GP approach performs slightly worse than the \acrshort{cvm} on straight-line trajectories, while it performs significantly better on curved trajectories, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_gp_ekf_cvm}.
 
-\subsection{Comparing GP-EKF to CVM}
-The GP-EKF approach performs significantly better than the \acrshort{cvm} on curved trajectories, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_gp_ekf_cvm}.
+\subsection{Straight-line trajectories}
+As expected, the \acrshort{cvm} performs well on straight-line trajectories. As seen in \cref{fig:stats_straight_vs_cvm}, both the direct \acrshort{gp} approach and the GP-EKF performs slightly better than the \acrshort{cvm} on straight-line trajectories. By
 
-\subsection{Comparing Direct GP to GP-EKF}
+\subsection{Curved Trajectories}
+The GP-EKF approach performs significantly better than the \acrshort{cvm} on curved trajectories, with overall lower spread and median trajectory error as depicted in \cref{fig:stats_curved_vs_cvm}.
+
 \begin{figure}
     \centering
     \makebox[\textwidth][c]{
@@ -233,7 +258,6 @@ The GP-EKF approach performs significantly better than the \acrshort{cvm} on cur
     \label{fig:stats_direct_gp_vs_ekf_cvm}
 \end{figure}
 
-\subsection{Effect of the PDAF update}
 \begin{figure}[h]
     \centering
     \makebox[\textwidth][c]{
