@@ -1,6 +1,13 @@
 \chapter{Discussion}\label{chap:discussion}
 
 
+\section{A single, global kernel}
+Finding a good kernel that works well across a wide range of scenarios turns out to be challenging. For vessel's moving along the traffic-lanes, simple kernels are preferred as the underlying function is sufficiently highly smooth. The simple kernels behaves a lot more predictably, though perhaps being unrealisticly smooth at times. 
+
+More specialized vessels, such as local ferries, requires more complicated kernels to perform well. These vessel's move a lot more chaotic patterns and is harder to predict due to the vessel's docking for short periods of time before moving back the same way they came. 
+
+The dataset used in this thesis
+
 \section{Independent Outputs}
 
 The formulation of vector-valued \acrshort{gp}s in this thesis assumes independent output dimensions. This choice was made to reduce some of the complexity, as \acrshort{gp}s with dependent outputs complicates the derivations, and there is not a lot of literature on how to select good kernels when the dimensions are dependent. As a result, the \acrshort{gp}s used in this thesis are unable to express any covariance between the outputs. 

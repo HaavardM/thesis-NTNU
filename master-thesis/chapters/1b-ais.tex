@@ -1,4 +1,4 @@
-\chapter{AIS}
+\chapter{AIS}\label{chap:ais}
 
 The \textit{\acrfull{ais}} is a vessel-to-vessel communication system, which allows a vessel to share vital information about its current state with other ships, base stations, and satellites electronically. International voyaging ships with gross tonnage larger than 300 and all passenger ships are required to install an \acrshort{ais} transceiver according to the \textit{Safety Of Life At Sea} (SOLAS) convention \cite{ais_wiki} \todo[]{Cite Hexeberg or Wikipedia? How to cite conventions and other non-academic stuff?}
 
@@ -61,4 +61,4 @@ However, the dataset is currently too large to work with on a single computer co
 The position (longitude and latitude) is converted from the standard World Geodetic System (WGS84) coordinates into the EUREF89 UTM32 (EPSG-25832) coordinate system \cite{kartverket}.  As a result, the coordinates are converted from spherical coordinates to a 2D euclidian coordinate system, where the first and second axis corresponds to easting and northing, respectively. This coordinate system is one of two official coordinate systems in Norway and yields significantly better projections in this area than other alternatives such as the Web-Mercator projector frequently used by online maps. Zone 32 was selected as it encompasses the target region.
 
 \subsection{From samples to trajectories}\label{sec:from_ais_to_traj}
-Samples with identical \acrshort{mmsi} and less than $15$ minutes between subsequent samples are considered part of the same trajectory. The $15$ minute requirement is added to ensure samples before and after docking are considered separate trajectories. The dataset is grouped on \acrshort{mmsi}, and each group is sorted on timestamp. 
+Samples with identical \acrshort{mmsi} and less than $15$ minutes between subsequent samples are considered part of the same trajectory. The $15$ minute requirement is added to ensure samples before and after docking are considered separate trajectories.

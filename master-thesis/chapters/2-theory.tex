@@ -12,7 +12,7 @@ The notation $p(A, B)$ is used to denote the joint probability of $A$ and $B$. I
 The notation $A | B$ is used to express the event $A$ occurring given the known event occurrence $B$. In the context of probability distributions, $p(A | B)$ denotes the probability of $A$ occurring, given that the event $B$ has happened.
 
 \subsection{Interpretation of Probability}
-This thesis will heavily rely on a Bayesian interpretation of probability. Without going into unnecessary philosophical details, the Bayesian view interprets probabilities as beliefs rather than relative frequencies\footnote{The interpretation of probabilities as the relative frequency of outcomes from repeated trials is what is often taught in statistics courses and is called the \textit{frequentist} interpretation.}. 
+This thesis will heavily rely on a Bayesian interpretation of probability. Bayesian Statistics is extensively covered in a previous specialization project \cite{mellbye}, and only a short introduction is included here for completeness. Without going into unnecessary philosophical details, the Bayesian view interprets probabilities as beliefs rather than relative frequencies\footnote{The interpretation of probabilities as the relative frequency of outcomes from repeated trials is what is often taught in statistics courses and is called the \textit{frequentist} interpretation.}. 
 The benefit of the Bayesian interpretation is that it naturally can be used to model uncertainty of events which cannot easily be expressed as repeated trials. Examples include one-off events and parameter estimation of fixed but unknown quantities.\footnote{As a thought experiment, let us say you want to determine the number of trees on the planet. There is a fixed amount of trees, but the actual number is unknown as you cannot count every single one. There is nothing uncertain about the number of trees itself, only your beliefs which are uncertain due to incomplete knowledge.} \cite{murphy}.
 
 Central to the Basian view of probability is \textit{Bayes rule}, which is used to update the prior beliefs $\boldsymbol{\theta}$ when once observing new data $\mathcal{D}$, and is given by
@@ -105,7 +105,7 @@ The covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cdot)$ on al
 \subsection{Conditioning}
 So far, only the prior distribution for $f$ has been specified. As a \acrshort{gp} is by definition a multivariate Gaussian Distribution, the posterior conditional in \cref{eq:multivariate_gaussian_conditional} can be used to condition $f$ on observed values. A simple \acrshort{gp} $f(\boldsymbol{x})$ with mean $m(\boldsymbol{x})$ and kernel $k(\boldsymbol{x}, \boldsymbol{x}')$ will be used as an example on conditional \acrshort{gp}s.
 
-Let $\boldsymbol{f}_* \triangleq f(X_*)$ denote the function evaluated at test points $X_*$. The prior distribution over $\boldsymbol{f_*}$ is shown in \cref{fig:gp_prior}. From a Bayesian perspective, the goal is to update the prior beliefs about $\boldsymbol{f}_*$ using the (potentially) noisy observations $\boldsymbol{y} = f(X) + \epsilon$ at multiple inputs $X$ to get the posterior belief $p(\boldsymbol{f}_* \; | X, \boldsymbol{y}, X_*)$. The noise term $\epsilon$ is considered \acrshort{iid} and distributed according to $\epsilon \sim \mathcal{N}(0, \sigma)$.
+Let $\boldsymbol{f}_* \triangleq f(X_*)$ denote the function evaluated at test points $X_*$. The prior distribution over $\boldsymbol{f_*}$ is shown in \cref{fig:gp_prior}. From a Bayesian perspective, the goal is to update the prior beliefs about $\boldsymbol{f}_*$ using the (potentially) noisy observations $\boldsymbol{y} = f(X) + \epsilon$ at multiple inputs $X$ to get the posterior belief $p(\boldsymbol{f}_* \; | X, \boldsymbol{y}, X_*)$. The noise term $\epsilon$ is considered \acrshort{iid} and distributed according to $\epsilon \sim \mathcal{N}(0, \sigma^2)$.
 
 The joint distribution of $\boldsymbol{y}$ and $\boldsymbol{f}_*$ is given by 
 
@@ -115,15 +115,15 @@ The joint distribution of $\boldsymbol{y}$ and $\boldsymbol{f}_*$ is given by
     \end{bmatrix} \; \bigg| \begin{bmatrix}
         m(X) \\ m(X_*)
     \end{bmatrix},  \begin{bmatrix}
-        K(X, X) + \sigma I & K(X, X_*) \\ K(X_*, X) & K(X_*, X_*)
+        K(X, X) + \sigma^2 I & K(X, X_*) \\ K(X_*, X) & K(X_*, X_*)
     \end{bmatrix}\bigg)
 \end{equation}
 and the posterior distribution $p(\boldsymbol{f}_* | \boldsymbol{y})$ is computed using the posterior conditional distribution in \cref{eq:multivariate_gaussian_conditional}.
 \begin{subequations}\label{eq:gp_conditional}
 \begin{align}
     p(\boldsymbol{f}_* | \boldsymbol{y}) &= \mathcal{N}(f \; | \; \boldsymbol{\mu}_{\boldsymbol{f}_*|\boldsymbol{y}}, \boldsymbol{\Sigma}_{\boldsymbol{f}_*|\boldsymbol{y}})\\
-    \mathbb{E}[\boldsymbol{f}_*] =  \boldsymbol{\mu}_{\boldsymbol{f}_* | \boldsymbol{y}} &= m(X_*) + K(X_*, X) \; \big(K(X, X) + \sigma I\big)^{-1} \; (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean}\\
-    \mathbb{V}[\boldsymbol{f}_*] = \boldsymbol{\Sigma}_{\boldsymbol{f}_* | \boldsymbol{y}} &= K(X_*, X_*) - K(X_*, X)  \big(K(X, X) + \sigma I\big)^{-1} \; K(X, X_*)\label{eq:gp_conditional_var}
+    \mathbb{E}[\boldsymbol{f}_*] =  \boldsymbol{\mu}_{\boldsymbol{f}_* | \boldsymbol{y}} &= m(X_*) + K(X_*, X) \; \big(K(X, X) + \sigma^2 I\big)^{-1} \; (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean}\\
+    \mathbb{V}[\boldsymbol{f}_*] = \boldsymbol{\Sigma}_{\boldsymbol{f}_* | \boldsymbol{y}} &= K(X_*, X_*) - K(X_*, X)  \big(K(X, X) + \sigma^2 I\big)^{-1} \; K(X, X_*)\label{eq:gp_conditional_var}
 \end{align}
 \end{subequations}
 
@@ -131,7 +131,7 @@ As the notation quickly gets messy for the general case, the shorthand notation 
 
 \begin{subequations}\label{eq:gp_conditional_simple}
 \begin{align}
-    \bar{f}_* = \mathbb{E}[f_*]  &= m(\boldsymbol{x}_*) + \boldsymbol{k}_*^\intercal ( K + \sigma I)^{-1} (\boldsymbol{y} - m(X))\\
+    \bar{f}_* = \mathbb{E}[f_*]  &= m(\boldsymbol{x}_*) + \boldsymbol{k}_*^\intercal ( K + \sigma I)^{-1} (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean_simple}\\
     \mathbb{V}[f_*] &= k(\boldsymbol{x}_*, \boldsymbol{x}_*) - \boldsymbol{k}_*^\intercal K^{-1} \; \boldsymbol{k}_*\label{eq:gp_conditional_var_simple}
 \end{align}
 \end{subequations}
@@ -183,19 +183,21 @@ The whole procedure boils down to \cref{alg:gp_prediction} as proposed by \cite{
 \end{figure}
 
 \section{Vector-valued Gaussian Process}\label{sec:theory_vector_gp}
-\acrshort{gp}s can easily be extended for vector-valued functions by simply considering the joint distribution of each function component as in \cref{eq:gp_vector}. Only independent components, i.e. $k_{xy}=k_{yx}=0$, is considered in this thesis.
+\acrshort{gp}s can easily be extended for vector-valued functions by simply considering the joint distribution of each function component as in \cref{eq:gp_vector}.
 \begin{equation}\label{eq:gp_vector}
      \vec{f}(\boldsymbol{x}) = \begin{bmatrix} f_x (\boldsymbol{x})\\ f_y (\boldsymbol{x})\end{bmatrix} \sim \text{GP} \big(\begin{bmatrix} m_x(\boldsymbol{x})\\m_y(\boldsymbol{x})\end{bmatrix}, \ \begin{bmatrix}
     k_{xx}(\boldsymbol{x}, \boldsymbol{x}') & k_{xy}(\boldsymbol{x}, \boldsymbol{x}') \\ k_{xy}(\boldsymbol{x}, \boldsymbol{x}')^\intercal & k_{yy}(\boldsymbol{x}, \boldsymbol{x}')
     \end{bmatrix}\big) 
 \end{equation}
 
+Only independent output dimensions, i.e. $k_xy = k_yx = 0$ will be considered in this thesis to reduce the number of complicating factors. This is, however, not without consequences as it assumes zero covariance between the two outputs. This issue is revisited in \cref{chap:discussion}.
+
 \section{Kernels}\label{sec:kernels}
-This section will introduce some relevant kernels for this thesis. Many more kernels are available in the literature. 
+This section will introduce some relevant kernels for this thesis. Many more kernels are available in the literature \cite{rasmussen}.  
 \subsection{Stationary Kernels}
 Stationary kernels are kernels which only depends on $\boldsymbol{r} = \boldsymbol{x} - \boldsymbol{x'}$ and is usually specified as a function of a single variable.
 \subsubsection{Constant Kernel}
-As the name implies, the constant kernel is a kernel that is independent of the input.
+As the name implies, the constant kernel is a kernel that is independent of the input. It is typically used as a scaling parameter in combination with other kernels.
 
 \begin{equation}
     k(\boldsymbol{\cdot}) = \sigma^2
@@ -218,15 +220,15 @@ The \textit{\acrfull{rbf}} kernel, also referred to as \textit{squared exponenti
 The \textit{Matérn Class} of kernels are given by the covariance function in \cref{eq:kernel_matern}, where $K_v$ is the \textit{modified Bessel function}. 
 
 \begin{equation}\label{eq:kernel_matern}
-    k(\boldsymbol{r}) = \frac{2^{1-v}}{\Gamma(v)}\bigg(\frac{\sqrt{2 v} ||\boldsymbol{r}||}{l} \bigg)^v K_v \bigg(\frac{\sqrt{2v} || \boldsymbol{r}||}{l} \bigg)
+    k(\boldsymbol{r}) = \frac{2^{1-\nu}}{\Gamma(\nu)}\bigg(\frac{\sqrt{2 \nu} ||\boldsymbol{r}||}{l} \bigg)^\nu K_\nu \bigg(\frac{\sqrt{2\nu} || \boldsymbol{r}||}{l} \bigg)
 \end{equation}
-The parameter $v > 0$ determines the smoothness, where:
+The parameter $\nu > 0$ determines the smoothness, where:
 \begin{itemize}
-    \item $v=\frac{1}{2}$ yields the \textit{Ornstein-Uhlenbeck Process} and functions, that when drawn from a \acrshort{gp} with this kernel, are continious, but not differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \exp \{-\frac{||\boldsymbol{r}||}{l}\}$$
-    \item $v=\frac{3}{2}$ yields functions that, when drawn from a \acrshort{gp} with this kernel, are continous and once-differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big) \exp\big\{- \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big\}$$
-    \item $v=\frac{5}{2}$ yields functions, that when drawn from a \acrshort{gp} with this kernel,  are continous and twice differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{5} ||\boldsymbol{r}||}{l} + \frac{5 ||\boldsymbol{r}||^2}{3 l^2}\big) \exp\big\{- \frac{\sqrt{5} ||\boldsymbol{r}||}{l}\big\}$$
+    \item $\nu=\frac{1}{2}$ yields the \textit{Ornstein-Uhlenbeck Process} and functions, that when drawn from a \acrshort{gp} with this kernel, are continious, but not differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \exp \{-\frac{||\boldsymbol{r}||}{l}\}$$
+    \item $\nu=\frac{3}{2}$ yields functions that, when drawn from a \acrshort{gp} with this kernel, are continous and once-differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big) \exp\big\{- \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big\}$$
+    \item $\nu=\frac{5}{2}$ yields functions, that when drawn from a \acrshort{gp} with this kernel,  are continous and twice differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{5} ||\boldsymbol{r}||}{l} + \frac{5 ||\boldsymbol{r}||^2}{3 l^2}\big) \exp\big\{- \frac{\sqrt{5} ||\boldsymbol{r}||}{l}\big\}$$
 \end{itemize}
-More generally, the functions drawn from a \acrshort{gp} with a Matérn class kernel, is $k$-times differentiable if and only if $v > k$\cite{rasmussen}. The Matérn class of kernels is argued to be a better choice than the \acrshort{rbf} kernel for many physical systems, as the infinitely smooth function generated by \acrshort{rbf} is too smooth \cite{rasmussen}.
+More generally, the functions drawn from a \acrshort{gp} with a Matérn class kernel, is $k$-times differentiable if and only if $\nu > k$\cite{rasmussen}. The Matérn class of kernels is argued to be a better choice than the \acrshort{rbf} kernel for many physical systems, as the infinitely smooth function generated by \acrshort{rbf} is too smooth \cite{rasmussen}.
 Further mathematical details can be found in \cite[sec.~4.2]{rasmussen} as it is outside the scope of this thesis.
 
 

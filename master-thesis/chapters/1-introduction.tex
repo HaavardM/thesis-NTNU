@@ -2,7 +2,7 @@
 % Something about the need for long-term prediction of vessel trajectories
 A robust \textit{\acrfull{colav}} system is an essential component of an autonomous vessel or vehicle operating in any human environment. This motivates the need for situational awareness, as the vessel needs to be aware of how future situations might unfold to make good choices. A crucial part of such situational awareness is how the vessel can predict the future behavior of nearby vessels. 
 
-A common approach for autonomous vessels today is to assume constant speed and course. It is a reasonable solution on the open sea, where larger vessels tend to move in a straight line for extended periods of time. However, it quickly fails when vessels are navigating in constrained areas such as fjords or close to shore.    
+A common approach for autonomous vessels today is to assume constant speed and course. It is a reasonable solution on the open sea, where larger vessels tend to move along straight lines for extended periods. However, it quickly fails when vessels navigate constrained areas such as fjords or close to shore.    
 
 
 % Something about Big Data AIS - the availability of data
@@ -13,25 +13,35 @@ Predicting the trajectory of a vessel based on the limited information available
 The ability of a model to express uncertainty is therefore crucial. Ideally, the model should make accurate predictions while also quantify the wide range of different trajectories a vessel might follow. 
 
 \subsection{Gaussian Processes}
-% High level introduction to the Gaussian process and why it may be a natural fit for this problem
+The \textit{\acrfull{gp}} is a stochastic process based on the multivariate Gaussian Distribution. It is an interpolation method with use cases in a wide range of fields, such as environmental science \cite{kriging}, medicine \cite{medical_gp,medicine_gp_2}, cognitive research \cite{gp_cognitive} and optimization \cite{brochu2010tutorial} to name a few. It was first used by Danie G. Krige in his master thesis \cite{krige1951statistical} where he used it to find the most likely spatial distribution of gold based on samples from only a few boreholes. \acrshort{gp} are therefore sometimes referred to as \textit{kriging} in the literature, especially for geospatial statistics or related fields. 
+The \acrshort{gp} is a non-parametric approach, and it is well suited for approximating black-box systems. While comparable to other interpolation methods such as splines, \acrshort{gp}s has the added benefit of expressing uncertainty based on the available data. Therefore, it is commonly interpreted as a statistical distribution over functions. Prior beliefs can be conditioned on available data to form posterior beliefs about the true underlying function $f(x)$. This Bayesian interpretation, in combination with its flexibility as a non-parametric approach, makes \acrshort{gp} a very powerful tool. \acrshort{gp}s will be covered in great detail in \cref{chap:theory}. 
+
+The functional interpretation appears to be a good fit for the long-term prediction problem. By considering a vessel's trajectory as a function of time $f(t)$, then the \acrshort{gp} framework should, in theory, be able to express the vessel's trajectory, including the inherent uncertainty of predicting future trajectories. In practice, however, the computational complexity of \acrshort{gp}s may limit the usability of \acrshort{gp}s.  
+
+This raises a few research questions which this thesis will attempt to answer:
+\begin{enumerate}
+	\item How can \acrshort{gp}s be used to model the long-term vessel trajectory of new vessels?   
+	\item Is \acrshort{gp}s computationally feasible to use in the context of \acrshort{ais} Big Data?
+	\item Is a \acrshort{gp} able to provide consistent uncertainty, which reflects the true error rate?
+\end{enumerate}
+
+Especially question 3 is a crucial focus in this thesis. If the \acrshort{gp} cannot provide consistent uncertainty estimates, it then offers little additional value over more straightforward data-driven approaches. 
 
 
-
-
-
-
-%.... somnething about why these previous fails
+This thesis will propose two alternative solutions to the long-term trajectory prediction problem, both based on the \acrshort{gp} framework. The first method will attempt to model the trajectory directly as a function of time and use a \acrshort{gp} to express this function. The other solution is an indirect approach attempting to learn an unknown differential equation describing the trajectory gradients and then simulating the trajectory numerically. Both methods will be rigorously tested on a real-world \acrshort{ais} dataset.
 
 \section{Thesis Structure}
-The Gaussian Process will be presented in the first chapter. The chapter is inspired by the excellent introduction from \cite{rasmussen}, and the reasoning, intuition, and mathematics behind the Gaussian Process will be explored to lay the necessary foundation for the rest of this thesis. A basic understanding of calculus, statistics, and probability theory is assumed, but all necessary subjects are otherwise introduced.  
+The thesis will first review existing work on applying the \acrshort{gp} framework for trajectory prediction in \cref{chap:prior_work}. As there is limited work available on using \acrshort{gp}s with \acrshort{ais} data, solutions from related fields as well as some approaches not based on \acrshort{gp}s will also be presented as inspiration. The thesis then moves on to \cref{chap:ais} which offers an introduction to \acrshort{ais} and the dataset used in this thesis. Any preprocessing and filtering of the dataset are included in this chapter.
 
-Once the foundation for the Gaussian Processes has been covered, the next chapters will move on to the different ways they can be applied to the long-term prediction problem. In the following chapter, the first approach is introduced, where a vessel's trajectory is described as a function of time and modeled directly as a Gaussian Process. This method is similar to interpolating and averaging similar trajectories, though with the added benefit of quantifying the uncertainty.
+The Gaussian Process will then be introduced in greater detail in \cref{chap:theory}. The chapter is inspired by the excellent introduction from \cite{rasmussen}, and the reasoning, intuition, and mathematics behind the Gaussian Process will be explored to lay the necessary foundation for the rest of this thesis. A basic understanding of calculus, statistics, and probability theory is assumed, but all necessary subjects are otherwise introduced.  
 
-The following chapter then continues with a more indirect approach. The Gaussian Process is used as part of a dynamical system and then simulated iteratively to get the trajectories. This method is inspired by the work in \cite{pedestrian,gpekf}, and can be seen as an extension of the Kalman filter. Again, familiarity with sensor-fusion methods is beneficial but not required to follow the derivations.
+Once the foundation for the Gaussian Processes has been covered, \cref{chap:direct_gp} will apply the \acrshort{gp} framework to model a vessel's trajectory directly as a function of time. This method will be referred to as the \textit{direct \acrshort{gp} approach} throughout the rest of this thesis.
+\cref{chap:gp_ekf} then proposes a more indirect approach, using the \acrshort{gp} framework to model an unknown differential equation describing the trajectory gradients. The trajectories are simulated numerically using a \acrshort{ekf} prediction scheme. This method is inspired by the work in \cite{pedestrian,gpekf}, and can be seen as an extension of the Kalman filter. Again, familiarity with sensor-fusion methods is beneficial but not required to follow the derivations.
 
-Once the methods are introduced in their respective chapter, statistical analysis of the methods will be performed. Finally, both methods are applied on a real \acrshort{ais} dataset, and the results are compared to a simple, constant velocity model.  We will consider both the empirical results as well the more theoretical strengths and weaknesses. 
+Once the methods are introduced in their respective chapter, the thesis will move on to statistical testing in \cref{chap:stat_testing}. This chapter will cover the implementation details and present the results from rigorous statistical testing to see how the methods perform on real-world \acrshort{ais} data. The results are compared to a simple \acrshort{cvm} model as a base of comparison. 
 
-Finally, we will summarize our findings, as well as discuss possible extensions to this work.
+\cref{chap:discussion} will then discuss the results from statistical testing, as well as address theoretical concerns regarding the proposed methods. 
+Finally, \cref{chap:conclusion} will summarize the findings in conclusion before finishing with possible extensions to this work.
 
 
 

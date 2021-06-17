@@ -1,7 +1,7 @@
 \chapter{Statistical Testing}\label{chap:stat_testing}
 Inspired by \cite{hexeberg}, the performance of the proposed models will be compared on straight-line and curved trajectories independently.
 
-\section{Method}
+\section{Method of testing}
 \subsection{Trajectory Error}
 The trajectory error is found by comparing the predicted position with the ground truth. As the predicted trajectory is simulated in discrete time, the points with the closest timestamps are used for comparison. With $\Delta T = 10\text{ seconds}$, the maximum error in time is $\frac{\Delta T}{2} = 5 \text{ seconds}$, which is considered to be acceptable considering the time-horizon of between $15$ and $30$ minutes.
 \subsection{Path Error}
@@ -48,16 +48,17 @@ The statistics are based on $350$ randomly sampled trajectories that satisfy the
 \end{enumerate}
 
 
-\section{Method implementation}
+\section{Implementation}
 The implementation details for each of the methods are described in this section.
 
 \subsection{GP-EKF}
-The GP-EKF is tested with and without the \acrshort{pdaf} update step to test whether there is any benefit of using the update step. The model is tested using both finite difference and the \acrshort{cog}/\acrshort{sog} from the \acrshort{ais} dataset. $4$ different GP-EKF instants are therefore included in this test.
+The GP-EKF is tested with and without the \acrshort{pdaf} update step, as well as using both finite difference and the \acrshort{cog}/\acrshort{sog} from the \acrshort{ais} dataset, resulting in $4$ different instances.
 
 The GP-EKF required more flexibility during development. Due to the need for calculating the gradient $\frac{\delta \vec{f}}{\delta \boldsymbol{x}}$, it became impractical to use existing \acrshort{gp} implementations. Due to the simple implementation of \cref{alg:gp_prediction}, it was easier to implement it from the ground up.
-The GP-EKF was therefore implemented directly in Python using only \textit{scipy}\cite{scipy} and \textit{numpy}\cite{numpy} to speed up linear algebra routines. The Cholesky decomposition in \cref{alg:gp_prediction} was computed using \texttt{scipy.linalg.cho\_factor}, which calls a highly optimized LAPACK routine. Similarily, \texttt{scipy.linalg.solve\_\-trianglular} was used to solve the lower triangular system of equations by forward substitution. The implementation of GP-EKF and the \acrshort{pdaf} update was then straightforward using the equations introduced in this chapter.
+The GP-EKF was therefore implemented directly in Python using only \textit{scipy}\cite{scipy} and \textit{numpy}\cite{numpy} to speed up linear algebra routines. The Cholesky decomposition in \cref{alg:gp_prediction} was computed using \texttt{scipy.linalg.cho\_factor}, which calls a highly optimized LAPACK routine. Similarily, \texttt{scipy.linalg.solve\_\-trianglular} was used to solve the lower triangular system of equations by forward substitution. The implementation of GP-EKF and the \acrshort{pdaf} update was then straightforward using \cref{alg:gp_ekf_prediction} and \cref{alg:gp_ekf_pdaf} from \cref{chap:gp_ekf}
 
-The hyperparameters were tuned using the \acrshort{gp} implementation in the popular \textit{scikit-learn} \cite{scikit-learn} Python package. $10$ random restarts were used during optimization to reduce the risk of bad local minima. Due to the wide variety of different scenarios on the training set, the hyperparameters are optimized for each iteration of the simulation. This way, the robustness of the optimization is indirectly tested, as any instance of a bad local optima is included in the results.
+The hyperparameters were tuned using the \acrshort{gp} implementation in the popular \textit{scikit-learn} \cite{scikit-learn} Python package. $10$ random restarts were used during optimization to reduce the risk of bad local minima. Due to the wide variety of different scenarios on the training set, the hyperparameters are optimized for each simulation iteration. This way, the robustness of the optimization is indirectly tested, as instances of bad local optima are included in the results.
+
 
 The remaining parameters not found through \acrshort{ml} were tuned through trial and error on a few different trajectories.
 The initial state uncertainty is set to $\boldsymbol{P}_0 = 500^2 \cdot \boldsymbol{I}$, which was found to work well during development. The \acrshort{pdaf} parameters are available in \cref{table:stats_pdaf_params}.
@@ -96,22 +97,23 @@ The results for straight-line and curved trajectories are available in \cref{tab
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
                 \toprule
-                        &                & Time [Minutes]    & 5   & 10   & 15   & 20   & 25   \\
-                Summary & Method         & Training Source   &     &      &      &      &      \\
+                        &                & Time [Minutes]    & 5   & 10  & 15  & 20   & 25   \\
+                Summary & Method         & Training Source   &     &     &     &      &      \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS  & 674 & 1347 & 2024 & 2332 & 2272 \\
-                        & Direct GP      & Position          & 969 & 1319 & 1838 & 2557 & 2845 \\
-                        & GP-EKF         & COG/SOG from AIS  & 590 & 1169 & 1678 & 1883 & 2318 \\
-                        &                & Finite Difference & 562 & 1078 & 1645 & 2400 & 2560 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 596 & 1149 & 1618 & 1848 & 2207 \\
-                        &                & Finite Difference & 568 & 1059 & 1603 & 2323 & 2448 \\
+                Mean    & CVM            & COG/SOG from AIS  & 235 & 473 & 756 & 1105 & 1741 \\
+                        & Direct GP      & Position          & 390 & 560 & 800 & 1146 & 1693 \\
+                        & GP-EKF         & COG/SOG from AIS  & 345 & 654 & 928 & 1223 & 1875 \\
+                        &                & Finite Difference & 310 & 570 & 843 & 1099 & 1384 \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 351 & 623 & 884 & 1108 & 1507 \\
+                        &                & Finite Difference & 291 & 522 & 786 & 1075 & 1159 \\
                 \midrule
-                Median  & CVM            & COG/SOG from AIS  & 481 & 968  & 1538 & 1863 & 2073 \\
-                        & Direct GP      & Position          & 549 & 892  & 1295 & 1896 & 2529 \\
-                        & GP-EKF         & COG/SOG from AIS  & 445 & 888  & 1258 & 1373 & 2402 \\
-                        &                & Finite Difference & 418 & 682  & 1140 & 1591 & 1841 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 443 & 866  & 1203 & 1353 & 2367 \\
-                        &                & Finite Difference & 427 & 683  & 1108 & 1503 & 1736 \\
+                Median  & CVM            & COG/SOG from AIS  & 124 & 253 & 448 & 682  & 1291 \\
+
+                        & Direct GP      & Position          & 237 & 400 & 552 & 843  & 1274 \\
+                        & GP-EKF         & COG/SOG from AIS  & 284 & 549 & 745 & 984  & 1174 \\
+                        &                & Finite Difference & 256 & 490 & 677 & 867  & 834  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 282 & 505 & 693 & 976  & 1144 \\
+                        &                & Finite Difference & 243 & 413 & 651 & 849  & 839  \\
                 \bottomrule
             \end{tabular}
         }
@@ -123,24 +125,25 @@ The results for straight-line and curved trajectories are available in \cref{tab
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
                 \toprule
-                        &                & Time [Minutes]    & 5   & 10  & 15   & 20   & 25   \\
-                Summary & Method         & Training Source   &     &     &      &      &      \\
+                        &                & Time [Minutes]    & 5   & 10  & 15  & 20  & 25   \\
+                Summary & Method         & Training Source   &     &     &     &     &      \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS  & 142 & 497 & 1144 & 1550 & 2033 \\
-                        & Direct GP      & Position          & 487 & 534 & 806  & 1412 & 2195 \\
-                        & GP-EKF         & COG/SOG from AIS  & 218 & 483 & 949  & 1183 & 1408 \\
-                        &                & Finite Difference & 229 & 460 & 745  & 1249 & 1042 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 209 & 442 & 867  & 1118 & 1298 \\
-                        &                & Finite Difference & 222 & 428 & 692  & 1173 & 957  \\
+                Mean    & CVM            & COG/SOG from AIS  & 55  & 178 & 364 & 559 & 1195 \\
+                        & Direct GP      & Position          & 195 & 236 & 364 & 602 & 1390 \\
+                        & GP-EKF         & COG/SOG from AIS  & 133 & 240 & 343 & 394 & 636  \\
+                        &                & Finite Difference & 143 & 266 & 395 & 500 & 630  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 128 & 234 & 341 & 352 & 513  \\
+                        &                & Finite Difference & 131 & 224 & 344 & 503 & 656  \\
                 \midrule
-                Median  & CVM            & COG/SOG from AIS  & 70  & 262 & 703  & 1206 & 1971 \\
-                        & Direct GP      & Position          & 181 & 310 & 429  & 782  & 2186 \\
-                        & GP-EKF         & COG/SOG from AIS  & 142 & 310 & 602  & 785  & 959  \\
-                        &                & Finite Difference & 143 & 277 & 375  & 700  & 743  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 145 & 284 & 515  & 742  & 841  \\
-                        &                & Finite Difference & 146 & 250 & 357  & 646  & 761  \\
+                Median  & CVM            & COG/SOG from AIS  & 29  & 96  & 222 & 358 & 711  \\
+                        & Direct GP      & Position          & 77  & 116 & 174 & 279 & 907  \\
+                        & GP-EKF         & COG/SOG from AIS  & 86  & 166 & 232 & 278 & 665  \\
+                        &                & Finite Difference & 90  & 171 & 258 & 375 & 507  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 79  & 144 & 197 & 233 & 388  \\
+                        &                & Finite Difference & 79  & 135 & 198 & 301 & 354  \\
                 \bottomrule
             \end{tabular}
+
         }
         \caption{Path error in meters}
         \label{table:stats_straight_path_err}
@@ -154,22 +157,22 @@ The results for straight-line and curved trajectories are available in \cref{tab
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
                 \toprule
-                        &                & Time [Minutes]    & 5    & 10   & 15   & 20    & 25    \\
-                Summary & Method         & Training Source   &      &      &      &       &       \\
+                        &                & Time [Minutes]    & 5   & 10   & 15   & 20   & 25   \\
+                Summary & Method         & Training Source   &     &      &      &      &      \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS  & 1944 & 4241 & 7093 & 10551 & 13532 \\
-                        & Direct GP      & Position          & 218  & 340  & 482  & 537   & 528   \\
-                        & GP-EKF         & COG/SOG from AIS  & 390  & 884  & 1511 & 2338  & 3697  \\
-                        &                & Finite Difference & 427  & 830  & 1203 & 1383  & 1262  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 303  & 530  & 723  & 838   & 948   \\
-                        &                & Finite Difference & 378  & 583  & 757  & 910   & 1127  \\
+                Mean    & CVM            & COG/SOG from AIS  & 599 & 1532 & 2900 & 5081 & 8349 \\
+                        & Direct GP      & Position          & 202 & 311  & 421  & 523  & 500  \\
+                        & GP-EKF         & COG/SOG from AIS  & 361 & 702  & 986  & 1395 & 2005 \\
+                        &                & Finite Difference & 348 & 704  & 969  & 1252 & 1326 \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 400 & 765  & 1021 & 1065 & 1086 \\
+                        &                & Finite Difference & 314 & 585  & 793  & 1050 & 1104 \\
                 \midrule
-                Median  & CVM            & COG/SOG from AIS  & 1597 & 3630 & 6290 & 9629  & 12795 \\
-                        & Direct GP      & Position          & 113  & 166  & 227  & 259   & 276   \\
-                        & GP-EKF         & COG/SOG from AIS  & 238  & 530  & 994  & 1701  & 3108  \\
-                        &                & Finite Difference & 294  & 631  & 960  & 1254  & 1020  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 197  & 305  & 376  & 554   & 581   \\
-                        &                & Finite Difference & 270  & 379  & 432  & 543   & 667   \\
+                Median  & CVM            & COG/SOG from AIS  & 351 & 1101 & 2428 & 4586 & 7682 \\
+                        & Direct GP      & Position          & 113 & 170  & 192  & 221  & 253  \\
+                        & GP-EKF         & COG/SOG from AIS  & 281 & 529  & 821  & 1237 & 1831 \\
+                        &                & Finite Difference & 214 & 448  & 756  & 1040 & 993  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 283 & 471  & 619  & 785  & 704  \\
+                        &                & Finite Difference & 196 & 363  & 555  & 787  & 700  \\
                 \bottomrule
             \end{tabular}
         }
@@ -184,19 +187,19 @@ The results for straight-line and curved trajectories are available in \cref{tab
                         &                & Time [Minutes]    & 5   & 10  & 15   & 20   & 25   \\
                 Summary & Method         & Training Source   &     &     &      &      &      \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS  & 242 & 589 & 1148 & 1841 & 2590 \\
-                        & Direct GP      & Position          & 106 & 172 & 256  & 259  & 301  \\
-                        & GP-EKF         & COG/SOG from AIS  & 175 & 346 & 677  & 1110 & 1885 \\
-                        &                & Finite Difference & 218 & 354 & 501  & 458  & 330  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 157 & 266 & 374  & 429  & 666  \\
-                        &                & Finite Difference & 205 & 308 & 407  & 519  & 770  \\
+                Mean    & CVM            & COG/SOG from AIS  & 206 & 552 & 1153 & 1991 & 2854 \\
+                        & Direct GP      & Position          & 124 & 184 & 242  & 310  & 304  \\
+                        & GP-EKF         & COG/SOG from AIS  & 126 & 250 & 451  & 778  & 1294 \\
+                        &                & Finite Difference & 169 & 274 & 360  & 420  & 417  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 161 & 378 & 608  & 646  & 765  \\
+                        &                & Finite Difference & 158 & 250 & 308  & 394  & 317  \\
                 \midrule
-                Median  & CVM            & COG/SOG from AIS  & 106 & 343 & 751  & 1515 & 2350 \\
-                        & Direct GP      & Position          & 39  & 60  & 72   & 100  & 106  \\
-                        & GP-EKF         & COG/SOG from AIS  & 71  & 166 & 402  & 751  & 1715 \\
-                        &                & Finite Difference & 123 & 231 & 312  & 329  & 241  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 77  & 101 & 113  & 179  & 388  \\
-                        &                & Finite Difference & 121 & 189 & 219  & 257  & 309  \\
+                Median  & CVM            & COG/SOG from AIS  & 72  & 325 & 691  & 1708 & 2472 \\
+                        & Direct GP      & Position          & 48  & 66  & 88   & 91   & 154  \\
+                        & GP-EKF         & COG/SOG from AIS  & 62  & 127 & 228  & 527  & 1214 \\
+                        &                & Finite Difference & 82  & 153 & 197  & 214  & 195  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 71  & 121 & 197  & 304  & 337  \\
+                        &                & Finite Difference & 91  & 134 & 137  & 146  & 114  \\
                 \bottomrule
             \end{tabular}
         }

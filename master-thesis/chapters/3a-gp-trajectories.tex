@@ -1,50 +1,86 @@
 \chapter{Model trajectories directly using a Gaussian Process}\label{chap:direct_gp}
-The first method proposed is to use a \acrshort{gp} to model a function $f: \mathcal{R}^5 \to \mathcal{R}^2$, mapping a ships current position $\boldsymbol{x}_0$, \acrshort{cog} $\psi_0$ and \acrshort{sog} $v_0$ to a position at timestamp $\tau$ in the future. The method is formulated in mathematical terms in \cref{eq:gp_direct}. This will from now on be referred to as the \textit{Direct \acrshort{gp}} approach, as it directly utilizes a \acrshort{gp} to predict the trajectory. 
-
-\begin{subequations}\label{eq:gp_direct}
-\begin{align}
-    \boldsymbol{f}(\boldsymbol{\eta}) &= \boldsymbol{x}_{\tau} \label{eq:gp_direct_f}, \quad \boldsymbol{\eta} = \begin{bmatrix} \boldsymbol{x}_0 & \psi_0 & v_0 & \tau\end{bmatrix}\\
-    \boldsymbol{f}(\boldsymbol{\eta}) &\sim \text{GP}(\boldsymbol{m}(\boldsymbol{\eta}), K(\boldsymbol{\eta}, \boldsymbol{\eta}))\label{eq:gp_direct_f_dist}
-\end{align} 
-\end{subequations}
-
-The model could then be queried about likely future positions by evaluating $\boldsymbol{f}$ with the desired initial conditions and time horizon by directly applying \cref{alg:gp_prediction}. 
-
-The conceptual benefits of this formulation include:
-\begin{description}
-    \item[Continuous formulation] The model directly models the position at any time $\tau$ and does not require discretization. It can therefore be queried for any continuous timestamp $\tau$.
-    \item[Conceptually easy] This formulation directly expresses the unknown trajectory, making it conceptually simple to understand.
-    \item[Simple Problem formulation] The model requires few components and builds directly on the \acrshort{gp}s introduced in \cref{chap:theory}.
-    \item[Easy incorporation of available AIS data] The reported \acrshort{cog} and \acrshort{sog} can easily be incorporated into the similarity measure, utilizing more of the available data.
-\end{description}
+ A tempting solution is to directly apply the \acrshort{gp} framework introduced in the previous chapter and model the vessel's trajectory as a function of time $\vec{f}(\tau)$. However, as there are no observations of the target vessel's future position, there is no actual data to condition the \acrshort{gp} on. Instead, this chapter will attempt to use nearby trajectories and assume these historical trajectories resemble the future trajectory of the target vessel. 
 
 \section{Method}
-While simple, the formulation in \cref{eq:gp_direct} still leads to quite a lot of complexity due to the number of input parameters. The method formulation should, in theory, be able to express a wide range of different scenarios, but in practice, the method is limited by the computational complexity.
+While a pure function of time is tempting, it is unable to differentiate between different historical trajectories. To utilize as much of the available information in a single \acrshort{ais} message as possible, a bit more complex formulation $\vec{f}(\boldsymbol{x}_0, \psi_0, v_0, \tau): \mathcal{R}^5 \to \mathcal{R}^2$ is proposed instead to compensate for any initial differences in position, velocity or course of nearby trajectories. The key variables are explained in \cref{table:posgp_key_variables}.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ll}
+        \textit{\textbf{Variable}}              & \textit{\textbf{Description}}      \\ \hline
+        $\boldsymbol{x}_0 \in \mathcal{R}^2$    & Trajectorys initial position       \\
+        $\mathcal{X}_0 \in [0, 360)$            & Trajectorys initial \acrshort{cog} \\
+        $v_0 \in \mathcal{R}$                   & Trajectorys initial \acrshort{sog} \\
+        $\tau \in [0, \infty)$                  & Prediction timestamp               \\
+        $\boldsymbol{x}_\tau \in \mathcal{R}^2$ & Predicted position                 \\
+    \end{tabular}
+    \caption{Key variables}
+    \label{table:posgp_key_variables}
+\end{table}
+The method is formulated in mathematical terms in \cref{eq:gp_direct}. This will from now on be referred to as the \textit{Direct \acrshort{gp}} approach, as it directly utilizes a \acrshort{gp} to predict the trajectory.
+
+\begin{subequations}\label{eq:gp_direct}
+    \begin{align}
+        \boldsymbol{f}(\boldsymbol{\eta}) & = \boldsymbol{x}_{\tau} \label{eq:gp_direct_f}, \quad \boldsymbol{\eta} = \begin{bmatrix} \boldsymbol{x}_0 & \psi_0 & v_0 & \tau\end{bmatrix}                   \\
+        \boldsymbol{f}(\boldsymbol{\eta}) & \sim \text{GP}(\boldsymbol{m}(\boldsymbol{\eta}), K(\boldsymbol{\eta}, \boldsymbol{\eta}))\label{eq:gp_direct_f_dist}
+    \end{align}
+\end{subequations}
+
+The function $\vec{f}$ can be conditioned on similar trajectories using \cref{alg:gp_prediction} from \cref{chap:theory}, and then be used to answer queries about the likely trajectories the vessel might follow.
+
+\subsection{Key Assumption}
+This formulation builds on the key assumption that the target vessel is following the same underlying trajectory as the nearby historical trajectories. In other words, the function $\vec{f}$ does not represent the target vessel's future trajectory; it merely interpolates the past trajectories with similar initial conditions. 
+
+
+%The conceptual benefits of this formulation include:
+%\begin{description}
+%    \item[Continuous formulation] The model directly models the position at any time $\tau$ and does not require discretization. It can therefore be queried for any continuous timestamp $\tau$.
+%    \item[Conceptually easy] This formulation directly expresses the unknown trajectory, making it conceptually simple to understand.
+%    \item[Simple Problem formulation] The model requires few components and builds directly on the \acrshort{gp}s introduced in \cref{chap:theory}.
+%    \item[Easy incorporation of available AIS data] The reported \acrshort{cog} and \acrshort{sog} can easily be incorporated into the similarity measure, utilizing more of the available data.
+%\end{description}
+
+\subsection{Choice of Kernel}
+Many different kernels may work well with this formulation. This section will cover a few alternatives that worked well in practice, but there are likely many other alternatives that may work just as well, if not better. 
+
+The \acrshort{rbf} kernel was found to work well with the formulation used in this chapter. Along the traffic lanes, vessels tend to move in a smooth trajectory, which makes the \acrshort{rbf} kernel a good choice. As the function arguments are of different scales, it is a good idea to use different lengthscales for each input dimension, i.e.
+
+\begin{equation}
+    k(\boldsymbol{\eta}, \boldsymbol{\eta}') = \sigma^2 \exp \big[ (\boldsymbol{\eta} - \boldsymbol{\eta}') W^{-1} (\boldsymbol{\eta} - \boldsymbol{\eta})^\intercal \big]
+\end{equation}
+where $W$ is a diagonal matrix with a separate lengthscale for each dimension and $\sigma^2$ is a scale parameter. This kernel yields smooth functions for $\vec{f}$ and is well suited to model the general trend of the trajectory.
+
+In some scenarios, a single \acrshort{rbf} kernel result in an unreasonably smooth function. Adding a second \acrshort{rbf} kernel as in \cref{eq:direct_gp_kernel} work well in these scenarios as it gives the model some additional flexibility in local regions. However, it makes hyperparameter selection significantly more complicated as the optimal solution is no longer unique.  
+
+\begin{equation}\label{eq:direct_gp_kernel}
+    k(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) = \sigma_0 k_0(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) + \sigma_1 k_1(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j)
+\end{equation}
+
+Each term in this kernel offer a unique interpretation:
+\begin{description}
+    \item[Long term trend $k_0$] is a \acrshort{rbf} kernel intended to cover the long-term behavior of the trajectories, i.e., a smooth component describing the overall trend of the trajectories. The length scales of this kernel are expected to be relatively large.
+    \item[Dependent noise $k_1$] is a \acrshort{rbf} kernel intended to model the local variations between different trajectories which is not well explained by $k_0$. The length scales are therefore expected to be short.
+\end{description}
+
+\section{Implementation Details}
+
+The main concern with this formulation is the significant computational complexity of conditioning $\vec{f}$ on a large number of samples. As it is infeasible to fit the entire \acrshort{ais} dataset to a single \acrshort{gp}, multiple smaller \acrshort{gp}s will be used instead. This raises the question, how should the training data be assigned to each \acrshort{gp}?
 
 \subsection{Selecting representable trajectories for training}
-The kernel matrix $K$ for all available data will be approximately sparse. Only a subset of the \acrshort{ais} data is relevant for any given input query. Trajectories with very different initial conditions than the query input should be safe to ignore, leaving only a subset of relevant trajectories to use for training. This way, the exact \acrshort{gp} formulation can still be used.
+The key observation is that only a small subset of the \acrshort{ais} samples is relevant for any given input query. Trajectories with significantly different initial conditions will get a negligible covariance. Hence, only a small subset of the trajectories has any effect on the prediction. 
+
 In this thesis, the training trajectories are selected from the following requirements:
 \begin{enumerate}
     \item The initial position of the trajectory must be close to the queried position $\boldsymbol{x}_0$. In this thesis, a fixed threshold $\Delta \boldsymbol{x}$ is used.
-    \item The initial \acrshort{cog} must be close to the queried heading $\mathcal{X}_0$. In this thesis, a fixed threshold $\Delta \mathcal{X}$ is used. 
+    \item The initial \acrshort{cog} must be close to the queried heading $\mathcal{X}_0$. In this thesis, a fixed threshold $\Delta \mathcal{X}$ is used.
     \item The initial \acrshort{sog} must be close to the queried velocity $v_0$. In this thesis, a fixed threshold $\Delta v$ is used.
-    \item If there are more than $N$ samples in the training set, then the samples are picked from the trajectories with the closest initial position. 
-\end{enumerate} 
+    \item If there are more than $N$ samples in the training set, then the samples are picked from the trajectories with the closest initial position.
+\end{enumerate}
 
-This is a very simplistic approach to clustering, as new \acrshort{gp}s needs to be trained for each query. A possible extension to this work is to perform clustering beforehand and fit a \acrshort{gp} for each cluster instead. 
+\subsection{Clustering}
+In practical applications, it may be beneficial to avoid recomputing the \acrshort{gp} for each new query. Instead, clustering-based methods may be used to create a cluster of similar trajectories and instead fit \acrshort{gp}s for each cluster. This approach is not implemented in this thesis but is considered a natural next step.
 
-\subsection{Choice of Kernel}
 
-A good kernel choice was, after trial and error, found to be the sum of a two \acrshort{rbf} kernel and a White kernel. This gave the model some additional flexibility over a single \acrshort{rbf} kernel, which resulted in better predictions.
+\subsection{Approximate Gaussian Process}
+Another promising approach is to utilize an approximation technique to avoid the scalability issue of \acrshort{gp}s. Though not implemented in this thesis, the \acrshort{svgp} introduced in \cref{chap:theory} is one such method that attempts to fit a \acrshort{gp} while simultaneously finding a good subset of the data to summarize the full dataset.
 
-\begin{equation}\label{eq:direct_gp_kernel}
-    k(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) = \sigma_0 k_0(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) + \sigma_1 k_1(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) +  \sigma_2 \delta(i, j)
-\end{equation}
-
-\begin{description}
-    \item[Long term trend $k_0$] is a \acrshort{rbf} kernel intended to cover the long-term behavior of the trajectories, i.e., a smooth component describing the overall trend of the trajectories. The lengthscales of this kernel are assumed to be large.
-    \item[Dependent noise $k_1$] is a \acrshort{rbf} kernel intended to model the variability between different trajectories not well explained by $k_0$. The lengthscales are assumed to be short.
-    \item[Independent noise $\delta(i, j)$] is a white kernel intended to model any remaining error as \acrshort{iid}.
-\end{description} 
-
-A wide range of other kernels was attempted, such as the Rational Quadratic and Matern class. None of these kernels performed consistently better than \cref{eq:direct_gp_kernel}. The current kernel is preferred due to its simplicity. 
