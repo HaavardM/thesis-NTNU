@@ -6,7 +6,7 @@ One of the significant issues with the direct approach is the unimodal assumptio
 The vessel trajectory $\boldsymbol{\mathcal{T}}$ can be expressed using the dynamical system
 \begin{subequations}
     \begin{align}
-        \boldsymbol{x}_{t+1}       & = \boldsymbol{x}_t + \vec{f}(\boldsymbol{x}_t,\tau_t)\Delta \tau            \\
+        \boldsymbol{x}_{t+1}       & = \boldsymbol{x}_t + \vec{f}(\boldsymbol{x}_t,\tau_t)                       \\
         \boldsymbol{\mathcal{T}}_t & = \boldsymbol{x}_t + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
     \end{align}
 \end{subequations}
@@ -31,7 +31,7 @@ The key variables for this chapter are summarized in \cref{table:dyngp_key_varia
     \centering
     \begin{tabular}{ll}
         \textit{\textbf{Variable}}               & \textit{\textbf{Description}}                                      \\ \hline
-        $\boldsymbol{x}_t \in \mathcal{R}^2$     & Vessel position at step $t$               \\
+        $\boldsymbol{x}_t \in \mathcal{R}^2$     & Vessel position at step $t$                                        \\
         $\tau_t \in \mathcal{R}$                 & Timestamp at step $t$, number of seconds since start of trajectory \\
         $\mathcal{X}_t \in [0, 360)$             & Vessel's course over ground in degrees at step $t$                 \\
         $v_t \in \mathcal{R}$                    & Vessel's speed over ground in knots at step $t$                    \\
@@ -42,40 +42,75 @@ The key variables for this chapter are summarized in \cref{table:dyngp_key_varia
 \end{table}
 
 Note that throughout this chapter, some of the notation used in \cref{sec:gp} will be relaxed in order to reduce the notational complexity. More specifically, the \acrshort{gp}s in this chapter is always assumed to be conditioned on available data, i.e. $p\big(\vec{f}(\boldsymbol{x})\big) = p\big(\vec{f}(\boldsymbol{x}) \; | \; \boldsymbol{y} \big)$.
-\section{Method}
 
-The vector-field $\vec{f}$ can be expressed using the \acrshort{gp} framework from \cref{chap:theory} to get the prediction model 
-\begin{equation}
-    p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t) = \mathcal{N}\big(\boldsymbol{x}_{t+1} \; | \; (\boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x_t})] \Delta \tau), (\mathbb{V}[\vec{f}(\boldsymbol{x}_t)] \Delta \tau^2) \big)
+\section{Simulating Trajectories}
+
+The vector-field $\vec{f}$ can be expressed using the \acrshort{gp} framework from \cref{chap:theory} to get the prediction model
+\begin{equation}\label{eq:dyngp_true_posterior}
+    p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t) = \mathcal{N}\big(\boldsymbol{x}_{t+1} \; | \; (\boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x_t})]), \mathbb{V}[\vec{f}(\boldsymbol{x}_t)] \big)
 \end{equation}
 
-Given a current estimate $p(\boldsymbol{x}_t)$, the marginal next state distribution for the predicted state then becomes 
+Given a current estimate $p(\boldsymbol{x}_t)$, the marginal next state distribution for the predicted state then becomes
 \begin{equation}
     p(\boldsymbol{x}_{t+1}) = \int_{\boldsymbol{x}_t} p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t) p(\boldsymbol{x}_t) d\boldsymbol{x}_t
-\end{equation} 
+\end{equation}
 
-However, this integral is intractable, as both the mean and variance depends on the current state $\boldsymbol{x}_t$ with non-trivial relationship \cite{pedestrian,multistep_gp}. One solution to this problem is to use sampling-based methods to numerically approximate this integral. One such approach is proposed later in \cref{sec:dyngp_particle}. Alternatively, the integral can be approximated using a Gaussian distribution. The mean and variance of the Gaussian distribution can be calculated using the law of iterated expecations and conditional variance \cite{multistep_gp}. Assuming the current estimate is distributed according to the Gaussian distribution $p(\boldsymbol{x}_t) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_t)$, the mean and variance of $\boldsymbol{x}_{t+1}$ is given by
+However, this integral is intractable, as both the mean and variance depend on the current state $\boldsymbol{x}_t$ with non-trivial relationship \cite{pedestrian,multistep_gp}. One solution to this problem is to use sampling-based methods to approximate this integral numerically. One such approach is proposed later in \cref{sec:dyngp_particle}. Alternatively, the integral can be approximated using a Gaussian distribution. The mean and variance of the Gaussian distribution can be calculated using the law of iterated expectations and conditional variance \cite{multistep_gp}. Assuming the current estimate is distributed according to the Gaussian distribution $p(\boldsymbol{x}_t) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_t)$, the mean and variance of $\boldsymbol{x}_{t+1}$ is given by
 
-\begin{subequations}
-\begin{align}
-\begin{split}
-    \mathbb{E}[\boldsymbol{x}_{t+1}] &= \mathbb{E}_{\boldsymbol{x}_t}\big[ \mathbb{E}_{\boldsymbol{x}_{t+1}}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
-    &= \mathbb{E}_{\boldsymbol{x}_t}\big[ \boldsymbol{x}_t + \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]\\
-    & = \bar{\boldsymbol{x}}_t + \mathbb{E}_{\boldsymbol{x}_t}\big[ \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
-\end{split}
-\end{align}
-\begin{align}
-    \begin{split}
-        \mathbb{V}[\boldsymbol{x}_{t+1}] &= \mathbb{E}_{\boldsymbol{x}_t}\big[\mathbb{V}_{\vec{f}(\boldsymbol{x}_t)}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t]\big] + \mathbb{V}_{\boldsymbol{x}_t}\big[ \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)} [f(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
-    \end{split}
-\end{align}
+\begin{subequations}\label{eq:gp_prediction_mean_variance}
+    \begin{align}
+        \begin{split}
+            \mathbb{E}[\boldsymbol{x}_{t+1}] &= \mathbb{E}_{\boldsymbol{x}_t}\big[ \mathbb{E}_{\boldsymbol{x}_{t+1}}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
+            &= \mathbb{E}_{\boldsymbol{x}_t}\big[ \boldsymbol{x}_t + \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]\\
+            & = \bar{\boldsymbol{x}}_t + \mathbb{E}_{\boldsymbol{x}_t}\big[ \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
+        \end{split}\\
+        \begin{split}
+            \mathbb{V}[\boldsymbol{x}_{t+1}] &= \mathbb{E}_{\boldsymbol{x}_t}\big[\mathbb{V}_{\boldsymbol{x}_{t+1}}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t]\big] + \mathbb{V}_{\boldsymbol{x}_t}\big[ \mathbb{E}_{\boldsymbol{x}_{t+1}} [\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
+            &= \mathbb{E}_{\boldsymbol{x}_t}\big[\mathbb{V}_{\vec{f}(\boldsymbol{x}_t)}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t]\big] + \mathbb{V}_{\boldsymbol{x}_t}\big[\boldsymbol{x}_t + \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)} [f(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
+        \end{split}
+    \end{align}
 \end{subequations}
 
-The mean and variance of the \acrshort{gp} is the same conditional mean and variance as in \cref{eq:gp_conditional_simple} from \cref{chap:theory}. 
+The mean and variance of the \acrshort{gp} is the same conditional mean and variance as in \cref{eq:gp_conditional_simple} from \cref{chap:theory}, which both are non-linear functions of $\boldsymbol{x}_t$. A first-order Taylor approximation around the current best estimate $\bar{\boldsymbol{x}}_t$ is then applied to linearize the \acrshort{gp} mean and variance, with respect to $\boldsymbol{x}_t$.
+
+\begin{subequations}\label{eq:gp_predict_taylor_approx}
+    \begin{align}
+        \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)}[f(\boldsymbol{x}_t) | \boldsymbol{x}_t)] & \approx \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \\
+        \mathbb{V}[f(\boldsymbol{x}_{t}) | \boldsymbol{x}_t]                            & \approx \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \frac{\partial \mathbb{V}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)
+    \end{align}
+\end{subequations}
+ 
+
+Defining temporary variables for the Jacobians
+\begin{align}
+    \boldsymbol{U}_t & \triangleq \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\big|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} & \boldsymbol{V}_t & =\frac{\partial \mathbb{V}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\big|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t}
+\end{align}
+and inserting \cref{eq:gp_predict_taylor_approx} into \cref{eq:gp_prediction_mean_variance} then yields
+
+\begin{subequations}\label{eq:gp_prediction_mean_variance_final}
+    \begin{align}
+        \begin{split}
+            \mathbb{E}[\boldsymbol{x}_{t+1}] & \approx \bar{\boldsymbol{x}}_t +  \mathbb{E}_{\boldsymbol{x}_t} \big[ \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)\big]\\
+            &= \bar{\boldsymbol{x}}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{U}_t ( \mathbb{E}_{\boldsymbol{x}_t}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t)\\
+            &= \bar{\boldsymbol{x}}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)]
+        \end{split} \\
+        \begin{split}
+            \mathbb{V}[\boldsymbol{x}_{t+1}] &\approx \mathbb{E}_{\boldsymbol{x}_t}\big[\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{V}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \big]\\
+            &+\mathbb{V}_{\boldsymbol{x}_t}\big[ \boldsymbol{x}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)  \big]\\
+            &=\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{V}_t (\mathbb{E}_{\boldsymbol{x}_t}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t) +\mathbb{V}_{\boldsymbol{x}_t}[\boldsymbol{x}_t + \boldsymbol{U}_t  \boldsymbol{x}_t] \\
+            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + (\boldsymbol{I} + \boldsymbol{U}_t)^\intercal \mathbb{V}_{\boldsymbol{x}_t}[\boldsymbol{x}_t] (\boldsymbol{I} + \boldsymbol{U}_t)\\
+            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{G}_t^\intercal \boldsymbol{P}_t \boldsymbol{G}_t
+        \end{split}
+    \end{align}
+\end{subequations}
+which those familiar with sensor fusion may recognize as equations as the \acrfull{ekf} prediction.
+
+
 
 
 \subsection{EKF trajectory prediction}
-Once the dynamics $\vec{f}$ is conditioned on data using \cref{alg:gp_prediction}, it can be used to predict trajectories using the prediction procedure used by the \textit{\acrfull{ekf}}. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}.
+\cref{eq:gp_prediction_mean_variance_final} yields a Gaussian approximation of\cref{eq:dyngp_true_posterior} which can be used to propagate the current state uncertianty $\boldsymbol{P}_t$ through subsequent predictions.
+The same issue is solved by the \acrfull{ekf} for non-linear filtering, which is why the rest of this thesis will refer to this method as the GP-EKF. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}. 
 
 During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state. In other words, the \acrshort{ekf} prediction model, $g_t(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
 
@@ -294,26 +329,11 @@ However, in practice, the dataset contains several contradicting trajectories. F
 \end{enumerate}
 
 \section{Choice of kernel}
-Finding a good kernel that works well across different situations is a tricky task. The \acrshort{rbf} is a safe choice, which works well in most cases, as long as the trajectories are reasonably smooth. This makes the simple \acrshort{rbf} the go-to kernel in this thesis.
+The approximation used to calculate the posterior distribution in \cref{eq:dyngp_true_posterior} is only a first-order Taylor approximation. Hence, it is only a reasonable approximation for functions with a low degree of nonlinearity, and care should be taken when designing the \acrshort{gp} dynamics $\vec{f}$. In this thesis, it is therefore argued that a simple \acrshort{rbf} kernel is the preferred choice due to the highly smooth characteristic of the functions drawn from this kernel. The \acrshort{rbf} kernel is found to work well in most cases, as long as the vessel follows a reasonably smooth trajectory. The \acrshort{rbf} is, therefore, the go-to kernel for the GP-EKF in this thesis.
 
-A possible extension is to use the sum of two \acrshort{rbf} kernels to get some additional flexibility. This kernel in \cref{eq:gp_ekf_kernel} attempts to model the data as a combination of a long-term trend, dependent noise, and independent noise. This is the same kernel proposed in \cref{chap:direct_gp}, though without the \acrshort{cog} and \acrshort{sog} input dimensions. It works better than the \acrshort{rbf} kernel in some of the more complicated cases, though at the cost of more hyperparameters to tune. In simple cases, hyperparameter optimization typically reduces the scale parameter $\sigma_1$ such that the dependent noise kernel $k_1$ has a negligible effect.
+A possible extension is to use the sum of two \acrshort{rbf} kernels to get some additional flexibility while still having a reasonably smooth function. This kernel in \cref{eq:gp_ekf_kernel} attempts to model the data as a combination of a long-term trend and separate local component between close trajectories. This is the same kernel proposed in \cref{chap:direct_gp}, though without the \acrshort{cog} and \acrshort{sog} input dimensions. It works better than the \acrshort{rbf} kernel in some of the more complicated cases, though at the cost of more hyperparameters to tune. In simple cases, hyperparameter optimization typically reduces the scale parameter $\sigma_1$ such that the dependent noise kernel $k_1$ has a negligible effect. However, the situations where this kernel is needed are also scenarios where the Taylor approximation performs poorly due to a high degree of nonlinearity. In other words, be careful when using more flexible kernels as this method is unable to handle more complicated nonlinearities. 
 
-\begin{equation}\label{eq:gp_ekf_kernel}
-    k(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) = \sigma_0 k_0(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) + \sigma_1 k_1(\boldsymbol{\eta}_i, \boldsymbol{\eta}_j) +  \sigma_2 \delta(i, j)
-\end{equation}
-
-\begin{description}
-    \item[Long term trend $k_0$] is a \acrshort{rbf} kernel intended to cover the long-term behavior of the trajectories, i.e., a smooth component describing the overall trend of the trajectories. The lengthscales of this kernel are assumed to be large.
-    \item[Dependent noise $k_1$] is a \acrshort{rbf} kernel intended to model the variability between different trajectories not well explained by $k_0$. The lengthscales are assumed to be short.
-    \item[Independent noise $\delta(i, j)$] is a white kernel intended to model any remaining error as \acrshort{iid}.
-\end{description}
-
-Several other kernels were also attempted, though no statistical testing was performed. A few notable experiments:
-\begin{description}
-    \item[Matern + White] The Matern class of kernels were attempted with $\nu=0.5$, $\nu=1.5$ and $\nu=2.5$. None of these gave any improved performance and the $\nu=0.5$ at times caused optimization errors.
-    \item[\acrshort{rbf} + Matern + White] was tried with $\nu=\frac{1}{2}$, $\nu=\frac{3}{2}$ and $\nu=\frac{5}{2}$ without showing any benefits over the simpler \acrshort{rbf} based kernel in \cref{eq:gp_ekf_kernel}.
-    \item[\acrshort{rbf} + Rational-Quadratic + White] The Rational Quadratic kernel was attempted as a replacement for the \acrshort{rbf} kernel as the dependent noise. No improvements was found, so the simpler \acrshort{rbf} was preferred.
-\end{description}
+Other kernels may be preferred if the posterior density in \cref{eq:dyngp_true_posterior} is evaluated using sampling-based methods, such as Sequential Monte-Carlo, as the Taylor approximation does not limit these methods.
 
 
 \subsection{Optimizing the hyperparameters}
