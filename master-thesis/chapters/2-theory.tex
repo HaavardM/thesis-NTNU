@@ -1,26 +1,43 @@
 \chapter{The Gaussian Process}\label{chap:theory}
 
-\section{Probability Theory}
-The reader is assumed to be already comfortable with basic probability theory. Some concepts are nevertheless included here, mainly to introduce the mathematical notation used throughout this thesis. 
+\section{A short recap of neccessary probability theory}
+The reader is assumed to be already comfortable with basic probability theory. A more detailed introduction was already covered in a previous specialization project \cite{mellbye}, though some concepts will nevertheless be reintroduced here mainly to introduce the mathematical notation used throughout this thesis. 
 
 \subsection{Probability Distributions}
 The notation $p(X)$ is used to denote the probability distribution of the random variable $X$, regardless of $X$ being discrete or random. Whether $p(X)$ refers to the \textit{\acrfull{pdf}} for continous random variables or \textit{\acrfull{pmf}} for discrete random variables therefore depend on the context. For the probability of a specific event occuring, the notation $\Pr\{X=x\}$ and $\Pr\{X \leq x\}$ will be used instead. The result is always a real number, i.e. $\Pr\{\cdot\} \in (0, 1)$. 
 
 \subsection{Joint Distribution}
-The notation $p(A, B)$ is used to denote the joint probability of $A$ and $B$. It is the probability of both events occurring at once.
+The notation $p(X, Y) = p(X \cap Y)$ is used to denote the joint probability of $X$ and $Y$. It is the probability of both events occurring at once.
+
 \subsection{Conditional Distribution}
-The notation $A | B$ is used to express the event $A$ occurring given the known event occurrence $B$. In the context of probability distributions, $p(A | B)$ denotes the probability of $A$ occurring, given that the event $B$ has happened.
+The notation $X | Y$ is used to express the event $X$ occurring given the known event occurrence $Y$. In the context of probability distributions, $p(X | Y)$ denotes the probability of $X$ occurring, given that the event $Y$ has happened. It is perhaps easier to read as the current belief about a quantity $X$ given a known value of $Y$, as $Y$ will in this thesis usually be some parameter rather than a discrete event. 
 
-\subsection{Interpretation of Probability}
-This thesis will heavily rely on a Bayesian interpretation of probability. Bayesian Statistics is extensively covered in a previous specialization project \cite{mellbye}, and only a short introduction is included here for completeness. Without going into unnecessary philosophical details, the Bayesian view interprets probabilities as beliefs rather than relative frequencies\footnote{The interpretation of probabilities as the relative frequency of outcomes from repeated trials is what is often taught in statistics courses and is called the \textit{frequentist} interpretation.}. 
-The benefit of the Bayesian interpretation is that it naturally can be used to model uncertainty of events which cannot easily be expressed as repeated trials. Examples include one-off events and parameter estimation of fixed but unknown quantities.\footnote{As a thought experiment, let us say you want to determine the number of trees on the planet. There is a fixed amount of trees, but the actual number is unknown as you cannot count every single one. There is nothing uncertain about the number of trees itself, only your beliefs which are uncertain due to incomplete knowledge.} \cite{murphy}.
+As this thesis will use a Bayesian interpretation of probability, the notation may also be used to express the parameters of a distribution, e.g. $\mathcal{N}(x \; | \;\mu, \sigma^2)$ is the \acrshort{pdf}  for the Gaussian distribution $x$ with mean $\mu$ and variance $\sigma$.
 
-Central to the Basian view of probability is \textit{Bayes rule}, which is used to update the prior beliefs $\boldsymbol{\theta}$ when once observing new data $\mathcal{D}$, and is given by
+\subsection{Marginal Distribution}
+The integral notation will be used to denote the marginal distribution for both discrete and continous random variables. For discrete variables, the integral is implicitly replaced by a sum.  
 
 \begin{equation}
-    p(\boldsymbol{\theta} | \mathcal{D}) = \frac{p(\boldsymbol{\theta} \cap \mathcal{D})}{p(\mathcal{D})} = \frac{p(\mathcal{D} | \boldsymbol{\theta}) p(\boldsymbol{\theta})}{p(\mathcal{D})}
+    p(X) = \int_{\boldsymbol{Y}} p(X \cap \boldsymbol{Y}) d\boldsymbol{Y} = \int_{\boldsymbol{Y}} p(X | \boldsymbol{Y}) p(\boldsymbol{Y}) d\boldsymbol{Y}
 \end{equation}
-where $p(\boldsymbol{\theta})$ is the prior belief about $\boldsymbol{\theta}$ before observing $\mathcal{D}$, $p(\mathcal{D} | \boldsymbol{\theta})$ is the likelihood of observing $\mathcal{D}$ given a fixed value for $\boldsymbol{\theta}$, $p(\mathcal{D})$ is a normalization constant and $p(\boldsymbol{\theta} | \mathcal{D})$ is the \textit{posterior} beliefs about $\boldsymbol{\theta}$ after observing $\mathcal{D}$. 
+
+The last equality is commonly referred to as \textit{The Law of total probability} and allows a complex distribution $p(X)$ to be expressed several simpler components.
+
+\subsection{The Law of Iterated Excpecations \& Conditional Variance}
+
+
+
+
+\subsection{Interpretation of Probability}
+This thesis will heavily rely on a Bayesian interpretation of probability. Bayesian Statistics is extensively covered in the specialization project \cite{mellbye}, and only a short introduction is included here for completeness. Without going into unnecessary philosophical details, the Bayesian view interprets probabilities as beliefs rather than relative frequencies\footnote{The interpretation of probabilities as the relative frequency of outcomes from repeated trials is what is often taught in statistics courses and is called the \textit{frequentist} interpretation.}. 
+The benefit of the Bayesian interpretation is that it naturally can be used to model uncertainty of events which cannot easily be expressed as repeated trials. Examples include one-off events and parameter estimation of fixed but unknown quantities.\footnote{As a thought experiment, let us say you want to determine the number of trees on the planet. There is a fixed amount of trees, but the actual number is unknown as you cannot count every single one. There is nothing uncertain about the number of trees itself, only your beliefs which are uncertain due to incomplete knowledge.} \cite{murphy}.
+
+Central to the Basian view of probability is \textit{Bayes rule}, which is used to update the prior beliefs $\boldsymbol{\theta}$ when observing new data $\mathcal{D}$, and is given by \cref{eq:bayes} where $p(\boldsymbol{\theta})$ is the prior belief about $\boldsymbol{\theta}$ before observing $\mathcal{D}$, $p(\mathcal{D} | \boldsymbol{\theta})$ is the likelihood of observing $\mathcal{D}$ given a known value for $\boldsymbol{\theta}$, $p(\mathcal{D})$ is a normalization constant and $p(\boldsymbol{\theta} | \mathcal{D})$ is the \textit{posterior} beliefs about $\boldsymbol{\theta}$ after observing $\mathcal{D}$. 
+
+\begin{tcolorbox}[ams equation, title={Bayes Rule}]\label{eq:bayes}
+    p(\boldsymbol{\theta} | \mathcal{D}) = \frac{p(\boldsymbol{\theta} \cap \mathcal{D})}{p(\mathcal{D})} = \frac{p(\mathcal{D} | \boldsymbol{\theta}) p(\boldsymbol{\theta})}{p(\mathcal{D})}
+\end{tcolorbox}
+
 
 
 

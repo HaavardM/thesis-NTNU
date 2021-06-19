@@ -60,13 +60,13 @@ However, this integral is intractable, as both the mean and variance depend on t
 \begin{subequations}\label{eq:gp_prediction_mean_variance}
     \begin{align}
         \begin{split}
-            \mathbb{E}[\boldsymbol{x}_{t+1}] &= \mathbb{E}_{\boldsymbol{x}_t}\big[ \mathbb{E}_{\boldsymbol{x}_{t+1}}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
-            &= \mathbb{E}_{\boldsymbol{x}_t}\big[ \boldsymbol{x}_t + \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]\\
-            & = \bar{\boldsymbol{x}}_t + \mathbb{E}_{\boldsymbol{x}_t}\big[ \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
+            \mathbb{E}[\boldsymbol{x}_{t+1}] &= \mathbb{E}\big[ \mathbb{E}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
+            &= \mathbb{E}\big[ \boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]\\
+            & = \bar{\boldsymbol{x}}_t + \mathbb{E}\big[ \mathbb{E}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
         \end{split}\\
         \begin{split}
-            \mathbb{V}[\boldsymbol{x}_{t+1}] &= \mathbb{E}_{\boldsymbol{x}_t}\big[\mathbb{V}_{\boldsymbol{x}_{t+1}}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t]\big] + \mathbb{V}_{\boldsymbol{x}_t}\big[ \mathbb{E}_{\boldsymbol{x}_{t+1}} [\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
-            &= \mathbb{E}_{\boldsymbol{x}_t}\big[\mathbb{V}_{\vec{f}(\boldsymbol{x}_t)}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t]\big] + \mathbb{V}_{\boldsymbol{x}_t}\big[\boldsymbol{x}_t + \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)} [f(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
+            \mathbb{V}[\boldsymbol{x}_{t+1}] &= \mathbb{E}\big[\mathbb{V}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t]\big] + \mathbb{V}\big[ \mathbb{E}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
+            &= \mathbb{E}\big[\mathbb{V}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t]\big] + \mathbb{V}\big[\boldsymbol{x}_t + \mathbb{E}[f(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
         \end{split}
     \end{align}
 \end{subequations}
@@ -75,7 +75,7 @@ The mean and variance of the \acrshort{gp} is the same conditional mean and vari
 
 \begin{subequations}\label{eq:gp_predict_taylor_approx}
     \begin{align}
-        \mathbb{E}_{\vec{f}(\boldsymbol{x}_t)}[f(\boldsymbol{x}_t) | \boldsymbol{x}_t)] & \approx \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \\
+        \mathbb{E}[f(\boldsymbol{x}_t) | \boldsymbol{x}_t)] & \approx \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \\
         \mathbb{V}[f(\boldsymbol{x}_{t}) | \boldsymbol{x}_t]                            & \approx \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \frac{\partial \mathbb{V}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)
     \end{align}
 \end{subequations}
@@ -90,16 +90,16 @@ and inserting \cref{eq:gp_predict_taylor_approx} into \cref{eq:gp_prediction_mea
 \begin{subequations}\label{eq:gp_prediction_mean_variance_final}
     \begin{align}
         \begin{split}
-            \mathbb{E}[\boldsymbol{x}_{t+1}] & \approx \bar{\boldsymbol{x}}_t +  \mathbb{E}_{\boldsymbol{x}_t} \big[ \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)\big]\\
-            &= \bar{\boldsymbol{x}}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{U}_t ( \mathbb{E}_{\boldsymbol{x}_t}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t)\\
+            \mathbb{E} & \approx \bar{\boldsymbol{x}}_t +  \mathbb{E}\big[ \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)\big]\\
+            &= \bar{\boldsymbol{x}}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{U}_t ( \mathbb{E}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t)\\
             &= \bar{\boldsymbol{x}}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)]
         \end{split} \\
         \begin{split}
-            \mathbb{V}[\boldsymbol{x}_{t+1}] &\approx \mathbb{E}_{\boldsymbol{x}_t}\big[\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{V}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \big]\\
-            &+\mathbb{V}_{\boldsymbol{x}_t}\big[ \boldsymbol{x}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)  \big]\\
-            &=\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{V}_t (\mathbb{E}_{\boldsymbol{x}_t}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t) +\mathbb{V}_{\boldsymbol{x}_t}[\boldsymbol{x}_t + \boldsymbol{U}_t  \boldsymbol{x}_t] \\
-            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + (\boldsymbol{I} + \boldsymbol{U}_t)^\intercal \mathbb{V}_{\boldsymbol{x}_t}[\boldsymbol{x}_t] (\boldsymbol{I} + \boldsymbol{U}_t)\\
-            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{G}_t^\intercal \boldsymbol{P}_t \boldsymbol{G}_t
+            \mathbb{V}[\boldsymbol{x}_{t+1}] &\approx \mathbb{E}\big[\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{V}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \big]\\
+            &+\mathbb{V}\big[ \boldsymbol{x}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)  \big]\\
+            &=\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{V}_t (\mathbb{E}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t) +\mathbb{V}[\boldsymbol{x}_t + \boldsymbol{U}_t  \boldsymbol{x}_t] \\
+            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + (\boldsymbol{I} + \boldsymbol{U}_t) \mathbb{V}[\boldsymbol{x}_t] (\boldsymbol{I} + \boldsymbol{U}_t)^\intercal\\
+            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{G}_t \boldsymbol{P}_t \boldsymbol{G}_t^\intercal
         \end{split}
     \end{align}
 \end{subequations}
@@ -142,7 +142,7 @@ Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linea
 The state uncertainty can then be predicted using \cref{eq:gp_ekf_prediction_uncertianty}, propagating the previous uncertainty $\boldsymbol{P}_{t-1}$ using the linearized prediction model $\boldsymbol{G}_t$ and adding the prediction uncertianty $\mathbb{V}[\vec{f}]$.
 
 \begin{equation}\label{eq:gp_ekf_prediction_uncertianty}
-    \boldsymbol{P}_t = \boldsymbol{G}_t^\intercal \boldsymbol{P}_{t-1} \boldsymbol{G}_t + \mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})]
+    \boldsymbol{P}_t = \boldsymbol{G}_t \boldsymbol{P}_{t-1} \boldsymbol{G}_t^\intercal + \mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})]
 \end{equation}
 
 The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can be used iteratively to simulate a complete trajectory, as demonstrated in \cref{fig:gp_ekf}.
