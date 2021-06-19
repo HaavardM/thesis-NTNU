@@ -57,8 +57,21 @@ However, the dataset is currently too large to work with on a single computer co
     \label{fig:ais_data}
 \end{figure}
 
+\section{Situation}
+The \acrshort{ais} dataset contains samples from a wide variety of different trajectories as each trajectory is the result of a vessel's intention, be it reaching a specific destination, fishing, or simply leisure. As a result, there is a wide range of possible overlapping trajectories a vessel might follow in any given area. Therefore, this thesis will narrow the problem of long-term prediction down to prediction in specific \textit{situations}. A situation is in this thesis characterized by the vessel's initial position, speed, and course, and the assumption is that vessels in a given situation tend to follow similar trajectories. Though not used in this thesis, it would also be natural to incorporate contextual information such as vessel type, as there is likely quite a lot of variability between the behavior of different vessel types. 
+
+When predicting the trajectory for a given target vessel, only the subset of \acrshort{ais} messages from similar situations will be used. In this thesis, the following requirements must be satisfied for a trajectory to qualify as being in a similar situation to the target vessel:
+\begin{enumerate}
+    \item The trajectories' initial position of the trajectory must be close to the target vessel's position $\boldsymbol{x}$. In this thesis, a fixed threshold at $\boldsymbol{x} \pm \Delta \boldsymbol{x}$ is used.
+    \item The trajectories' initial \acrshort{cog} must be close to the target vessel's heading $\mathcal{X}$. In this thesis, a fixed threshold at $\mathcal{X} \pm \Delta \mathcal{X}$ is used.
+    \item The trajectories' initial \acrshort{sog} must be close to the queried velocity $v$. In this thesis, a fixed threshold at $v \pm \Delta v$ is used.
+\end{enumerate}
+
+This simplifying assumption is a critical part of all methods proposed in this thesis. It allows the \acrshort{ais} to be reduced significantly for any given prediction and is what makes the methods computationally feasible. 
+
+
 \section{Preprocessing}
 The position (longitude and latitude) is converted from the standard World Geodetic System (WGS84) coordinates into the EUREF89 UTM32 (EPSG-25832) coordinate system \cite{kartverket}.  As a result, the coordinates are converted from spherical coordinates to a 2D euclidian coordinate system, where the first and second axis corresponds to easting and northing, respectively. This coordinate system is one of two official coordinate systems in Norway and yields significantly better projections in this area than other alternatives such as the Web-Mercator projector frequently used by online maps. Zone 32 was selected as it encompasses the target region.
 
 \subsection{From samples to trajectories}\label{sec:from_ais_to_traj}
-Samples with identical \acrshort{mmsi} and less than $15$ minutes between subsequent samples are considered part of the same trajectory. The $15$ minute requirement is added to ensure samples before and after docking are considered separate trajectories.
+Samples with identical \acrshort{mmsi} and less than $15$ minutes between subsequent samples are considered part of the same trajectory. The $15$ minute requirement is added to ensure samples before and after docking are considered separate trajectories. The length of the trajectories must be between $15$ and $30$ minutes, and the number of samples in each trajectory must be greater than $4$. 

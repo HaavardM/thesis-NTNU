@@ -319,15 +319,6 @@ There are two potential sources for the training samples $\boldsymbol{y}$:
 \end{align}
 
 
-However, in practice, the dataset contains several contradicting trajectories. For example, in a given area, vessels may move in opposite directions or with vastly different speeds. Therefore, the data is clustered based on the trajectories' initial conditions, and the appropriate cluster for prediction is selected using the target vessel's current position, \acrshort{cog} and \acrshort{sog}. A straightforward pipeline is used in this thesis to cluster relevant trajectories for training, given the vessel's current state. Note that this is the same pipeline used in \cref{chap:direct_gp}, but is restated here for completeness.
-
-\begin{enumerate}
-    \item The initial position of the trajectory must be close to the queried position $\boldsymbol{x}_0$. In this thesis, a fixed threshold $\Delta \boldsymbol{x}$ is used.
-    \item The initial \acrshort{cog} must be close to the queried heading $\mathcal{X}_0$. In this thesis, a fixed threshold $\Delta \mathcal{X}$ is used.
-    \item The initial \acrshort{sog} must be close to the queried velocity $v_0$. In this thesis, a fixed threshold $\Delta v$ is used.
-    \item If there are more than $N$ samples in the training set, then the samples are picked from the trajectories with the closest initial position.
-\end{enumerate}
-
 \section{Choice of kernel}
 The approximation used to calculate the posterior distribution in \cref{eq:dyngp_true_posterior} is only a first-order Taylor approximation. Hence, it is only a reasonable approximation for functions with a low degree of nonlinearity, and care should be taken when designing the \acrshort{gp} dynamics $\vec{f}$. In this thesis, it is therefore argued that a simple \acrshort{rbf} kernel is the preferred choice due to the highly smooth characteristic of the functions drawn from this kernel. The \acrshort{rbf} kernel is found to work well in most cases, as long as the vessel follows a reasonably smooth trajectory. The \acrshort{rbf} is, therefore, the go-to kernel for the GP-EKF in this thesis.
 
