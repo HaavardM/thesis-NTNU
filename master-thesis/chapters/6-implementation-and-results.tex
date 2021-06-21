@@ -1,7 +1,10 @@
 \chapter{Statistical Testing}\label{chap:stat_testing}
 Inspired by \cite{hexeberg}, the performance of the proposed models will be compared on straight-line and curved trajectories independently.
 
-\section{Method of testing}
+\section{Method}
+
+\subsection{The Dataset}
+
 \subsection{Trajectory Error}
 The trajectory error is found by comparing the predicted position with the ground truth. As the predicted trajectory is simulated in discrete time, the points with the closest timestamps are used for comparison. With $\Delta T = 10\text{ seconds}$, the maximum error in time is $\frac{\Delta T}{2} = 5 \text{ seconds}$, which is considered to be acceptable considering the time-horizon of between $15$ and $30$ minutes.
 \subsection{Path Error}
@@ -303,15 +306,27 @@ The effect of both the \acrshort{pdaf} and the \acrshort{sl} update procedures a
 \begin{figure}
     \centering
     \makebox[\textwidth][c]{
-        \begin{subfigure}{0.65\textwidth}
+        \begin{subfigure}{0.6\textwidth}
             \includegraphics{figures/straight_line_stats/nees.pdf}
             \caption{Straight-Line Trajectory}
         \end{subfigure}
-        \begin{subfigure}{0.65\textwidth}
+        \begin{subfigure}{0.6\textwidth}
             \includegraphics{figures/curved_line_stats/nees.pdf}
             \caption{Curved Trajectory}
         \end{subfigure}
     }
+
+    \makebox[\textwidth][c]{
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics{figures/straight_line_stats/nees_no_P.pdf}
+            \caption{Straight-Line Trajectory}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics{figures/curved_line_stats/nees_no_P.pdf}
+            \caption{Curved Trajectory}
+        \end{subfigure}
+    }
+    
 \end{figure}
 
 % On straight-line trajectories, the $25\%$ and $50\%$ quartiles correspond well with the theoretical values for the $\mathcal{X}^2$ distribution for all methods. The \acrshort{pdaf} update step does, however, reduce the predicted uncertainty, leading to increased overconfidence. In addition, the estimated \acrshort{nees} distribution has a much fatter right-tail than the theoretical $\mathcal{X}^2$ distribution, leading to an estimated $75\%$ quartile far outside the theoretical values.

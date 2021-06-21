@@ -178,9 +178,14 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
 
 
 
-\subsection{Incorporating vessel position}
+\section{Incorporating vessel position}
 While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. \todo[]{Add figure to showcase this issue} It would be desirable if the prediction converged towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, weak feedback compensating for minor prediction errors.
 
+\subsection{Synthetic Likelihood}
+
+
+
+\subsection{The Probabilistic Data Association Filter}
 As no actual position measurements of the vessel's future position are available, the available training data are considered as \textbf{potential} measurements, which at any timestep may or may not originate from the vessel. Thus, incorporating vessel position becomes a data association problem, for which one can look to target tracking for inspiration.
 
 The \textit{\acrfull{pdaf}} is a method commonly used in target tracking which combines data association and filtering. The following introduction to \acrshort{pdaf} is mostly inspired by \cite{sensorfusjon}, with some adaptations to fit the current problem better. As single target tracking and data association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here. For more details, see \cite{sensorfusjon,bar1995multitarget}

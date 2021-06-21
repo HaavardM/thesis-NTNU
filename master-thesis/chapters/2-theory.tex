@@ -1,6 +1,6 @@
 \chapter{The Gaussian Process}\label{chap:theory}
 
-\section{A short recap of neccessary probability theory}
+\section{A short recap of necessary probability theory}
 The reader is assumed to be already comfortable with basic probability theory. A more detailed introduction was already covered in a previous specialization project \cite{mellbye}, though some concepts will nevertheless be reintroduced here mainly to introduce the mathematical notation used throughout this thesis. 
 
 \subsection{Probability Distributions}
@@ -12,7 +12,7 @@ The notation $p(X, Y) = p(X \cap Y)$ is used to denote the joint probability of 
 \subsection{Conditional Distribution}
 The notation $X | Y$ is used to express the event $X$ occurring given the known event occurrence $Y$. In the context of probability distributions, $p(X | Y)$ denotes the probability of $X$ occurring, given that the event $Y$ has happened. It is perhaps easier to read as the current belief about a quantity $X$ given a known value of $Y$, as $Y$ will in this thesis usually be some parameter rather than a discrete event. 
 
-As this thesis will use a Bayesian interpretation of probability, the notation may also be used to express the parameters of a distribution, e.g. $\mathcal{N}(x \; | \;\mu, \sigma^2)$ is the \acrshort{pdf}  for the Gaussian distribution $x$ with mean $\mu$ and variance $\sigma$.
+As this thesis will use a Bayesian interpretation of probability, the notation may also be used to express the parameters of a distribution, e.g., $\mathcal{N}(x \; | \;\mu, \sigma^2)$ is the \acrshort{pdf}  for the Gaussian distribution $x$ with mean $\mu$ and variance $\sigma$.
 
 \subsection{Marginal Distribution}
 The integral notation will be used to denote the marginal distribution for both discrete and continous random variables. For discrete variables, the integral is implicitly replaced by a sum.  
@@ -21,9 +21,9 @@ The integral notation will be used to denote the marginal distribution for both 
     p(X) = \int_{\boldsymbol{Y}} p(X \cap \boldsymbol{Y}) d\boldsymbol{Y} = \int_{\boldsymbol{Y}} p(X | \boldsymbol{Y}) p(\boldsymbol{Y}) d\boldsymbol{Y}
 \end{equation}
 
-The last equality is commonly referred to as \textit{The Law of total probability} and allows a complex distribution $p(X)$ to be expressed several simpler components.
+The last equality is commonly referred to as \textit{The Law of total probability} and allows a complex distribution $p(X)$ to be expressed in several simpler components.
 
-\subsection{The Law of Iterated Excpecations \& Conditional Variance}
+\subsection{The Law of Iterated Expectations \& Conditional Variance}
 
 
 
