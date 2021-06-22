@@ -46,12 +46,12 @@ Note that throughout this chapter, some of the notation used in \cref{sec:gp} wi
 \section{Simulating Trajectories}
 
 The vector-field $\vec{f}$ can be expressed using the \acrshort{gp} framework from \cref{chap:theory} to get the prediction model
-\begin{equation}\label{eq:dyngp_true_posterior}
-    p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t) = \mathcal{N}\big(\boldsymbol{x}_{t+1} \; | \; (\boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x_t})]), \mathbb{V}[\vec{f}(\boldsymbol{x}_t)] \big)
+\begin{equation}\label{eq:dyngp_predictive_distribution}
+    p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t) = \mathcal{N}\big(\boldsymbol{x}_{t+1} \; | \; (\boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x_t})]), \mathbb{V}[\vec{f}(\boldsymbol{x}_t, \tau_t)] \big)
 \end{equation}
 
 Given a current estimate $p(\boldsymbol{x}_t)$, the marginal next state distribution for the predicted state then becomes
-\begin{equation}
+\begin{equation}\label{eq:dyngp_true_posterior}
     p(\boldsymbol{x}_{t+1}) = \int_{\boldsymbol{x}_t} p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t) p(\boldsymbol{x}_t) d\boldsymbol{x}_t
 \end{equation}
 
@@ -61,12 +61,12 @@ However, this integral is intractable, as both the mean and variance depend on t
     \begin{align}
         \begin{split}
             \mathbb{E}[\boldsymbol{x}_{t+1}] &= \mathbb{E}\big[ \mathbb{E}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
-            &= \mathbb{E}\big[ \boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]\\
-            & = \bar{\boldsymbol{x}}_t + \mathbb{E}\big[ \mathbb{E}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
+            &= \mathbb{E}\big[ \boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x}_t, \tau_t) | \boldsymbol{x}_t] \big]\\
+            & = \bar{\boldsymbol{x}}_t + \mathbb{E}\big[ \mathbb{E}[\vec{f}(\boldsymbol{x}_t, \tau_t) | \boldsymbol{x}_t] \big]
         \end{split}\\
         \begin{split}
             \mathbb{V}[\boldsymbol{x}_{t+1}] &= \mathbb{E}\big[\mathbb{V}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t]\big] + \mathbb{V}\big[ \mathbb{E}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
-            &= \mathbb{E}\big[\mathbb{V}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t]\big] + \mathbb{V}\big[\boldsymbol{x}_t + \mathbb{E}[f(\boldsymbol{x}_t) | \boldsymbol{x}_t] \big]
+            &= \mathbb{E}\big[\mathbb{V}[\vec{f}(\boldsymbol{x}_t, \tau_t) | \boldsymbol{x}_t]\big] + \mathbb{V}\big[\boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x}_t, \tau_t) | \boldsymbol{x}_t] \big]
         \end{split}
     \end{align}
 \end{subequations}
@@ -75,60 +75,39 @@ The mean and variance of the \acrshort{gp} is the same conditional mean and vari
 
 \begin{subequations}\label{eq:gp_predict_taylor_approx}
     \begin{align}
-        \mathbb{E}[f(\boldsymbol{x}_t) | \boldsymbol{x}_t)] & \approx \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \\
-        \mathbb{V}[f(\boldsymbol{x}_{t}) | \boldsymbol{x}_t]                            & \approx \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \frac{\partial \mathbb{V}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)
+        \mathbb{E}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t)] & \approx \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] +  \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \\
+        \mathbb{V}[f(\boldsymbol{x}_{t}, \tau_t) | \boldsymbol{x}_t]                            & \approx \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] +  \frac{\partial \mathbb{V}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)
     \end{align}
 \end{subequations}
  
 
 Defining temporary variables for the Jacobians
 \begin{align}
-    \boldsymbol{U}_t & \triangleq \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\big|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} & \boldsymbol{V}_t & =\frac{\partial \mathbb{V}[\vec{f}(\boldsymbol{x}_*)]}{\partial \boldsymbol{x}_*}\big|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t}
+    \boldsymbol{U}_t & \triangleq \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\big|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} & \boldsymbol{V}_t & =\frac{\partial \mathbb{V}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\big|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t}
 \end{align}
 and inserting \cref{eq:gp_predict_taylor_approx} into \cref{eq:gp_prediction_mean_variance} then yields
 
 \begin{subequations}\label{eq:gp_prediction_mean_variance_final}
     \begin{align}
         \begin{split}
-            \mathbb{E} & \approx \bar{\boldsymbol{x}}_t +  \mathbb{E}\big[ \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)\big]\\
-            &= \bar{\boldsymbol{x}}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{U}_t ( \mathbb{E}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t)\\
-            &= \bar{\boldsymbol{x}}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)]
+            \mathbb{E}[\boldsymbol{x}_{t+1}] & \approx \bar{\boldsymbol{x}}_t +  \mathbb{E}\big[ \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] + \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)\big]\\
+            &= \bar{\boldsymbol{x}}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] + \boldsymbol{U}_t ( \mathbb{E}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t)\\
+            &= \bar{\boldsymbol{x}}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)]
         \end{split} \\
         \begin{split}
-            \mathbb{V}[\boldsymbol{x}_{t+1}] &\approx \mathbb{E}\big[\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{V}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \big]\\
-            &+\mathbb{V}\big[ \boldsymbol{x}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t)] +  \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)  \big]\\
-            &=\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{V}_t (\mathbb{E}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t) +\mathbb{V}[\boldsymbol{x}_t + \boldsymbol{U}_t  \boldsymbol{x}_t] \\
-            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + (\boldsymbol{I} + \boldsymbol{U}_t) \mathbb{V}[\boldsymbol{x}_t] (\boldsymbol{I} + \boldsymbol{U}_t)^\intercal\\
-            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t)] + \boldsymbol{G}_t \boldsymbol{P}_t \boldsymbol{G}_t^\intercal
+            \mathbb{V}[\boldsymbol{x}_{t+1}] &\approx \mathbb{E}\big[\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] + \boldsymbol{V}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \big]\\
+            &+\mathbb{V}\big[ \boldsymbol{x}_t + \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] +  \boldsymbol{U}_t (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)  \big]\\
+            &=\mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] + \boldsymbol{V}_t (\mathbb{E}[\boldsymbol{x}_t] - \bar{\boldsymbol{x}}_t) +\mathbb{V}[\boldsymbol{x}_t + \boldsymbol{U}_t  \boldsymbol{x}_t] \\
+            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] + (\boldsymbol{I} + \boldsymbol{U}_t) \mathbb{V}[\boldsymbol{x}_t] (\boldsymbol{I} + \boldsymbol{U}_t)^\intercal\\
+            &= \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] + \boldsymbol{G}_t \boldsymbol{P}_t \boldsymbol{G}_t^\intercal
         \end{split}
     \end{align}
 \end{subequations}
-which those familiar with sensor fusion may recognize as equations as the \acrfull{ekf} prediction.
-
-
-
-
-\subsection{EKF trajectory prediction}
-\cref{eq:gp_prediction_mean_variance_final} yields a Gaussian approximation of\cref{eq:dyngp_true_posterior} which can be used to propagate the current state uncertianty $\boldsymbol{P}_t$ through subsequent predictions.
-The same issue is solved by the \acrfull{ekf} for non-linear filtering, which is why the rest of this thesis will refer to this method as the GP-EKF. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}. 
-
-During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state. In other words, the \acrshort{ekf} prediction model, $g_t(\boldsymbol{x})$, is given by \cref{eq:gp_ekf_prediction}.
-
-\begin{equation}\label{eq:gp_ekf_prediction}
-    \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}_t(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})
-\end{equation}
-
-Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, it is neccessary to linearize the prediction in order to propagate the previous state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}$ can be computed using \cref{eq:gp_jacobian}. To simplify the notation for the \acrshort{gp} inputs, a new variable $\boldsymbol{\eta} \triangleq \begin{bmatrix}
-        \boldsymbol{x} & t
-    \end{bmatrix}$ is defined.
-
-\begin{equation}\label{eq:gp_ekf_prediction_jac}
-    \boldsymbol{G}_t = \frac{\partial \boldsymbol{g}_t(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1}, \tau_t)}{\partial \boldsymbol{x}_{t-1}}
-\end{equation}
+which those familiar with sensor fusion may recognize as the \acrfull{ekf} prediction \cite{gpekf}. Notice that only the Jacobian of the expected value $\frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\big|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t}$ was actually neccessary in the end. This Jacobian is easy to compute and only relies on the covariance between the test point $\boldsymbol{\nu}_*$ and the training inputs as expressed in
 
 \begin{align}\label{eq:gp_jacobian}
     \begin{split}
-        \frac{\partial \vec{f}(\boldsymbol{x}_*, \tau)}{\partial \boldsymbol{x}_*} &= \frac{\partial \vec{f}(\boldsymbol{\eta})}{\partial \boldsymbol{x}_*} \\  &= \frac{\partial}{\partial \boldsymbol{x}_*} \bigg(\boldsymbol{k}_*^\intercal K^{-1} \big(\boldsymbol{y} - m(X)\big)\bigg)\\
+        \frac{\partial \vec{f}(\boldsymbol{x}_*, \tau_*)}{\partial \boldsymbol{x}_*} = \frac{\partial \vec{f}(\boldsymbol{\eta})}{\partial \boldsymbol{x}_*} &= \frac{\partial}{\partial \boldsymbol{x}_*} \bigg(\boldsymbol{k}_*^\intercal K^{-1} \big(\boldsymbol{y} - m(X)\big)\bigg)\\
         &= \frac{\partial \boldsymbol{k}_*^\intercal}{\partial \boldsymbol{x}_*} K^{-1} \big(\boldsymbol{y} - m(X)\big)\\
         &= \frac{\partial \boldsymbol{k}_*^\intercal}{\partial \boldsymbol{x}_*} \boldsymbol{\alpha} = \begin{bmatrix}
             \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_1)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_1)}{\partial \boldsymbol{x}_*[2]} \\
@@ -137,12 +116,47 @@ Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linea
             \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_N)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_N)}{\partial \boldsymbol{x}_*[2]} \\
         \end{bmatrix}^\intercal \boldsymbol{\alpha}
     \end{split}
-\end{align}
+\end{align}    
+where the notation $\boldsymbol{x}_*[i]$ refers to the i-th dimension of $\boldsymbol{x}_*$ and $\boldsymbol{\eta}_k$ is the k-th training input.
+
+\subsection{EKF trajectory prediction}
+The joint distribution of all states $\boldsymbol{x}_{0:t}$ up to timestep $t$ is given by
+
+\begin{equation}
+    p(\boldsymbol{x}_{0:t}) = p(\boldsymbol{x}_0) \prod_{i=0}^{t-1} p(\boldsymbol{x}_{i+1} | \boldsymbol{x}_{0:i})
+\end{equation}
+where the initial distribution $p(\boldsymbol{x}_0) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_0)$ is assumed to be a known Gaussian. 
+
+Applying the Markov assumption allow this joint distribution to be expressed in terms of the predictive distribution $p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t)$ from \cref{eq:dyngp_predictive_distribution}.
+
+\begin{equation}
+    p(\boldsymbol{x}_{0:t}) = p(\boldsymbol{x}_0) \prod_{i=0}^{t-1} p(\boldsymbol{x}_{i+1} | \boldsymbol{x}_{i})
+\end{equation}
+
+At each step, the true posterior distribution from \cref{eq:dyngp_true_posterior} is approximated using a Gaussian distribution as derived in the previous section. The full trajectory can then be simulated by recursively applying \cref{eq:gp_prediction_mean_variance_final}.
+
+
+This solution is heavily inspired by the \textit{\acrfull{ekf}}, which is why the rest of this thesis will refer to this method as the GP-EKF. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}. The proposed method will now be restated in terms of the \acrshort{ekf}
+
+During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state. In other words, the \acrshort{ekf} prediction model, $g_t(\boldsymbol{x})$, is given by
+
+\begin{equation}\label{eq:gp_ekf_prediction}
+    \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}_t(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})\Delta \tau
+\end{equation}
+where the time increment $\Delta \tau$ is factored out of $\vec{f}$ to simplify the implementation\footnote{Factoring out $\Delta \tau$ allow the implementation of $\vec{f}$ to only focus on modelling the dynamics in meters per second. This utilizes the fact that $\vec{f}$ follows a Gaussian distribution, for which any linear combination is still Gaussian.}.
+
+Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, it is neccessary to linearize the prediction in order to propagate the previous state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}$ can be computed using \cref{eq:gp_jacobian}.
+
+\begin{equation}\label{eq:gp_ekf_prediction_jac}
+    \boldsymbol{G}_t = \frac{\partial \boldsymbol{g}_t(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1}, \tau_t)}{\partial \boldsymbol{x}_{t-1}} \Delta \tau
+\end{equation}
+
+
 
 The state uncertainty can then be predicted using \cref{eq:gp_ekf_prediction_uncertianty}, propagating the previous uncertainty $\boldsymbol{P}_{t-1}$ using the linearized prediction model $\boldsymbol{G}_t$ and adding the prediction uncertianty $\mathbb{V}[\vec{f}]$.
 
 \begin{equation}\label{eq:gp_ekf_prediction_uncertianty}
-    \boldsymbol{P}_t = \boldsymbol{G}_t \boldsymbol{P}_{t-1} \boldsymbol{G}_t^\intercal + \mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})]
+    \boldsymbol{P}_t = \boldsymbol{G}_t \boldsymbol{P}_{t-1} \boldsymbol{G}_t^\intercal + \mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})] (\Delta \tau)^2
 \end{equation}
 
 The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can be used iteratively to simulate a complete trajectory, as demonstrated in \cref{fig:gp_ekf}.
