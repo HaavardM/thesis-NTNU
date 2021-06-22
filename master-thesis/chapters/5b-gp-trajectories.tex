@@ -63,7 +63,7 @@ However, this integral is intractable, as both the mean and variance depend on t
             \mathbb{E}[\boldsymbol{x}_{t+1}] &= \mathbb{E}\big[ \mathbb{E}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
             &= \mathbb{E}\big[ \boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x}_t, \tau_t) | \boldsymbol{x}_t] \big]\\
             & = \bar{\boldsymbol{x}}_t + \mathbb{E}\big[ \mathbb{E}[\vec{f}(\boldsymbol{x}_t, \tau_t) | \boldsymbol{x}_t] \big]
-        \end{split}\\
+        \end{split} \\
         \begin{split}
             \mathbb{V}[\boldsymbol{x}_{t+1}] &= \mathbb{E}\big[\mathbb{V}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t]\big] + \mathbb{V}\big[ \mathbb{E}[\boldsymbol{x}_{t+1} | \boldsymbol{x}_t] \big]\\
             &= \mathbb{E}\big[\mathbb{V}[\vec{f}(\boldsymbol{x}_t, \tau_t) | \boldsymbol{x}_t]\big] + \mathbb{V}\big[\boldsymbol{x}_t + \mathbb{E}[\vec{f}(\boldsymbol{x}_t, \tau_t) | \boldsymbol{x}_t] \big]
@@ -75,11 +75,11 @@ The mean and variance of the \acrshort{gp} is the same conditional mean and vari
 
 \begin{subequations}\label{eq:gp_predict_taylor_approx}
     \begin{align}
-        \mathbb{E}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t)] & \approx \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] +  \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \\
-        \mathbb{V}[f(\boldsymbol{x}_{t}, \tau_t) | \boldsymbol{x}_t]                            & \approx \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] +  \frac{\partial \mathbb{V}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)
+        \mathbb{E}[\vec{f}(\boldsymbol{x}_t) | \boldsymbol{x}_t)]    & \approx \mathbb{E}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] +  \frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t) \\
+        \mathbb{V}[f(\boldsymbol{x}_{t}, \tau_t) | \boldsymbol{x}_t] & \approx \mathbb{V}[\vec{f}(\bar{\boldsymbol{x}}_t, \tau_t)] +  \frac{\partial \mathbb{V}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\bigg|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t} (\boldsymbol{x}_t - \bar{\boldsymbol{x}}_t)
     \end{align}
 \end{subequations}
- 
+
 
 Defining temporary variables for the Jacobians
 \begin{align}
@@ -116,7 +116,7 @@ which those familiar with sensor fusion may recognize as the \acrfull{ekf} predi
             \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_N)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_N)}{\partial \boldsymbol{x}_*[2]} \\
         \end{bmatrix}^\intercal \boldsymbol{\alpha}
     \end{split}
-\end{align}    
+\end{align}
 where the notation $\boldsymbol{x}_*[i]$ refers to the i-th dimension of $\boldsymbol{x}_*$ and $\boldsymbol{\eta}_k$ is the k-th training input.
 
 \subsection{EKF trajectory prediction}
@@ -125,7 +125,7 @@ The joint distribution of all states $\boldsymbol{x}_{0:t}$ up to timestep $t$ i
 \begin{equation}
     p(\boldsymbol{x}_{0:t}) = p(\boldsymbol{x}_0) \prod_{i=0}^{t-1} p(\boldsymbol{x}_{i+1} | \boldsymbol{x}_{0:i})
 \end{equation}
-where the initial distribution $p(\boldsymbol{x}_0) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_0)$ is assumed to be a known Gaussian. 
+where the initial distribution $p(\boldsymbol{x}_0) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_0)$ is assumed to be a known Gaussian.
 
 Applying the Markov assumption allow this joint distribution to be expressed in terms of the predictive distribution $p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t)$ from \cref{eq:dyngp_predictive_distribution}.
 
@@ -269,7 +269,7 @@ By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in 
 
 \begin{algorithm}[h]
     \begin{algorithmic}[1]
-        \Procedure{GP-EKF-MODIFIED-PDAF}{$\hat{\boldsymbol{x}}_{t}$, $\hat{\boldsymbol{P}}_{t}$, | $\mathbf{R}$, $\lambda$, $p_D$, $g$}
+        \Procedure{GP-EKF-PDAF}{$\hat{\boldsymbol{x}}_{t}$, $\hat{\boldsymbol{P}}_{t}$, | $\mathbf{R}$, $\lambda$, $p_D$, $g$}
         \State $\boldsymbol{S}_t = \hat{\boldsymbol{P}}_t + \boldsymbol{R}$ \Comment{Innovation Covariance}
         \State $\boldsymbol{W}_t = \hat{\boldsymbol{P}}_t \boldsymbol{S}_t^{-1}$\Comment{Kalman Gain}
         \For{each measurement $\boldsymbol{z}^{a_t > 0}$}
@@ -278,13 +278,16 @@ By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in 
         \EndFor
         \State $\tilde{\beta}_t^{a_t = 0} = \lambda (1-p_D)$ \Comment{Unnormalized Clutter Probability}
         \State $\boldsymbol{\beta} = \frac{\tilde{\boldsymbol{\beta}}}{\sum_{a_t} \tilde{\beta}^{a_t}}$ \Comment{Normalize weights}
-        \State $\boldsymbol{x}_t = \hat{\boldsymbol{x}}_t + \boldsymbol{W}_t \big(\sum_{a_t > 0} \beta^{a_t} \boldsymbol{v}_t^{a_t} \big)$\Comment{Update the state mean}
+        \State $\boldsymbol{v}_t = \sum_{a_t > 0} \beta^{a_t} \boldsymbol{v}_t^{a_t}$
+        \State $\boldsymbol{x}_t = \hat{\boldsymbol{x}}_t + \boldsymbol{W}_t \boldsymbol{v}_t$\Comment{Update the state mean}
+        \State $\tilde{\boldsymbol{P}}_t = \boldsymbol{W}_t \big[\sum_{a_t > 0}^M \beta_t^{a_t} \boldsymbol{v}_t^{a_t} (\boldsymbol{v}_t^{a_t})^\intercal - \boldsymbol{v}_t \boldsymbol{v}_t^\intercal \big] \boldsymbol{W}_t^\intercal$\Comment{Spread of innovation}
+        \State $\boldsymbol{P}_t = \hat{\boldsymbol{P}}_t - (1 - \beta_t^{0}) \boldsymbol{W}_t \boldsymbol{S}_t  \boldsymbol{W}_t + \tilde{\boldsymbol{P}}_t$ \Comment{Updated state uncertianty}
 
 
         \State \textbf{return} $\boldsymbol{x}_t, \; \hat{\boldsymbol{P}}_t$
         \EndProcedure
     \end{algorithmic}
-    \caption{GP-EKF Modified \acrshort{pdaf} update}
+    \caption{GP-EKF \acrshort{pdaf} update}
     \label{alg:gp_ekf_pdaf}
 \end{algorithm}
 
@@ -342,11 +345,23 @@ There are two potential sources for the training samples $\boldsymbol{y}$:
 
 
 \section{Choice of kernel}
-The approximation used to calculate the posterior distribution in \cref{eq:dyngp_true_posterior} is only a first-order Taylor approximation. Hence, it is only a reasonable approximation for functions with a low degree of nonlinearity, and care should be taken when designing the \acrshort{gp} dynamics $\vec{f}$. In this thesis, it is therefore argued that a simple \acrshort{rbf} kernel is the preferred choice due to the highly smooth characteristic of the functions drawn from this kernel. The \acrshort{rbf} kernel is found to work well in most cases, as long as the vessel follows a reasonably smooth trajectory. The \acrshort{rbf} is, therefore, the go-to kernel for the GP-EKF in this thesis.
+The approximation used to calculate the posterior distribution in \cref{eq:dyngp_true_posterior} is only a first-order Taylor approximation. Hence, it is only a reasonable approximation for functions with a low degree of nonlinearity, and care should be taken when designing the \acrshort{gp} dynamics $\vec{f}$. In this thesis, it is argued that \acrshort{rbf} kernel is the preferred choice due to the highly smooth characteristic of the functions drawn from this kernel. The \acrshort{rbf} kernel
 
-A possible extension is to use the sum of two \acrshort{rbf} kernels to get some additional flexibility while still having a reasonably smooth function. This kernel in \cref{eq:gp_ekf_kernel} attempts to model the data as a combination of a long-term trend and separate local component between close trajectories. This is the same kernel proposed in \cref{chap:direct_gp}, though without the \acrshort{cog} and \acrshort{sog} input dimensions. It works better than the \acrshort{rbf} kernel in some of the more complicated cases, though at the cost of more hyperparameters to tune. In simple cases, hyperparameter optimization typically reduces the scale parameter $\sigma_1$ such that the dependent noise kernel $k_1$ has a negligible effect. However, the situations where this kernel is needed are also scenarios where the Taylor approximation performs poorly due to a high degree of nonlinearity. In other words, be careful when using more flexible kernels as this method is unable to handle more complicated nonlinearities. 
+\begin{equation}\label{eq:dyngp_kernel}
+    k(\boldsymbol{\eta}, \boldsymbol{\eta}') = \sigma^2 \exp \big[ - \frac{1}{2} (\boldsymbol{\eta} - \boldsymbol{\eta}')^\intercal \boldsymbol{W}^{-1} (\boldsymbol{\eta} - \boldsymbol{\eta}')^\intercal\big]
+\end{equation}
+is found to work well in most cases, as long as the vessel follows a reasonably smooth trajectory. $\boldsymbol{W}$ is a diagonal matrix a separate lengthscale for each input dimension. The \acrshort{rbf} is the go-to kernel for the GP-EKF in this thesis, though other kernels, such as the Matern class of kernels, may work just as well, if not better.
 
-Other kernels may be preferred if the posterior density in \cref{eq:dyngp_true_posterior} is evaluated using sampling-based methods, such as Sequential Monte-Carlo, as the Taylor approximation does not limit these methods.
+The derivative of this kernel with respect to the $i$-th input dimension $\boldsymbol{\eta}[i]$ can be computed as
+
+\begin{equation}
+    \frac{\partial k(\boldsymbol{\eta}, \boldsymbol{\eta}')}{\partial \boldsymbol{\eta}[i]} = -W_{ii}^{-1}(\boldsymbol{\eta}[i] - \boldsymbol{\eta}'[i]) \sigma^2 \exp \big[ - \frac{1}{2} (\boldsymbol{\eta} - \boldsymbol{\eta}')^\intercal \boldsymbol{W}^{-1} (\boldsymbol{\eta} - \boldsymbol{\eta}')^\intercal\big]
+\end{equation}
+
+
+A possible extension is to use the sum of two \acrshort{rbf} kernels to get some additional flexibility while still having a reasonably smooth function. This is the same kernel proposed in \cref{chap:direct_gp}, though without the \acrshort{cog} and \acrshort{sog} input dimensions. It works better than the \acrshort{rbf} kernel in some of the more complicated cases, though at the cost of more hyperparameters to tune. In simple cases, hyperparameter optimization \textbf{typically} reduces the scale parameter of one of the \acrshort{rbf} kernels such that the dependent noise kernel $k_1$ has a negligible effect. It is important to stress the word "typically," as this kernel is also more prone to bad local optima during hyperparameter optimization and may end up overfitting. If the length scales become too small, the dynamics $\vec{f}$ is allowed to become highly non-linear, and small changes in the input $\boldsymbol{x}$ may have a large impact on the prediction. The Taylor approximation is not a reasonable approximation in these cases, and the result is unstable uncertainty estimates \footnote{This is typically seen in the uncertainty estimates as large steps at seemingly random time steps, where the uncertainty experience sudden jumps as some elements in the Jacobian become large.}. The key takeaway is that the more flexible kernels are also more prone to overfitting, and care should be taken during optimization to avoid unrealistic parameters.
+
+Other kernels may be preferred if the posterior density in \cref{eq:dyngp_true_posterior} is evaluated using sampling-based methods, such as Sequential Monte-Carlo, as the Taylor approximation does not limit these methods. However, this is outside the scope of this thesis.
 
 
 \subsection{Optimizing the hyperparameters}
@@ -358,11 +373,11 @@ The whole dataset cannot be used to find the optimal hyperparameters due to the 
     \item Rerun the hyperparameter optimization for each scenario. This approach tends to find the optimal parameters in each case. However, it is also error-prone as it is not guaranteed to find a global optimum, and it may cause overfitting.
 \end{enumerate}
 
-The first approach is preferred in most cases, as it finds a global set of parameters and tends to result in smoother functions $\vec{f}$.
+The first approach is preferred in most cases, as it finds a global set of parameters and tends to result in smoother functions $\vec{f}$. \todo[]{Reconsider}
 
 
 \section{Summary}
-This chapter has so far introduced a lot of new concepts, so that it might be nice with a summary of the overall pipeline:
+This chapter has so far introduced a lot of new concepts so that it might be nice with a summary of the overall pipeline:
 
 \begin{enumerate}
     \item Based on the target vessel's current state, such as position, \acrshort{cog} and \acrshort{sog}, trajectories with similar initial conditions is selected from the training set.

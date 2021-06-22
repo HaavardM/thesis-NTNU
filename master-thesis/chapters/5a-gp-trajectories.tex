@@ -69,14 +69,6 @@ The main concern with this formulation is the significant computational complexi
 \subsection{Selecting representable trajectories for training}
 The key observation is that only a small subset of the \acrshort{ais} samples is relevant for any given input query. Trajectories with significantly different initial conditions will get a negligible covariance. Hence, only a small subset of the trajectories has any effect on the prediction. 
 
-In this thesis, the training trajectories are selected from the following requirements:
-\begin{enumerate}
-    \item The initial position of the trajectory must be close to the queried position $\boldsymbol{x}_0$. In this thesis, a fixed threshold $\Delta \boldsymbol{x}$ is used.
-    \item The initial \acrshort{cog} must be close to the queried heading $\mathcal{X}_0$. In this thesis, a fixed threshold $\Delta \mathcal{X}$ is used.
-    \item The initial \acrshort{sog} must be close to the queried velocity $v_0$. In this thesis, a fixed threshold $\Delta v$ is used.
-    \item If there are more than $N$ samples in the training set, then the samples are picked from the trajectories with the closest initial position.
-\end{enumerate}
-
 \subsection{Clustering}
 In practical applications, it may be beneficial to avoid recomputing the \acrshort{gp} for each new query. Instead, clustering-based methods may be used to create a cluster of similar trajectories and instead fit \acrshort{gp}s for each cluster. This approach is not implemented in this thesis but is considered a natural next step.
 

@@ -100,7 +100,7 @@ This interpretation of a \acrshort{gp} might seem a bit odd at first. The key ob
 \subsection{A quick note on vector notation}
 Different notations for vector values is used to differentiate between three common cases:
 \begin{description}
-\item[Bold letters] are used to indicate a single, multivariate value. $f(\boldsymbol{x})$ is the scalar function $f$ evaluated at the multivariate input $\boldsymbol{x}$. In practice, this implies the input is $\boldsymbol{x} \in \mathcal{R}^{1 x M}$ with $M\geq 2$ columns. 
+\item[Bold letters] are used to indicate a single, multivariate value. $f(\boldsymbol{x})$ is the scalar function $f$ evaluated at the multivariate input $\boldsymbol{x}$. In practice, this implies the input is a column vector $\boldsymbol{x} \in \mathcal{R}^{M}$ with $M \geq 2$ elements. 
 \item[Capital letters] such as $X$, are used to indicate multiple (potentially multivariate) samples. $f(X)$ is the scalar function $f$ evaluated at each row in $X$. In practice this implies that the input $X \in \mathcal{R}^{N x M}$ with $N \geq 2$ rows (samples) and $M \geq 1$ columns (dimensions).
 \item[Vector Arrow] such as $\vec{f}$ is used to denote vector-fields (i.e. vector-valued functions). This will be useful for vector-valued \acrshort{gp}s as it allows the distinction between shorthand notations such as $\boldsymbol{f}_* = f(X_*)$, $\vec{f}_* = \vec{f}(\boldsymbol{x}_*)$ and $\vec{\boldsymbol{f}}_* = \vec{f}(X_*)$.
 \end{description}
