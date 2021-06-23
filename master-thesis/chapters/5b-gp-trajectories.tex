@@ -166,7 +166,7 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
         \Procedure{GP-EKF-PREDICT}{$\vec{f}$, $\boldsymbol{x}_{t-1}$, $\boldsymbol{P}_{t-1}$, $\Delta \tau$}
         \State $\hat{\boldsymbol{x}}_{t} = \boldsymbol{x}_{t-1} + \mathbb{E}\big[\vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})\big] \Delta \tau$
         \State $\boldsymbol{G_t} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})}{\partial \boldsymbol{x}_{t-1}} \Delta \tau$
-        \State $\hat{\boldsymbol{P}}_t = \boldsymbol{G_t}^\intercal \boldsymbol{P}_{t-1} \boldsymbol{G_t} +\mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})] (\Delta \tau)^2$
+        \State $\hat{\boldsymbol{P}}_t = \boldsymbol{G_t} \boldsymbol{P}_{t-1} \boldsymbol{G_t}^\intercal +\mathbb{V}[\vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})] (\Delta \tau)^2$
         \State \textbf{return} $\hat{\boldsymbol{x}}_t, \; \hat{\boldsymbol{P}}_t$
         \EndProcedure
     \end{algorithmic}
@@ -193,9 +193,33 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
 
 
 \section{Incorporating vessel position}
-While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. \todo[]{Add figure to showcase this issue} It would be desirable if the prediction converged towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, weak feedback compensating for minor prediction errors.
+While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. \todo[]{Add figure to showcase this issue} It would be desirable if the prediction converged towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, weak feedback compensating for minor prediction errors. Expressed using Bayes law
+\begin{equation}
+    p(\boldsymbol{x}_{0:t} | \mathcal{D}) = \frac{p(\mathcal{D} | \boldsymbol{x}_{0:t}) p(\boldsymbol{x}_{0:t})}{p(\mathcal{D})} \propto p(\mathcal{D} | \boldsymbol{x}_{0:t})p(\boldsymbol{x}_{0:t})
+\end{equation}
+where $\mathcal{D}$ here is all available training data.
+
+The problem is that the dataset $\mathcal{D}$ does not contain any samples from the target vessel's future trajectory, though it contains a lot of data from trajectories that are assumed to be similar. The challenge is to relate the target vessel's trajectory to the data-generating process for the dataset $\mathcal{D}$.
+
+This is still very much considered an unsolved problem. This thesis attempts two different approaches, but the solutions are not yet satisfactory.
 
 \subsection{Synthetic Likelihood}
+
+This section is inspired by the unpublished work of 
+The first approach makes the assumption that if the vessel is indeed following a common trajectory, there should be plenty of historical \acrshort{ais} messages distributed in the vicinity of any given state in the trajectory $\boldsymbol{x}_t$.
+
+In this thesis, a fixed radius around the predicted state is used to define vicinity of the predicted state. The relevant subset $\tilde{\mathcal{D}}$ of \acrshort{ais} samples for a given state $\boldsymbol{x}_t$ is then given by
+
+\begin{equation}
+    \tilde{\mathcal{D}}_t = \tilde{\mathcal{D}}_t(\boldsymbol{x}_t) = \{\boldsymbol{d}_i \in \mathcal{D} : \; ||\boldsymbol{x}_t - \boldsymbol{p}_i|| \leq S\}
+\end{equation}
+where the threshold $S$ as a fixed parameter. It is then assumed that only the \acrshort{ais} samples in a close vicinity of the state $\boldsymbol{x}_t$ is sufficient to approximate the true posterior distribution, i.e.
+
+\begin{equation}
+    p(\boldsymbol{x}_{0:t} | \mathcal{D}) \approx p(\boldsymbol{x}_{0:t} | \tilde{\mathcal{D}}_{0:t}) = \frac{p(\tilde{\mathcal{D}}_{0:t} | \boldsymbol{x}_{0:t}) p(\boldsymbol{x}_{0:t})}{p(\tilde{\mathcal{D}}_{0:t})}
+\end{equation}
+
+
 
 
 
@@ -284,10 +308,10 @@ By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in 
         \State $\boldsymbol{P}_t = \hat{\boldsymbol{P}}_t - (1 - \beta_t^{0}) \boldsymbol{W}_t \boldsymbol{S}_t  \boldsymbol{W}_t + \tilde{\boldsymbol{P}}_t$ \Comment{Updated state uncertianty}
 
 
-        \State \textbf{return} $\boldsymbol{x}_t, \; \hat{\boldsymbol{P}}_t$
+        \State \textbf{return} $\boldsymbol{x}_t, \; \boldsymbol{P}_t$
         \EndProcedure
     \end{algorithmic}
-    \caption{GP-EKF \acrshort{pdaf} update}
+    \caption{GP-EKF-PDAF update}
     \label{alg:gp_ekf_pdaf}
 \end{algorithm}
 
@@ -312,10 +336,10 @@ By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in 
 The model should primarily trust the prediction model, as it would get stuck as the measurements do not change over time. If the \acrshort{pdaf} parameters are tuned too aggressively, it tends to affect the velocity estimates of the prediction negatively. In practice, it has worked well tuning the measurement noise $\boldsymbol{R}$ to get the desired update effect.
 However, finding a set of parameters that works well across different trajectories turns out to be challenging. Parameters that improve the prediction for one trajectory may do more harm than good on another. The performance of using PDAF will be explored further in \cref{chap:stat_testing}.
 
-\subsection{The ad-hoc approach}
-Neither the \acrshort{sl} nor the \acrshort{pdaf} approach is a satisfactory solution as both either have a negligible effect or suffers from overconfident uncertainty predictions. The problem lies in the assumptions that the observed positions originate from the target vessel, while in reality, the measurements are from entirely different trajectories. As long as the predicted state is in a densely populated area, the update steps will have no problem finding evidence supporting the current state, leading to overconfidence. Though not covered in this thesis, this problem motivates research into more sophisticated likelihood functions.
+% \subsection{The ad-hoc approach}\todo[]{Consider removing}
+% Neither the \acrshort{sl} nor the \acrshort{pdaf} approach is a satisfactory solution as both either have a negligible effect or suffers from overconfident uncertainty predictions. The problem lies in the assumptions that the observed positions originate from the target vessel, while in reality, the measurements are from entirely different trajectories. As long as the predicted state is in a densely populated area, the update steps will have no problem finding evidence supporting the current state, leading to overconfidence. Though not covered in this thesis, this problem motivates research into more sophisticated likelihood functions.
 
-During tuning both these methods, it became apparent that the desired behavior of these update steps would correct the prediction's mean and keep roughly the same level of uncertainty. In other words, the model should use the additional information from the update step to correct its prediction without reducing the uncertainty. While certainly not elegant, the quick and dirty solution was to omit the update of the state uncertainty, i.e., $\boldsymbol{P}_t = \hat{\boldsymbol{P}}_t$. This ad-hoc solution will be denoted the \textit{modified \acrshort{pdaf}} and the \textit{modified \acrshort{sl}} and works surprisingly well in practice. It is, however, not considered a good replacement for a proper likelihood.
+% During tuning both these methods, it became apparent that the desired behavior of these update steps would correct the prediction's mean and keep roughly the same level of uncertainty. In other words, the model should use the additional information from the update step to correct its prediction without reducing the uncertainty. While certainly not elegant, the quick and dirty solution was to omit the update of the state uncertainty, i.e., $\boldsymbol{P}_t = \hat{\boldsymbol{P}}_t$. This ad-hoc solution will be denoted the \textit{modified \acrshort{pdaf}} and the \textit{modified \acrshort{sl}} and works surprisingly well in practice. It is, however, not considered a good replacement for a proper likelihood.
 
 \subsection{Simulating trajectories using Gaussian Process Sequential Monte Carlo}\label{sec:dyngp_particle}
 The Kalman-based prediction scheme proposed in the previous section works well as long as a single Gaussian distribution can sufficiently explain the uncertainty. However, in branching trajectories, minor differences in position early in the predicted trajectory might significantly affect the following predictions. The result is a multimodal trajectory distribution, which a Kalman-based approach is not able to express.

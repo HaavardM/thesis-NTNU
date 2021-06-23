@@ -1,4 +1,4 @@
-\chapter{AIS}\label{chap:ais}
+\chapter{Historical AIS data}\label{chap:ais}
 
 The \textit{\acrfull{ais}} is a vessel-to-vessel communication system, which allows a vessel to share vital information about its current state with other ships, base stations, and satellites electronically. International voyaging ships with gross tonnage larger than 300 and all passenger ships are required to install an \acrshort{ais} transceiver according to the \textit{Safety Of Life At Sea} (SOLAS) convention \cite{ais_wiki} \todo[]{Cite Hexeberg or Wikipedia? How to cite conventions and other non-academic stuff?}
 
@@ -39,26 +39,26 @@ The total dataset contains $2995644$ \acrshort{ais} samples collected between 1.
     \label{fig:ais_cdf}
 \end{figure}
 
-However, the dataset is currently too large to work with on a single computer conveniently. Two local regions are instead used in this thesis and are shown in \cref{fig:ais_data}. The first subset is from a curved section of the Trondheim fjord with a lot of traffic. The subset also includes a ferry crossing, which crosses the traffic lane. The other subset is from deeper into the fjord, from a relatively straight section. The dataset, therefore, contains both straight-line and curved trajectories, as well as crossing trajectories. 
+However, the dataset is currently too large to work with on a single computer conveniently. So two local regions are instead used in this thesis and are shown in \cref{fig:ais_data}. The first subset is from a curved section of the Trondheim fjord with a lot of traffic. The subset also includes a ferry crossing, which crosses the traffic lane. The other subset is from deeper into the fjord, from a relatively straight section. The dataset, therefore, contains both straight-line and curved trajectories, as well as crossing trajectories. 
 
 \begin{figure}
     \centering
     \begin{subfigure}{\textwidth}
         \centering
         \includegraphics{figures/ais_map.pdf}
-        \caption{Full dataset. The red areas marks the subset which will be used for testing purposes.}
+        \caption{Full dataset. The blue areas marks the subset which will be used for testing purposes.}
     \end{subfigure}
     \begin{subfigure}{\textwidth}
         \centering
         \includegraphics{figures/ais_map_zoom.pdf}
-        \caption{Zoomed-in version of the subsets used in this thesis.}
+        \caption{Zoomed-in version of the subsets used in this thesis. The blue subset in the left-most map show the \acrshort{ais} data from three local ferries which make ut more than half of the dataset.}
     \end{subfigure}
     \caption{The available \acrshort{ais} data used in this thesis. }
     \label{fig:ais_data}
 \end{figure}
 
-\section{Situation}
-The \acrshort{ais} dataset contains samples from a wide variety of different trajectories as each trajectory is the result of a vessel's intention, be it reaching a specific destination, fishing, or simply leisure. As a result, there is a wide range of possible overlapping trajectories a vessel might follow in any given area. Therefore, this thesis will narrow the problem of long-term prediction down to prediction in specific \textit{situations}. A situation is in this thesis characterized by the vessel's initial position, speed, and course, and the assumption is that vessels in a given situation tend to follow similar trajectories. Though not used in this thesis, it would also be natural to incorporate contextual information such as vessel type, as there is likely quite a lot of variability between the behavior of different vessel types. 
+\section{Scenario}
+The \acrshort{ais} dataset contains samples from a wide variety of different trajectories as each trajectory is the result of a vessel's intention, be it reaching a specific destination, fishing, or simply leisure. As a result, there is a wide range of possible overlapping trajectories a vessel might follow in any given area. Therefore, this thesis will narrow the problem of long-term prediction down to prediction in specific \textit{scenarios}. A scenario is in this thesis characterized by the vessel's initial position, speed, and course, and the assumption is that vessels in a given scenario tend to follow similar trajectories. Though not used in this thesis, it would also be natural to incorporate contextual information such as vessel type, as there is likely quite a lot of variability between the behavior of different vessel types. 
 
 When predicting the trajectory for a given target vessel, only the subset of \acrshort{ais} messages from similar situations will be used. In this thesis, the following requirements must be satisfied for a trajectory to qualify as being in a similar situation to the target vessel:
 \begin{enumerate}
@@ -68,6 +68,11 @@ When predicting the trajectory for a given target vessel, only the subset of \ac
 \end{enumerate}
 
 This simplifying assumption is a critical part of all methods proposed in this thesis. It allows the \acrshort{ais} to be reduced significantly for any given prediction and is what makes the methods computationally feasible. 
+
+The notion of only using a small subset of close-by samples from the \acrshort{ais} data is somewhat similar to the SPNS method proposed by \cite{Hexeberg2017AISbasedVT}, though a key distinction is that this thesis selects entire trajectories based on the initial conditions, rather than individual points. 
+
+\subsection{Clustering}
+In practical applications, it may be beneficial to use a fixed number of situations. For example, clustering-based methods may be used to cluster similar trajectories into a fixed number of scenarios for each cluster. This approach is not implemented in this thesis but is considered a natural next step.
 
 
 \section{Preprocessing}

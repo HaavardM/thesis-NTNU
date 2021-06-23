@@ -64,15 +64,23 @@ Each term in this kernel offer a unique interpretation:
 
 \section{Implementation Details}
 
-The main concern with this formulation is the significant computational complexity of conditioning $\vec{f}$ on a large number of samples. As it is infeasible to fit the entire \acrshort{ais} dataset to a single \acrshort{gp}, multiple smaller \acrshort{gp}s will be used instead. This raises the question, how should the training data be assigned to each \acrshort{gp}?
-
-\subsection{Selecting representable trajectories for training}
-The key observation is that only a small subset of the \acrshort{ais} samples is relevant for any given input query. Trajectories with significantly different initial conditions will get a negligible covariance. Hence, only a small subset of the trajectories has any effect on the prediction. 
-
-\subsection{Clustering}
-In practical applications, it may be beneficial to avoid recomputing the \acrshort{gp} for each new query. Instead, clustering-based methods may be used to create a cluster of similar trajectories and instead fit \acrshort{gp}s for each cluster. This approach is not implemented in this thesis but is considered a natural next step.
-
+This formulation builds directly on the \acrshort{gp} framework introduced in \cref{chap:theory} and the trajectory can be conditioned on available training data using \cref{alg:gp_prediction}. 
 
 \subsection{Approximate Gaussian Process}
-Another promising approach is to utilize an approximation technique to avoid the scalability issue of \acrshort{gp}s. Though not implemented in this thesis, the \acrshort{svgp} introduced in \cref{chap:theory} is one such method that attempts to fit a \acrshort{gp} while simultaneously finding a good subset of the data to summarize the full dataset.
+Another promising approach is to utilize an approximation technique to avoid the scalability issue of \acrshort{gp}s. While this thesis focus on specific scenarios, as discussed in \cref{chap:ais}, the formulation in this chapter lends itself nicely to using more data. Though not implemented in this thesis, the \acrshort{svgp} introduced in \cref{chap:theory} is one such method that attempts to fit a \acrshort{gp} while simultaneously finding a good subset of the data to summarize the full dataset.
 
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics{figures/direct_gp_example.pdf}
+        \caption{The predicted trajectory using the direct \acrshort{gp} formulation. The ellipses are the $95\%$ CI for the prediction at the ground truth timestamps.}
+    \end{subfigure}
+        \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics{figures/direct_gp_state_example.pdf}
+        \caption{The East and North components plotted agains time with a $95\%$ CI.}
+    \end{subfigure}
+    \caption{Example output from the Direct \acrshort{gp} approach. }
+\end{figure}

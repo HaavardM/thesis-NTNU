@@ -15,7 +15,7 @@ The notation $X | Y$ is used to express the event $X$ occurring given the known 
 As this thesis will use a Bayesian interpretation of probability, the notation may also be used to express the parameters of a distribution, e.g., $\mathcal{N}(x \; | \;\mu, \sigma^2)$ is the \acrshort{pdf}  for the Gaussian distribution $x$ with mean $\mu$ and variance $\sigma$.
 
 \subsection{Marginal Distribution}
-The integral notation will be used to denote the marginal distribution for both discrete and continous random variables. For discrete variables, the integral is implicitly replaced by a sum.  
+The integral notation will be used to denote the marginal distribution for both discrete and continuous random variables. For discrete variables, the integral is implicitly replaced by a sum.  
 
 \begin{equation}
     p(X) = \int_{\boldsymbol{Y}} p(X \cap \boldsymbol{Y}) d\boldsymbol{Y} = \int_{\boldsymbol{Y}} p(X | \boldsymbol{Y}) p(\boldsymbol{Y}) d\boldsymbol{Y}
@@ -95,7 +95,7 @@ In this thesis, a more specific definition is adopted in order to interpret \acr
     f \sim GP(\;m(\boldsymbol{x}), \; k(\boldsymbol{x}, \boldsymbol{x}')\;)
 \end{equation}
 
-This interpretation of a \acrshort{gp} might seem a bit odd at first. The key observation is that the marginal distribution $p(\boldsymbol{x})$ of a multivariate Gaussian distribution $p(\boldsymbol{x}, \boldsymbol{y})$ is another Gaussian distribution that is completely independent of $\boldsymbol{y}$, as expressed in \cref{eq:multivariate_gaussian_marginal}. Any variables not of interest can, therefore, easily be marginalized away. Any \acrshort{gp} by Definition \ref{def:gp} can therefore be viewed as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
+This interpretation of a \acrshort{gp} might seem a bit odd at first. It may help to think of functions as infinitely long vectors containing the function values for all possible inputs. The key observation is that the marginal distribution $p(\boldsymbol{x})$ of a multivariate Gaussian distribution $p(\boldsymbol{x}, \boldsymbol{y})$ is another Gaussian distribution that is completely independent of $\boldsymbol{y}$, as expressed in \cref{eq:multivariate_gaussian_marginal}. Any variables not of interest can, therefore, easily be marginalized away. Any \acrshort{gp} by Definition \ref{def:gp} can therefore be viewed as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
 
 \subsection{A quick note on vector notation}
 Different notations for vector values is used to differentiate between three common cases:
@@ -278,6 +278,8 @@ The name marginal likelihood comes from the fact that the latent function $\bold
     p(\boldsymbol{y} \; | \; X, \boldsymbol{\theta}) = \int_{\boldsymbol{f}} p\big(\boldsymbol{y} \;| \; \boldsymbol{f}\big) p\big(\boldsymbol{f} \; |\; m(X), K(X, X)\big) d\boldsymbol{f}
 \end{equation}
 
+The marginal likelihood is somewhat resilient to overfitting as it naturally incorporates a tradeoff between model complexity and model fit. However, the optimization step always imposes the risk of overfitting, especially if there are many hyperparameters \cite{rasmussen}. 
+
 \section{Sampling from a Gaussian Process}\label{sec:gp_samples}
 As the \acrshort{gp} is a jointly Gaussian distribution, random samples can be drawn from it as with any other multivariate Gaussian.
 
@@ -338,7 +340,7 @@ The best surrogate density can therefore be found by maximizing the \textit{\acr
 \subsubsection{Sparse Variational Gaussian Process}
 To deal with the computational complexity of \acrshort{gp}s, \cite{Titsias2008VariationalMS} introduced the \textit{\acrfull{svgp}}. A short introduction is included here. 
 
-Rather than directly using all the available training data directly, one can instead attempt to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data. \todo[]{Finish SVGP introduction}
+Rather than directly using all the available training data directly, one can instead attempt to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data.
 
 
 
