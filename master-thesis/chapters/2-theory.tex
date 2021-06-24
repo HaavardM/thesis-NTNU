@@ -243,7 +243,7 @@ The \textit{Matérn Class} of kernels are given by the covariance function in \c
 \end{equation}
 The parameter $\nu > 0$ determines the smoothness, where:
 \begin{itemize}
-    \item $\nu=\frac{1}{2}$ yields the \textit{Ornstein-Uhlenbeck Process} and functions, that when drawn from a \acrshort{gp} with this kernel, are continious, but not differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \exp \{-\frac{||\boldsymbol{r}||}{l}\}$$
+    \item $\nu=\frac{1}{2}$ yields the \textit{Ornstein-Uhlenbeck Process} and functions, that when drawn from a \acrshort{gp} with this kernel, are continious, but not differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \exp \big\{-\frac{||\boldsymbol{r}||}{l}\big\}$$
     \item $\nu=\frac{3}{2}$ yields functions that, when drawn from a \acrshort{gp} with this kernel, are continous and once-differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big) \exp\big\{- \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big\}$$
     \item $\nu=\frac{5}{2}$ yields functions, that when drawn from a \acrshort{gp} with this kernel,  are continous and twice differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{5} ||\boldsymbol{r}||}{l} + \frac{5 ||\boldsymbol{r}||^2}{3 l^2}\big) \exp\big\{- \frac{\sqrt{5} ||\boldsymbol{r}||}{l}\big\}$$
 \end{itemize}
