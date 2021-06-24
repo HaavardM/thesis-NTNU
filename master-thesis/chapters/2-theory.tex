@@ -144,16 +144,17 @@ and the posterior distribution $p(\boldsymbol{f}_* | \boldsymbol{y})$ is compute
 \end{align}
 \end{subequations}
 
-As the notation quickly gets messy for the general case, the shorthand notation for evaluating $f(\boldsymbol{x}_*)$ at a single test point is introduced as well. To follow the convention used by \cite{rasmussen}, $\boldsymbol{k}_* \triangleq K(X, \boldsymbol{x}_*)$ is used to denote the vector of covariances calculated between the test point and each of the training samples. The notation $K \triangleq K(X, X)$ and $\bar{f}_* \triangleq \mathbb{E}[f_*]$ is also added to simplify the equations. Using this shorthand notation for a single test case, \cref{eq:gp_conditional} boils down to \cref{eq:gp_conditional_simple}.
+As the notation quickly gets messy for the general case, the shorthand notation for evaluating $f(\boldsymbol{x}_*)$ at a single test point is introduced as well. To follow the convention used by \cite{rasmussen}, $\boldsymbol{k}_* \triangleq K(X, \boldsymbol{x}_*)$ is used to denote the vector of covariances calculated between the test point and each of the training samples. The notation $K \triangleq K(X, X)$, $\bar{f}_* \triangleq \mathbb{E}[f_*]$, and $\boldsymbol{\alpha} = (K + \sigma^2 I)^{-1} \big(\boldsymbol{y} - m(X)\big)$ is also added to simplify the equations. Using this shorthand notation for a single test case, \cref{eq:gp_conditional} boils down to \cref{eq:gp_conditional_simple}.
 
 \begin{subequations}\label{eq:gp_conditional_simple}
 \begin{align}
-    \bar{f}_* = \mathbb{E}[f_*]  &= m(\boldsymbol{x}_*) + \boldsymbol{k}_*^\intercal ( K + \sigma I)^{-1} (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean_simple}\\
+    \bar{f}_* = \mathbb{E}[f_*]  &= m(\boldsymbol{x}_*) + \boldsymbol{k}_*^\intercal ( K + \sigma^2 I)^{-1} (\boldsymbol{y} - m(X))\label{eq:gp_conditional_mean_simple}\\
+     &= m(\boldsymbol{x}_*) + \boldsymbol{k}_*^\intercal \boldsymbol{\alpha}\\
     \mathbb{V}[f_*] &= k(\boldsymbol{x}_*, \boldsymbol{x}_*) - \boldsymbol{k}_*^\intercal K^{-1} \; \boldsymbol{k}_*\label{eq:gp_conditional_var_simple}
 \end{align}
 \end{subequations}
 
-In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing number of samples. To avoid numerical instability, using the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, and can be seen as the matrix equivalent of the square root \todo[]{Citation?}. \cref{eq:gp_conditional} can then be computed using $L$. The diagonal entry $\sigma I$ added to the kernel matrix is intended to model noisy observations while, in practice, it also improves the numerical stability. A small value is therefore recommended even if the observations are noise-free \cite{scikit-learn}.
+In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing number of samples. To avoid numerical instability, using the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$ assuming $K$ is symmetric and positive definite, and is considered numerically extremely stable \cite{rasmussen}. \cref{eq:gp_conditional} can then be computed using $L$. The diagonal entry $\sigma^2 I$ added to the kernel matrix is intended to model noisy observations while, in practice, it also improves the numerical stability. A small value is therefore recommended even if the observations are noise-free \cite{scikit-learn}.
 \begin{subequations}
 \begin{align}
     \begin{split}
@@ -175,8 +176,9 @@ The whole procedure boils down to \cref{alg:gp_prediction} as proposed by \cite{
     \State $L = cholesky\big(K(X, X) + \sigma I\big)$
     \State $\boldsymbol{\alpha} = L^\intercal \backslash (L \backslash \boldsymbol{y})$
     \State $\boldsymbol{v} = L \backslash K(X, X_*)$
-    \State $\bar{\boldsymbol{f}}_* = m(X_*) + K(X_*, X) \boldsymbol{\alpha}$
+    \State $\mathbb{E}[\boldsymbol{f}_*] = m(X_*) + K(X_*, X) \boldsymbol{\alpha}$
     \State $\mathbb{V}[\boldsymbol{f}_*] = K(X_*, X_*) - \boldsymbol{v}^\intercal \boldsymbol{v}$
+    \State \Return $\mathbb{E}[\boldsymbol{f}_*], \; \mathbb{V}[\boldsymbol{f}_*]$
 \EndProcedure
 \end{algorithmic}
 \caption{Gaussian Process Prediction}
@@ -280,6 +282,8 @@ The name marginal likelihood comes from the fact that the latent function $\bold
 
 The marginal likelihood is somewhat resilient to overfitting as it naturally incorporates a tradeoff between model complexity and model fit. However, the optimization step always imposes the risk of overfitting, especially if there are many hyperparameters \cite{rasmussen}. 
 
+Optimizing \cref{eq:gp_log_marginal_likelihood} with gradient descent requires the inversion of the kernel matrix at each iteration. It quickly becomes a costly operation, limiting the size of the dataset which realistically can be used. A possible solution to this problem is to approximate the global \acrshort{gp} by several local models as proposed in work such as \cite{paralell_gp_mle,paralell_gp_mle_2}. These smaller \acrshort{gp} models can then be evaluated in parallel and collaborate in the search for a global optimum. 
+
 \section{Sampling from a Gaussian Process}\label{sec:gp_samples}
 As the \acrshort{gp} is a jointly Gaussian distribution, random samples can be drawn from it as with any other multivariate Gaussian.
 
@@ -305,9 +309,14 @@ The method of \textit{standardization}\todo[]{find source} is the process of con
 The proposed \acrshort{gp} implementation works well with and without standardized input data, but standardization has one crucial benefit. While the current implementation allows separate kernel hyperparameters for each input dimension in $\boldsymbol{x}$, the kernel is assumed to be identical for each of the outputs of $\vec{f}$. The kernel, therefore, represents the variability of \textbf{both} output dimensions at once. However, with standardized training outputs $Y$, the kernel is relative to the standard deviation of the training data. This way, the \acrshort{gp} can express the different levels of uncertainty for each output dimension while still sharing the same kernel. An even more flexible approach would be to allow separate kernels for each dimension, though at the cost of more complex hyperparameter tuning.
 
 \section{Approximate methods}
-The standard derivation of the \acrshort{gp} requires inverting the kernel matrix, either through the Cholesky Decomposition or directly. The computational complexity of the Cholesky decomposition is $\frac{n^3}{6}$ and $\frac{n^2}{2}$ for solving triangular systems \cite{rasmussen}. This may be acceptable for sparse datasets but makes \acrshort{gp}s infeasible for Big Data applications. 
+The standard derivation of the \acrshort{gp} requires inverting the kernel matrix, either through the Cholesky Decomposition or directly. Unfortunately, the computational complexity is $\frac{n^3}{6}$ operations and similarly $\frac{n^2}{2})$ for solving triangular systems \cite{rasmussen}. This may be acceptable for sparse datasets but makes \acrshort{gp}s infeasible for Big Data applications. 
 
 For simple functions, it often works well only to use a representable subset of the data. However, throwing away the majority of available data is not an elegant solution to the problem. 
+
+\subsection{Reduced-rank approximation}
+
+Several approximations are discussed in \cite{rasmussen} and typically use a \textit{reduced-rank approximation} of the kernel matrix $K=Q Q^\intercal$ with $Q \in \mathcal{R}^{n \times q}$, and use the \textit{matrix inversion lemma} \cite[p .~201]{rasmussen} , reducing the inversion of the $n \times n$ matrix to the inversion of a $q \times q$ matrix instead. Unfortunately, the optimal reduced-rank approximations depend on the eigenvalue decomposition, which itself is a $\mathcal{O}(n^3)$ operation. However, if a cheap approximation to the eigenvalue decomposition can be found, it can potentially then be used to approximate the \acrshort{gp}. One such low-rank approximation is the Nyström method, where a subset of the dataset is used to approximate the eigenvalues.    
+
 \subsection{Variational Gaussian Process}
 
 \subsubsection{A short introduction to Variational Inference}\todo[]{This may be a bit out of scope, consider removing}

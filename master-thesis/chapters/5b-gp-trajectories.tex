@@ -1,5 +1,5 @@
 \chapter{GP-EKF: Non-parametric dynamic system using AIS tracking data}\label{chap:gp_ekf}
-One of the significant issues with the direct approach is the unimodal assumption of using a \acrshort{gp}. It works well as long as vessels agree on a specific trajectory but fails as soon as there are multiple branching trajectories. A non-parametric dynamical model is proposed in this chapter and used to simulate vessel trajectories to solve this problem. This chapter was inspired by \cite{pedestrian,gpekf,vehicle_gp_prediction}.
+One of the significant issues with the direct approach is the unimodal assumption of using a \acrshort{gp}. It works well as long as vessels agree on a specific trajectory but fails as soon as there are multiple branching trajectories. A non-parametric dynamical model is proposed in this chapter and used to simulate vessel trajectories to solve this problem. This chapter was inspired by \cite{pedestrian,gpekf,vehicle_gp_prediction,multistep_gp}.
 
 
 
@@ -10,7 +10,7 @@ The vessel trajectory $\boldsymbol{\mathcal{T}}$ can be expressed using the dyna
         \boldsymbol{\mathcal{T}}_t & = \boldsymbol{x}_t + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
     \end{align}
 \end{subequations}
-The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. The output dimensions are assumed to be independent.
+The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. The output dimensions are assumed to be independent. 
 
 \begin{equation}\label{eq:gp_vec_field}
     \vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_E (\boldsymbol{\eta})\\ f_N (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(0 , \; k(\boldsymbol{\eta}, \boldsymbol{\eta}')\big)
@@ -55,7 +55,8 @@ Given a current estimate $p(\boldsymbol{x}_t)$, the marginal next state distribu
     p(\boldsymbol{x}_{t+1}) = \int_{\boldsymbol{x}_t} p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t) p(\boldsymbol{x}_t) d\boldsymbol{x}_t
 \end{equation}
 
-However, this integral is intractable, as both the mean and variance depend on the current state $\boldsymbol{x}_t$ with non-trivial relationship \cite{pedestrian,multistep_gp}. One solution to this problem is to use sampling-based methods to approximate this integral numerically. One such approach is proposed later in \cref{sec:dyngp_particle}. Alternatively, the integral can be approximated using a Gaussian distribution. The mean and variance of the Gaussian distribution can be calculated using the law of iterated expectations and conditional variance \cite{multistep_gp}. Assuming the current estimate is distributed according to the Gaussian distribution $p(\boldsymbol{x}_t) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_t)$, the mean and variance of $\boldsymbol{x}_{t+1}$ is given by
+However, this integral is intractable, as both the mean and variance depend on the current state $\boldsymbol{x}_t$ with non-trivial relationship \cite{pedestrian,multistep_gp}. A solution to this problem is to use sampling-based methods, and one such approach is discussed later in \cref{sec:dyngp_particle}. 
+However, the main method proposed in this chapter will approximate this integral by making a few simplifying assumptions. The integral can be approximated by assuming the posterior distribution is Gaussian, and the mean and variance of the can be calculated using the law of iterated expectations and conditional variance \cite{multistep_gp}. Assuming the current estimate is distributed according to the Gaussian distribution $p(\boldsymbol{x}_t) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_t)$, the mean and variance of $\boldsymbol{x}_{t+1}$ is given by
 
 \begin{subequations}\label{eq:gp_prediction_mean_variance}
     \begin{align}
@@ -71,7 +72,7 @@ However, this integral is intractable, as both the mean and variance depend on t
     \end{align}
 \end{subequations}
 
-The mean and variance of the \acrshort{gp} is the same conditional mean and variance as in \cref{eq:gp_conditional_simple} from \cref{chap:theory}, which both are non-linear functions of $\boldsymbol{x}_t$. A first-order Taylor approximation around the current best estimate $\bar{\boldsymbol{x}}_t$ is then applied to linearize the \acrshort{gp} mean and variance, with respect to $\boldsymbol{x}_t$.
+The mean and variance of the \acrshort{gp} is the same conditional mean and variance as in \cref{eq:gp_conditional_simple} from \cref{chap:theory}, which both are non-linear functions of $\boldsymbol{x}_t$. A first-order Taylor approximation around the current best estimate $\bar{\boldsymbol{x}}_t$ is then applied to linearize the \acrshort{gp} mean and variance, with respect to $\boldsymbol{x}_t$. 
 
 \begin{subequations}\label{eq:gp_predict_taylor_approx}
     \begin{align}
@@ -118,6 +119,8 @@ which those familiar with sensor fusion may recognize as the \acrfull{ekf} predi
     \end{split}
 \end{align}
 where the notation $\boldsymbol{x}_*[i]$ refers to the i-th dimension of $\boldsymbol{x}_*$ and $\boldsymbol{\eta}_k$ is the k-th training input.
+
+Note that this approximation to \cref{eq:dyngp_true_posterior} implicitly makes a few assumptions about the motion model $\vec{f}$, namely that the dynamics are continuous and highly smooth. It is believed to be a reasonable assumption for vessels in transit but makes this approximation unsuitable for complicated situations. Including higher-order derivatives in the Taylor approximation may yield even better results for more complex dynamics and as proposed by \cite{multistep_gp}, it is natural to extend the method by using a second-order approximation for the variance.  
 
 \subsection{EKF trajectory prediction}
 The joint distribution of all states $\boldsymbol{x}_{0:t}$ up to timestep $t$ is given by
@@ -199,14 +202,14 @@ While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields g
 \end{equation}
 where $\mathcal{D}$ here is all available training data.
 
-The problem is that the dataset $\mathcal{D}$ does not contain any samples from the target vessel's future trajectory, though it contains a lot of data from trajectories that are assumed to be similar. The challenge is to relate the target vessel's trajectory to the data-generating process for the dataset $\mathcal{D}$.
+The problem is that the dataset $\mathcal{D}$ does not contain any samples from the target vessel's future trajectory, though it contains a lot of data from trajectories that are assumed to be similar. Thus, the challenge is to relate the target vessel's trajectory to the data-generating process for the dataset $\mathcal{D}$.
 
 This is still very much considered an unsolved problem. This thesis attempts two different approaches, but the solutions are not yet satisfactory.
 
 \subsection{Synthetic Likelihood}
 
 This section is inspired by the unpublished work of 
-The first approach makes the assumption that if the vessel is indeed following a common trajectory, there should be plenty of historical \acrshort{ais} messages distributed in the vicinity of any given state in the trajectory $\boldsymbol{x}_t$.
+The first approach assumes that if the vessel is indeed following a typical trajectory, there should be plenty of historical \acrshort{ais} messages distributed in the vicinity of any given state in the trajectory $\boldsymbol{x}_t$.
 
 In this thesis, a fixed radius around the predicted state is used to define vicinity of the predicted state. The relevant subset $\tilde{\mathcal{D}}$ of \acrshort{ais} samples for a given state $\boldsymbol{x}_t$ is then given by
 
@@ -223,12 +226,12 @@ where the threshold $S$ as a fixed parameter. It is then assumed that only the \
 
 
 
-\subsection{The Probabilistic Data Association Filter}
+\subsection{Probabilistic Data Association Filter}
 As no actual position measurements of the vessel's future position are available, the available training data are considered as \textbf{potential} measurements, which at any timestep may or may not originate from the vessel. Thus, incorporating vessel position becomes a data association problem, for which one can look to target tracking for inspiration.
 
 The \textit{\acrfull{pdaf}} is a method commonly used in target tracking which combines data association and filtering. The following introduction to \acrshort{pdaf} is mostly inspired by \cite{sensorfusjon}, with some adaptations to fit the current problem better. As single target tracking and data association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here. For more details, see \cite{sensorfusjon,bar1995multitarget}
 
-In this section, all measurements in the available training set are considered as virtual \footnote{Virtual meaning a measurement that did not actually originate from the target vessel, but rather a measurement that could potentially originate from the target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. Similar to the \acrshort{pdaf}, it is assumed \textbf{at most one} measurement originating from the target to reduce the computational complexity significantly \cite{sensorfusjon}. As there are no proper measurements of the vessel's actual position in the future, most of the measurements are assumed to be clutter, forcing the model to primarily trust its predictions.
+In this section, all measurements in the available training set are considered as virtual \footnote{Virtual meaning a measurement that did not originate from the target vessel, but rather a measurement that could potentially originate from the target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. Similar to the \acrshort{pdaf}, it is assumed \textbf{at most one} measurement originating from the target to reduce the computational complexity significantly \cite{sensorfusjon}. As there are no proper measurements of the vessel's actual position in the future, most of the measurements are assumed to be clutter, forcing the model to primarily trust its predictions.
 
 Given the predicted state $\hat{\boldsymbol{x}}_t$, any real measurement is expected to be distributed around this state due to some measurement noise. Following the notation used by \acrshort{ekf}, and using the measurement model $h(\boldsymbol{x}) = \boldsymbol{x} \implies H = \frac{\partial h (\boldsymbol{x})}{\partial \boldsymbol{x}} = I$, the predicted measurement distribution is expressed as in \cref{eq:gp_ekf_pdaf_measurement} where the innovation covariance is defined as $\boldsymbol{S}_t \triangleq \hat{\boldsymbol{P}}_t + \boldsymbol{R}$ and $\boldsymbol{R}$ is the measurement noise.
 
@@ -367,6 +370,8 @@ There are two potential sources for the training samples $\boldsymbol{y}$:
     \boldsymbol{y}_t = \frac{\boldsymbol{x}_{t+1} - \boldsymbol{x}_t}{\tau_{t+1} - \tau_t}
 \end{align}
 
+A concern with using the \acrshort{cog} and \acrshort{sog} from the \acrshort{ais} is that this assumes the vessel's own estimates are accurate. The effect of this design choice is investigated further in \cref{chap:stat_testing}.
+
 
 \section{Choice of kernel}
 The approximation used to calculate the posterior distribution in \cref{eq:dyngp_true_posterior} is only a first-order Taylor approximation. Hence, it is only a reasonable approximation for functions with a low degree of nonlinearity, and care should be taken when designing the \acrshort{gp} dynamics $\vec{f}$. In this thesis, it is argued that \acrshort{rbf} kernel is the preferred choice due to the highly smooth characteristic of the functions drawn from this kernel. The \acrshort{rbf} kernel
@@ -383,9 +388,9 @@ The derivative of this kernel with respect to the $i$-th input dimension $\bolds
 \end{equation}
 
 
-A possible extension is to use the sum of two \acrshort{rbf} kernels to get some additional flexibility while still having a reasonably smooth function. This is the same kernel proposed in \cref{chap:direct_gp}, though without the \acrshort{cog} and \acrshort{sog} input dimensions. It works better than the \acrshort{rbf} kernel in some of the more complicated cases, though at the cost of more hyperparameters to tune. In simple cases, hyperparameter optimization \textbf{typically} reduces the scale parameter of one of the \acrshort{rbf} kernels such that the dependent noise kernel $k_1$ has a negligible effect. It is important to stress the word "typically," as this kernel is also more prone to bad local optima during hyperparameter optimization and may end up overfitting. If the length scales become too small, the dynamics $\vec{f}$ is allowed to become highly non-linear, and small changes in the input $\boldsymbol{x}$ may have a large impact on the prediction. The Taylor approximation is not a reasonable approximation in these cases, and the result is unstable uncertainty estimates \footnote{This is typically seen in the uncertainty estimates as large steps at seemingly random time steps, where the uncertainty experience sudden jumps as some elements in the Jacobian become large.}. The key takeaway is that the more flexible kernels are also more prone to overfitting, and care should be taken during optimization to avoid unrealistic parameters.
+A possible extension is to use the sum of two \acrshort{rbf} kernels to get some additional flexibility while still having a reasonably smooth function. This is the same kernel proposed in \cref{chap:direct_gp}, though without the \acrshort{cog} and \acrshort{sog} input dimensions. It works better than the \acrshort{rbf} kernel in some of the more complicated cases, though at the cost of more hyperparameters to tune. In simple cases, hyperparameter optimization \textbf{typically} reduces the scale parameter of one of the \acrshort{rbf} kernels such that the dependent noise kernel $k_1$ has a negligible effect. It is important to stress the word "typically," as this kernel is also more prone to bad local optima during hyperparameter optimization due to the additional parameters \cite{rasmussen} and may end up overfitting. If the length scales become too small, the dynamics $\vec{f}$ is allowed to become highly non-linear, and small changes in the input $\boldsymbol{x}$ may have a large impact on the prediction. The Taylor approximation is not a reasonable approximation in these cases, and the result is unstable uncertainty estimates \footnote{This is typically seen in the uncertainty estimates as large steps at seemingly random time steps, where the uncertainty experience sudden jumps as some elements in the Jacobian become large.}. The key takeaway is that the more flexible kernels are also more prone to overfitting, and care should be taken during optimization to avoid unrealistic parameters.
 
-Other kernels may be preferred if the posterior density in \cref{eq:dyngp_true_posterior} is evaluated using sampling-based methods, such as Sequential Monte-Carlo, as the Taylor approximation does not limit these methods. However, this is outside the scope of this thesis.
+Other kernels may be preferred if the posterior density in \cref{eq:dyngp_true_posterior} is evaluated using sampling-based methods, such as Sequential Monte-Carlo, as the Taylor approximation does not limit these methods.  However, it is not covered by this thesis.
 
 
 \subsection{Optimizing the hyperparameters}
@@ -397,14 +402,13 @@ The whole dataset cannot be used to find the optimal hyperparameters due to the 
     \item Rerun the hyperparameter optimization for each scenario. This approach tends to find the optimal parameters in each case. However, it is also error-prone as it is not guaranteed to find a global optimum, and it may cause overfitting.
 \end{enumerate}
 
-The first approach is preferred in most cases, as it finds a global set of parameters and tends to result in smoother functions $\vec{f}$. \todo[]{Reconsider}
-
+The first approach is likely the preferred choice in practical applications, as the hyperparameter optimization is prone to bad local optima, and the results should ideally be inspected before deployment to real-world applications. A possible extension is to find a global set of parameters for each distinct vessel type, assuming a vessel's behavior is somewhat consistent across the entire region. 
 
 \section{Summary}
 This chapter has so far introduced a lot of new concepts so that it might be nice with a summary of the overall pipeline:
 
 \begin{enumerate}
-    \item Based on the target vessel's current state, such as position, \acrshort{cog} and \acrshort{sog}, trajectories with similar initial conditions is selected from the training set.
+    \item Based on the target vessel's current state, such as position, \acrshort{cog} and \acrshort{sog}, trajectories with similar initial conditions are selected from the training set.
     \item Training inputs $\boldsymbol{\eta}$ and outputs $\boldsymbol{y}$ for $\vec{f}$ are generated from the training trajectories.
     \item The kernel hyperparameters are optimized using \acrshort{ml} to find the parameters which best explains the training data. This is either done once to find a global set of parameters or individually for each scenario.
     \item The training data and kernel can then used to get the conditional distribution for $\vec{f}$.

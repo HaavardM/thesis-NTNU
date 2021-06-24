@@ -1,0 +1,15 @@
+\chapter*{Sammendrag}
+For at autonome overflate fartøyer (ASVer) skal kunne operere trygt er det essensielt med robust antikollisjonssystemer. Slike systemer innebærer ikke bare å reagere i det det oppstår farlige situasjoner, men også å proaktivt unngå situasjoner med høy risiko. De er dermed nødt til å gjenkjenne ulike scenarioer og kunne planlegge for potensielle hendelser frem i tid. Denne fremtidsforståelsen er temaet i denne oppgaven og målet er å utforske hvordan historisk data fra Automatisk Identifikasjonssystem (AIS) kan brukes til å predikere skips fremtidige bevegelser.
+
+Mer spesifikt foreslår denne oppgaven bruk av Gaussiske Prosesser til å lære bevegelsesmønsteret til skip i ulike scenarioer fra historiske data. Motivasjonen bak Gaussiske Prosesser er tolkningen som en statistisk fordeling over unkjente funksjoner og en slik representasjon kan dermed naturlig inkorperere usikkerhetsestimaer. I tråd med Gaussiske Prosesser blir et Bayesisk statistisk rammeverk anvendt for å alltid ta hensyn til usikkerhet.
+
+Oppgaven foreslår to forskjellige måter å anvende Gaussiske Prosesser til prediksjon av skips bevegelser. Begge metodene blir testet med ett års data fra et reelt datasett fra Trondheimsfjorden, og en større statistisk sammenligning av metodene blir så gjennomført for å se hvordan metodene fungerer. Konsistensanalyse blir utført for å undersøke om metodene er i stand til å utrykke en usikkerhet som stemmer overens med den sanne feilraten.  
+Den første metoden modellerer posisjonen direkte som en funksjon av tid og fungerer bra så fremt det ikke er forgreninger i sannynlige trajektorier og banen kan utrykkes unimodalt. Dette er den desidert enkleste formuleringen, men har noen teoretiske begrensninger.
+Den andre metoden fokuserer heller på å modellere en ukjent bevegelsesmodell og anvender en Gaussisk Prosess til å beskrive hastighetsvektoren som et vektorfelt. En måte for å simulere trajektorier blir så foreslått, men ekstra fokus på å propagere usikkerhet gjennom simuleringen. Metoden fungerer bra, men er sensitiv til valg av parametre og viser seg å være mindre robust i praksis. 
+
+
+
+
+
+
+

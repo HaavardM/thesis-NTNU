@@ -1,1 +1,11 @@
 \chapter*{Abstract}
+An essential aspect of safe operations of \acrshort{asv} is a robust \acrfull{colav}. In addition to the ability to react to dangerous situations, it is also highly beneficial if the \acrshort{colav} is able to proactively avoid high-risk scenarios. In order to do so, the \acrshort{asv} require solid situational awarness and the ability to understand how the future might unfold given a current scenario. 
+
+The ability to predict the future behaviour of surronding vessels is the topic of this thesis. By utilizing historical data from \acrfull{ais}, the goal is to predict the trajectories of vessels into the future. 
+
+Two methods based on a \acrfull{gp} framework is proposed. The \acrshort{gp}'s intutive interpretation as a statistical distribution over functions allow the predictions to also incorporate uncertainty as a first-class citizen during modelling and prediction. A Bayesian statistical framework is applied to always explicitly consider the underlying uncertainty when performing predictions. 
+Both methods will be tested extensively on a real \acrshort{ais} dataset collected over one year in the Trondheim fjord, and the statistical performance of both methods are compared. The consistency of the uncertainty estimates are also tested to investigate whether the methods are able to accurately represent the true underlying uncertianty.
+
+The first proposed method directly applies the \acrshort{gp} framework to model the trajectories as a function of time. This approach works reasonably well except for in the precence of branchign sea-lanes. This formulation make strict assumptions about unimodality and is unable to represent any form of multimodal uncertianty.
+
+The second method is a more indirect approach, attempting to rather use a \acrshort{gp} to describe a latent motion model og use it to simulate trajectories numerically. This formulation is far more flexible and is, in theory, able to express multimodal trajectory distribution. This approach is coupled with an \acrfull{ekf}-based prediction scheme to simulate trajectories. This combination works well as long as the trajectories are sufficiently smooth and a Taylor approximation of the motion model serves as a reasonable approximation. This assumption do, however, make this more fragile than the first method.  

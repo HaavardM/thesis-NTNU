@@ -1,12 +1,14 @@
 \chapter{Statistical Testing}\label{chap:stat_testing}
-Inspired by \cite{hexeberg}, the performance of the proposed models will be compared on straight-line and curved trajectories independently.
+Inspired by \cite{hexeberg}, the performance of the proposed models will be compared on straight-line and curved trajectories independently. This comparison is intended to showcase the methods' abilities to consistently predict reasonable trajectories and motivate further research into \acrshort{gp} based methods. The content of this chapter is not intended to showcase a perfect solution, and the methods are still heavily influenced by how the hyperparameters are selected and any tuning parameters.   
 
 \section{Method}
 
+The simulation will test the performance on a total of $700$ different test trajectories, where one half corresponds to straight-line trajectories and the remaining half is curved trajectories. Trajectories are selected from the dataset proposed in \cref{chap:ais}, and will have a total duration of between $15$ and $30$ minutes. The Direct GP and GP-EKF from \cref{chap:direct_gp} and \cref{chap:gp_ekf} respectively will be tested on the same scenarios as defined in \cref{chap:ais}, getting access to the excact same training data. 
 
+Three different metrics will be used to compare the performance of the different methods. 
 
 \subsection{Trajectory Error}
-The trajectory error is found by comparing the predicted position with the ground truth. As the predicted trajectory is simulated in discrete time, the points with the closest timestamps are used for comparison. With $\Delta T = 10\text{ seconds}$, the maximum error in time is $\frac{\Delta T}{2} = 5 \text{ seconds}$, which is considered to be acceptable considering the time-horizon of between $15$ and $30$ minutes.
+The trajectory error is found by comparing the predicted mean position with the ground truth. As the predicted trajectory is simulated in discrete time, the points with the closest timestamps are used for comparison. The simulation will use $\Delta \tau = 10\text{ seconds}$, which yields a maximum error in time $\frac{\Delta T}{2} = 5 \text{ seconds}$, which is considered to be acceptable considering the time-horizon of between $15$ and $30$ minutes.
 \subsection{Path Error}
 The path error is defined as the closest point in the predicted trajectory to each point in the ground truth, under the constraint that the corresponding predicted timestamps must be monotonically increasing. In other words, the path cannot move backward in time. Linear interpolation is used to get the path error at fixed timestamps to simplify the comparison.
 
@@ -21,7 +23,7 @@ The \textit{\acrfull{nees}} is a metric that can be used to quantify consistency
 Assuming the prediction error follows a Gaussian distribution, the \acrshort{nees} follows a Chi-Squared distribution which can be used to form a confidence interval. Comparing the prediction errors with this confidence interval can then be used to get a sense of whether the estimated state uncertainty is consistent with the actual error rate.
 
 \subsection{Interpolation}
-Linear interpolation is used to compare the metrics at fixed timestamps between samples. The error for short trajectories is not extrapolated.
+The metrics will be compared at fixed $5$ minute intervals using linear interpolation. The error for short trajectories is not extrapolated, so there might be fewer available samples for the metrics when moving past $15$ minutes.
 
 \subsection{Baseline - Constant Velocity Model}
 As a basis of comparison, the \textit{\acrfull{cvm}} method is used as a baseline. The model uses the initial \acrshort{cog} and \acrshort{sog} to predict a straight line, where the vessel is assumed to keep a constant velocity and heading.
@@ -44,13 +46,21 @@ The methods are first compared to the \acrshort{cvm} on simple straight-line tra
 \subsubsection{Curved Trajectories}
 The curved trajectory statistics are based on $350$ randomly sampled trajectories that satisfy the following requirements:
 \begin{enumerate}
-    \item The sum of subsequent changes in \acrshort{cog} must be greater than $40$ degrees, i.e. $\sum_i |(\mathcal{X}_{t+1} - \mathcal{X}_t)| \geq 40^\circ$. This requirement ensures a straight-line trajectory. Additional care is always taken to use the smallest possible difference as the angles $\mathcal{X} \in [0^\circ, 360^\circ)$ wraps around.
+    \item The sum of subsequent changes in \acrshort{cog} must be greater than $40$ degrees, i.e. $\sum_i |(\mathcal{X}_{t+1} - \mathcal{X}_t)| \geq 40^\circ$. This requirement ensures a minimum curvature in the trajectory. Additional care is always taken to use the smallest possible difference as the angles $\mathcal{X} \in [0^\circ, 360^\circ)$ wraps around.
     \item There must be sufficient data available for training in the neighborhood around the initial starting point, with similar initial heading and speed. After sanitizing the dataset and removing irrelevant trajectories, at least $3$ trajectories need to be available for training.
-    \item The overall duration of the trajectories must be between $15$ and $30$ minutes to be considered a test candiate.
+    \item The overall duration of the trajectories must be between $15$ and $30$ minutes to be considered a test candidate.
 \end{enumerate}
 
-\subsection{Sanitizing the dataset for a given test trajectory}
-Due to the way trajectories are generated from the \acrshort{ais} dataset, there will be significant overlaps between trajectories. Therefore, dividing the trajectories into a train and test is insufficient, as parts of a test trajectory might also exist in the training set. Instead, the entire dataset is available for training, but all trajectories with identical MMSI and date as the test trajectory are removed. The date requirement ensures that trajectories for the same vessel can be used for training on any other day. There is still the possibility of leaking data from the test set if the trajectory moves past midnight, but this is assumed only to affect a negligible number of trajectories.
+\subsection{Training Data}
+The initial conditions for each test trajectory is considered a distinct scenario, and the relevant training data is selected according to the method proposed in \cref{chap:ais}. The requirements are restated here with the concrete values used for testing:
+
+\begin{enumerate}
+    \item The trajectories' initial position of the trajectory must be close to the target vessel's position $\boldsymbol{x}_0$. In this thesis, a fixed threshold at $||\Delta \boldsymbol{x}_0|| \leq 200 \text{ m}$ is used, where $\Delta \boldsymbol{x}_0$ is the difference between the target vessel's current position and the initial conditions of a potential training trajectory.
+    \item The trajectories' initial \acrshort{cog} must be close to the target vessel's heading $\mathcal{X}$. In this thesis, a fixed threshold at $\mathcal{X} \pm 20^\circ$ is used, with additional care taken when the angles wrap.
+    \item The trajectories' initial \acrshort{sog} must be close to the queried velocity $v$. In this thesis, a fixed threshold at $v \pm 4 \text{ knots}$ is used.
+\end{enumerate}
+
+Due to the way trajectories are generated from the \acrshort{ais} dataset, there will be significant overlaps between trajectories. Naively dividing the trajectories into a train and test is therefore considered insufficient, as subtrajectories from the test set might also exist in the training set. Instead, the entire dataset is available for training, but all trajectories with identical MMSI and date as the test trajectory are removed before training. The date requirement ensures that trajectories for the same vessel can be used for training on any other day. There is still the possibility of leaking data from the test set if the trajectory moves past midnight, but this is assumed only to affect a negligible number of trajectories.
 
 
 \section{Implementation}
@@ -62,7 +72,7 @@ The GP-EKF is tested with and without the both the \acrshort{sl} and the \acrsho
 The GP-EKF required more flexibility during development. Due to the need for calculating the gradient $\frac{\delta \vec{f}}{\delta \boldsymbol{x}}$, it became impractical to use existing \acrshort{gp} implementations. Due to the simple implementation of \cref{alg:gp_prediction}, it was easier to implement it from the ground up.
 The GP-EKF was therefore implemented directly in Python using only \textit{scipy}\cite{scipy} and \textit{numpy}\cite{numpy} to speed up linear algebra routines. The Cholesky decomposition in \cref{alg:gp_prediction} was computed using \texttt{scipy.linalg.cho\_factor}, which calls a highly optimized LAPACK routine. Similarily, \texttt{scipy.linalg.solve\_\-trianglular} was used to solve the lower triangular system of equations by forward substitution. The implementation of GP-EKF and the \acrshort{pdaf} update was then straightforward using \cref{alg:gp_ekf_prediction} and \cref{alg:gp_ekf_pdaf} from \cref{chap:gp_ekf}. The training outputs $\boldsymbol{y}$ was standaridized.
 
-For statistical testing, the proposed \acrshort{rbf} kernel from \cref{eq:dyngp_kernel} with independent length scales was used.
+For statistical testing, the proposed \acrshort{rbf} kernel from \cref{eq:dyngp_kernel} with independent length scales was used due to its simplicity. More complicated kernels were avoided due to challenges with bad local optima during hyperparameter optimization.
 
 The hyperparameters were tuned using the \acrshort{gp} implementation in the popular \textit{scikit-learn} \cite{scikit-learn} Python package. $10$ random restarts were used during optimization to reduce the risk of bad local minima. A lower bound constraint for the length scales was used to avoid obvious overfitting and required the length scales to be greater than $50$. Due to the wide variety of different scenarios on the training set, the hyperparameters are optimized for each simulation iteration. This way, the robustness of the optimization is indirectly tested, as instances of bad local optima are included in the results.
 
@@ -97,11 +107,11 @@ The initial state uncertainty is set to $\boldsymbol{P}_0 = 500^2 \cdot \boldsym
 \subsection{Direct GP}
 The excact \acrshort{gp} formulation was implemented using the \texttt{GaussianProcessRegressor} from the popular Python library, \textit{sciki-learn} \cite{scikit-learn}. The library support all kernels introduced in \cref{chap:theory} and supports hyperparameter optimization using multiple restarts to avoid bad local optimas.
 
-Only the exact formulation of the direct \acrshort{gp} approach is included in the following testing for two reasons:
-\begin{enumerate}
-    \item All methods can use the same representative trajectories for training. As a result, it becomes easier to compare the different methods as the performance is not influenced by how the training data is selected.
-    \item The \acrshort{svgp} turned out to be very complicated to make work. Even after several hours of training, the model performed rather poorly, with unrealistic trajectory estimates. It was decided that it was not worth the additional effort of performing statistical testing.
-\end{enumerate}
+The slightly more complicated kernel in \cref{eq:direct_gp_kernel} from \cref{chap:direct_gp} was used. This kernel was preferred over a single \acrshort{rbf} kernel as it simply yielded the best performance across a range of different simulations. The noise term $\sigma^2$ was included as a White kernel and optimized as any other hyperparameter. The parameters was optimized for each test scenario, using $10$ random restarts to reduce the risk of bad local optima. 
+
+
+
+%An approximate implementation using \acrshort{svgp} was also attempted without success.The \acrshort{svgp} turned out to be very complicated to make work. Even after several hours of training, the model performed rather poorly, with unrealistic trajectory estimates. It was decided that it was not worth the additional effort of performing statistical testing on this implementation, so only the excact \acrshort{gp} implementation is included.
 
 \section{Results}
 The results for straight-line and curved trajectories are available in \cref{table:stats_straight_line_error} and \cref{table:stats_curved_error} respectively. \todo[]{add examples in appendix?}.
