@@ -238,8 +238,6 @@ yields the following distribution for the summary statistic given the predicted 
     p(S_t \;| \; \boldsymbol{x}_t) = \mathcal{N}(\boldsymbol{x}_t, \boldsymbol{R})
 \end{equation}
 
-
-
 The posterior distribution of the trajectory prediction can then be approximated by
 
 \begin{align}\label{eq:gp_ekf_sl_approx_posterior}
@@ -253,7 +251,7 @@ where the second equality yields a recursive formulation for the posterior distr
 The derivations in this sections blindly make quite subtaintial assumptions which can have a serious impact on the results.
 \begin{enumerate}
     \item The derivations claims the summary statistics are approximate Gaussian by the central limit theorem. The underlying assumption is that the data is \acrshort{iid} and that there is a large number of samples. As the samples originate from several types of vessels and from different trajectories, there is reason to suspect the samples might not be \acrshort{iid}.
-    \item The measurement model in \cref{eq:gp_ekf_sl_z} assumes the measurements are distributed around the target vessel's trajectory. In practice, the samples might be heavily influenced by several different trajectories at once. 
+    \item The measurement model in \cref{eq:gp_ekf_sl_z} assumes the measurements are distributed around the target vessel's trajectory. In practice, the samples might be heavily influenced by several different trajectories at once. This makes tuning $\boldsymbol{R}$ a challenge.
 \end{enumerate}
 
 
@@ -275,11 +273,13 @@ The derivations in this sections blindly make quite subtaintial assumptions whic
 
 
 \subsection{Probabilistic Data Association Filter}
-As no actual position measurements of the vessel's future position are available, the available training data are considered as \textbf{potential} measurements, which at any timestep may or may not originate from the vessel. Thus, incorporating vessel position becomes a data association problem, for which one can look to target tracking for inspiration.
+The \acrshort{sl} update above end up using an overly simplistic measurement model, and do not consider the possibility that some measurements may originate from different underlying trajectories. For the target vessel following a specific underlying trajectory, the dataset may actually contain a substantial false measurements which negatively affect the prediction. As the \acrshort{sl} update has no notion of false measurements, the result is overconfident uncertianty measurements can be seen in \cref{fig:gp_ekf_with_syn}.
 
-The \textit{\acrfull{pdaf}} is a method commonly used in target tracking which combines data association and filtering. The following introduction to \acrshort{pdaf} is mostly inspired by \cite{sensorfusjon}, with some adaptations to fit the current problem better. As single target tracking and data association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here. For more details, see \cite{sensorfusjon,bar1995multitarget}
+This section attempts a rather different approach by incorporating the notion of data association into the mix. More specifically, the idea is to view the entire problem as single target tracking and then apply the \textit{\acrfull{pdaf}} to solve the problem.
 
-In this section, all measurements in the available training set are considered as virtual \footnote{Virtual meaning a measurement that did not originate from the target vessel, but rather a measurement that could potentially originate from the target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. Similar to the \acrshort{pdaf}, it is assumed \textbf{at most one} measurement originating from the target to reduce the computational complexity significantly \cite{sensorfusjon}. As there are no proper measurements of the vessel's actual position in the future, most of the measurements are assumed to be clutter, forcing the model to primarily trust its predictions.
+The \acrshort{pdaf} is a method commonly used in target tracking which combines data association and filtering. The following introduction to \acrshort{pdaf} is mostly inspired by \cite{sensorfusjon}, with some adaptations to fit the current problem better. As single target tracking and data association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here. For more details, see \cite{sensorfusjon,bar1995multitarget}
+
+In this section, all measurements in the available training set are considered as \textit{virtual} \footnote{Virtual meaning a measurement that did not originate from the target vessel, but rather a measurement that could potentially originate from the target in the future. The word measurement is still used to keep the terminology similar to what is used by \acrshort{pdaf}.} position measurements, which may or may not originate from the vessel at time $t$. It is assumed \textbf{at most one} measurement may originate from the target to reduce the computational complexity significantly \cite{sensorfusjon}. The rest of the measurements are assumed to be clutter.
 
 Given the predicted state $\hat{\boldsymbol{x}}_t$, any real measurement is expected to be distributed around this state due to some measurement noise. Following the notation used by \acrshort{ekf}, and using the measurement model $h(\boldsymbol{x}) = \boldsymbol{x} \implies H = \frac{\partial h (\boldsymbol{x})}{\partial \boldsymbol{x}} = I$, the predicted measurement distribution is expressed as in \cref{eq:gp_ekf_pdaf_measurement} where the innovation covariance is defined as $\boldsymbol{S}_t \triangleq \hat{\boldsymbol{P}}_t + \boldsymbol{R}$ and $\boldsymbol{R}$ is the measurement noise.
 
@@ -288,7 +288,7 @@ Given the predicted state $\hat{\boldsymbol{x}}_t$, any real measurement is expe
 \end{equation}
 
 There is also the possibility that none of the measurements originated from the target, and all observations are clutter. A good clutter model is a complicated topic, but the Poisson clutter model is used in this thesis. As the measurements are not actual measurements from the target, it is difficult to assign meaning to any clutter model. It, therefore, simply boils down to which parameters need to be tuned \footnote{The trajectory prediction is here considered to be target tracking of future position. The clutter parameters, therefore, need to be interpreted in the context of target tracking, not trajectory prediction.} and the Poisson clutter model should already be familiar to anyone with experience in target tracking.
-According to the Poisson clutter model, the association probabilities are given by \cref{eq:pdaf_clutter_association_prob} \cite{sensorfusjon}, where $a_t$ is a discrete variable following a Categorical distribution where $a_t=k > 0$ denotes that measurement $k$ originated from the target. $a_t = 0$ is the special case when none of the measurements originated from the target, i.e., the predicted state should not be updated. $Z$ denotes a matrix of all the measurements (positions) available in the training data and is independent of time, i.e., all measurements are always potential candidates. $\lambda$ denotes the clutter rate, and $P_D$ denotes the probability of detecting the target vessel.
+Using the Poisson clutter model, the association probabilities are given by \cref{eq:pdaf_clutter_association_prob} \cite{sensorfusjon}, where $a_t$ is a discrete variable following a Categorical distribution where $a_t=k > 0$ denotes that measurement $k$ originated from the target. $a_t = 0$ is the special case when none of the measurements originated from the target, i.e., the predicted state should not be updated. $Z$ denotes a matrix of all the measurements (positions) available in the training data and is independent of time, i.e., all measurements are always potential candidates. $\lambda$ denotes the clutter rate, and $P_D$ denotes the probability of detecting the target vessel.
 \begin{equation}\label{eq:pdaf_clutter_association_prob}
     \Pr\{a_t | Z\} \propto \begin{cases}
         \lambda (1 - P_D)                                                                 & a_t = 0 \\
@@ -328,7 +328,7 @@ Moment reduction is then used to combined the different hypothesises into a sing
     \begin{align}
         \boldsymbol{x}_t & = \hat{\boldsymbol{x}}_t + \boldsymbol{W}_t \boldsymbol{v}_t \label{eq:pdaf_moment_mean} \\
         \begin{split}
-            \boldsymbol{P}_t &= \hat{\boldsymbol{P}}_t - (1 - \beta_t^{0}) \boldsymbol{W}_t \boldsymbol{S}_t  \boldsymbol{W}_t\\ &+ \boldsymbol{W}_t \big[\sum_{a_t > 0}^M \beta_t^{a_t} \boldsymbol{v}_t^{a_t} (\boldsymbol{v}_t^{a_t})^\intercal - \boldsymbol{v}_t \boldsymbol{v}_t^\intercal \big] \boldsymbol{W}_t^\intercal\label{eq:pdaf_moment_var}
+            \boldsymbol{P}_t &= \hat{\boldsymbol{P}}_t - (1 - \beta_t^{0}) \boldsymbol{W}_t \boldsymbol{S}_t  \boldsymbol{W}_t\\ &+ \underbrace{\boldsymbol{W}_t \big[\sum_{a_t > 0}^M \beta_t^{a_t} \boldsymbol{v}_t^{a_t} (\boldsymbol{v}_t^{a_t})^\intercal - \boldsymbol{v}_t \boldsymbol{v}_t^\intercal \big] \boldsymbol{W}_t^\intercal}_{\text{spread of innovation}}\label{eq:pdaf_moment_var}
         \end{split}
     \end{align}
 \end{subequations}
@@ -340,7 +340,7 @@ While available measurement could be used at each timestep, it is in practice mo
 \end{equation}
 
 
-By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in \cref{alg:gp_ekf_prediction}, the predicted trajectory can be tuned to favor areas with a large number of samples, effectively pulling the state towards areas with available samples. Conversely, in regions with samples spread evenly around the predicted state, then the \acrshort{pdaf}'s effect is negligible (assuming proper tuning).
+By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in \cref{alg:gp_ekf_prediction}, the predicted trajectory can be tuned to favor areas with a large number of samples, effectively pulling the state towards areas with available samples. Conversely, in regions with samples spread evenly around the predicted state, then the \acrshort{pdaf}'s effect is negligible (assuming proper tuning). 
 
 \begin{algorithm}[h]
     \begin{algorithmic}[1]
