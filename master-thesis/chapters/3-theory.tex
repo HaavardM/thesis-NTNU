@@ -1,4 +1,4 @@
-\chapter{The Gaussian Process}\label{chap:theory}
+\chapter{Theory}\label{chap:theory}
 
 \section{A short recap of necessary probability theory}
 The reader is assumed to be already comfortable with basic probability theory. A more detailed introduction was already covered in a previous specialization project \cite{mellbye}, though some concepts will nevertheless be reintroduced here mainly to introduce the mathematical notation used throughout this thesis. 
@@ -25,8 +25,16 @@ The last equality is commonly referred to as \textit{The Law of total probabilit
 
 \subsection{The Law of Iterated Expectations \& Conditional Variance}
 
-
-
+\subsection{Central Limit Theorem}\label{sec:clt}
+The \textit{central limit theorem} should be familiar to most readers but is central to the derivations in a later chapter. Consider a set of \textit{\acrfull{iid}} random variables $X_i$ following any distribution with mean $\mu$ and variance $\sigma^2$. The sum of these variables 
+\begin{equation}
+    S_N = \sum_{i=0}^{N-1} X_i
+\end{equation} 
+can be shown to approach the distribution Gaussian distribution
+\begin{equation}
+    \lim_{N \to \infty} p(S_N=s) = \mathcal{N}(s \; | \; N \mu, N\sigma^2)
+\end{equation}
+as N increases, even if the original variables are not Gaussian distributed \cite{murphy}. For a finite $N$ it can be used to approximate the the sum \acrshort{iid} random variables as a Gaussian distribution.
 
 \subsection{Interpretation of Probability}
 This thesis will heavily rely on a Bayesian interpretation of probability. Bayesian Statistics is extensively covered in the specialization project \cite{mellbye}, and only a short introduction is included here for completeness. Without going into unnecessary philosophical details, the Bayesian view interprets probabilities as beliefs rather than relative frequencies\footnote{The interpretation of probabilities as the relative frequency of outcomes from repeated trials is what is often taught in statistics courses and is called the \textit{frequentist} interpretation.}. 
@@ -37,10 +45,6 @@ Central to the Basian view of probability is \textit{Bayes rule}, which is used 
 \begin{tcolorbox}[ams equation, title={Bayes Rule}]\label{eq:bayes}
     p(\boldsymbol{\theta} | \mathcal{D}) = \frac{p(\boldsymbol{\theta} \cap \mathcal{D})}{p(\mathcal{D})} = \frac{p(\mathcal{D} | \boldsymbol{\theta}) p(\boldsymbol{\theta})}{p(\mathcal{D})}
 \end{tcolorbox}
-
-
-
-
 
 \section{The Multivariate Gaussian Distribution}
 The Gaussian Distribution is one one the most used distributions in statistics \cite{murphy} and generalizes well for multivariate variables. The pdf for the $D$ dimensional multivariate Gaussian is given by \cref{eq:multivariate_gaussian} \cite{murphy,rasmussen}.
@@ -320,7 +324,7 @@ Several approximations are discussed in \cite{rasmussen} and typically use a \te
 \subsection{Variational Gaussian Process}
 
 \subsubsection{A short introduction to Variational Inference}\todo[]{This may be a bit out of scope, consider removing}
-Variational Inference was covered thoroughly in a previous specialization project \cite{mellbye}. A quick introduction of the necessary concepts is included here, and more details can be found in \cite{mellbye, murphy}.
+Variational Inference was covered thoroughly in a previous specialization project \cite{mellbye}. Therefore, a quick introduction of the necessary concepts is included here, and more details can be found in \cite{mellbye, murphy}.
 
 In many cases, using the true posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ turns out to be challenging. Calculating the posterior using Bayes Rule requires a normalizing constant $p(\mathcal{D})$, which quickly becomes infeasible unless the distributions are simple. The true posterior are therefore often assumed only to be known up to a normalizing constant, i.e.
 
@@ -352,5 +356,5 @@ To deal with the computational complexity of \acrshort{gp}s, \cite{Titsias2008Va
 Rather than directly using all the available training data directly, one can instead attempt to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data.
 
 
+\section{The Kalman Filter}
 
-\subsubsection{}

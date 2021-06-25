@@ -1,11 +1,11 @@
 \chapter{Statistical Testing}\label{chap:stat_testing}
-Inspired by \cite{hexeberg}, the performance of the proposed models will be compared on straight-line and curved trajectories independently. This comparison is intended to showcase the methods' abilities to consistently predict reasonable trajectories and motivate further research into \acrshort{gp} based methods. The content of this chapter is not intended to showcase a perfect solution, and the methods are still heavily influenced by how the hyperparameters are selected and any tuning parameters.   
+Inspired by \cite{hexeberg}, the performance of the proposed models will be compared on straight-line and curved trajectories independently. This comparison is intended to showcase the methods' abilities to consistently predict reasonable trajectories and motivate further research into \acrshort{gp} based methods. However, the content of this chapter is not intended to showcase a perfect solution, and the methods are still heavily influenced by how the hyperparameters are selected and any tuning parameters.
 
 \section{Method}
 
-The simulation will test the performance on a total of $700$ different test trajectories, where one half corresponds to straight-line trajectories and the remaining half is curved trajectories. Trajectories are selected from the dataset proposed in \cref{chap:ais}, and will have a total duration of between $15$ and $30$ minutes. The Direct GP and GP-EKF from \cref{chap:direct_gp} and \cref{chap:gp_ekf} respectively will be tested on the same scenarios as defined in \cref{chap:ais}, getting access to the excact same training data. 
+The simulation will test the performance on a total of $700$ different test trajectories, where one half corresponds to straight-line trajectories and the remaining half is curved trajectories. Trajectories are selected from the dataset proposed in \cref{chap:ais}, and will have a total duration of between $15$ and $30$ minutes. The Direct GP and GP-EKF from \cref{chap:direct_gp} and \cref{chap:gp_ekf} respectively will be tested on the same scenarios as defined in \cref{chap:ais}, getting access to the exact same training data.
 
-Three different metrics will be used to compare the performance of the different methods. 
+Three different metrics will be used to compare the performance of the various methods.
 
 \subsection{Trajectory Error}
 The trajectory error is found by comparing the predicted mean position with the ground truth. As the predicted trajectory is simulated in discrete time, the points with the closest timestamps are used for comparison. The simulation will use $\Delta \tau = 10\text{ seconds}$, which yields a maximum error in time $\frac{\Delta T}{2} = 5 \text{ seconds}$, which is considered to be acceptable considering the time-horizon of between $15$ and $30$ minutes.
@@ -52,7 +52,7 @@ The curved trajectory statistics are based on $350$ randomly sampled trajectorie
 \end{enumerate}
 
 \subsection{Training Data}
-The initial conditions for each test trajectory is considered a distinct scenario, and the relevant training data is selected according to the method proposed in \cref{chap:ais}. The requirements are restated here with the concrete values used for testing:
+The initial conditions for each test trajectory are considered a distinct scenario, and the relevant training data is selected according to the method proposed in \cref{chap:ais}. The requirements are restated here with the concrete values used for testing:
 
 \begin{enumerate}
     \item The trajectories' initial position must be close to the target vessel's position $\boldsymbol{x}_0$. In this thesis, a fixed threshold at $||\Delta \boldsymbol{x}_0|| \leq 200 \text{ m}$ is used, where $\Delta \boldsymbol{x}_0$ is the difference between the target vessel's current position and the initial conditions of a potential training trajectory.
@@ -60,7 +60,7 @@ The initial conditions for each test trajectory is considered a distinct scenari
     \item The trajectories' initial \acrshort{sog} must be close to the queried velocity $v$. In this thesis, a fixed threshold at $v \pm 4 \text{ knots}$ is used.
 \end{enumerate}
 
-Due to the way trajectories are generated from the \acrshort{ais} dataset, there will be significant overlaps between trajectories. Naively dividing the trajectories into a train and test set is therefore considered insufficient, as subtrajectories from the test set might also exist in the training set. Instead, the entire dataset is available for training, but all trajectories with identical MMSI and date as the test trajectory are removed before training. The date requirement ensures that trajectories for the same vessel can be used for training on any other day. There is still the possibility of leaking data from the test set if the trajectory moves past midnight, but this is assumed only to affect a negligible number of trajectories.
+Due to the way trajectories are generated from the \acrshort{ais} dataset, there will be significant overlaps between trajectories. Therefore, naively dividing the trajectories into a train and test set is considered insufficient, as sub-trajectories from the test set might also exist in the training set. Instead, the entire dataset is available for training, but all trajectories with identical MMSI and date as the test trajectory are removed before training. The date requirement ensures that trajectories for the same vessel can be used for training on any other day. There is still the possibility of leaking data from the test set if the trajectory moves past midnight, but this is assumed only to affect a negligible number of trajectories.
 
 
 \section{Implementation}
@@ -69,10 +69,10 @@ The implementation details for each of the methods are described in this section
 \subsection{GP-EKF}
 The GP-EKF is tested with and without the both the \acrshort{sl} and the \acrshort{pdaf} update steps, as well as using both finite difference and the \acrshort{cog}/\acrshort{sog} from the \acrshort{ais} dataset, resulting in $6$ different instances.
 
-The GP-EKF requires more flexibility during development. Due to the need for calculating the gradient $\frac{\delta \vec{f}}{\delta \boldsymbol{x}}$, it is impractical to use existing \acrshort{gp} implementations. Due to the simple implementation of \cref{alg:gp_prediction}, it is easier to implement it from the ground up, rather than adapting existing solutions.
+The GP-EKF requires more flexibility during development. Due to the need for calculating the gradient $\frac{\delta \vec{f}}{\delta \boldsymbol{x}}$, it is impractical to use existing \acrshort{gp} implementations. Due to the simple implementation of \cref{alg:gp_prediction}, it is easier to implement it from the ground up rather than adapting existing solutions.
 The GP-EKF is used in this thesis is therefore implemented directly in Python using only \textit{scipy}\cite{scipy} and \textit{numpy}\cite{numpy} to speed up linear algebra routines. The Cholesky decomposition in \cref{alg:gp_prediction} can be computed using \texttt{scipy.linalg.cho\_factor}, which calls a highly optimized LAPACK routine. Similarily, \texttt{scipy.linalg.solve\_\-trianglular} can be used to solve the lower triangular system of equations by forward substitution. The implementation of GP-EKF and the \acrshort{pdaf} update is then straightforward using \cref{alg:gp_ekf_prediction} and \cref{alg:gp_ekf_pdaf} from \cref{chap:gp_ekf}. The implementation used for the statistical testing use standardized training outputs $\boldsymbol{y}$.
 
-For statistical testing, the proposed \acrshort{rbf} kernel from \cref{eq:dyngp_kernel} with independent length scales will be used due to its simplicity. More complicated kernels is avoided due to challenges with bad local optima during hyperparameter optimization.
+For statistical testing, the proposed \acrshort{rbf} kernel from \cref{eq:dyngp_kernel} with independent length scales will be used due to its simplicity. More complicated kernels are avoided due to challenges with bad local optima during hyperparameter optimization.
 
 The hyperparameters are tuned using the \acrshort{gp} implementation in the popular \textit{scikit-learn} \cite{scikit-learn} Python package. $10$ random restarts are used during optimization to reduce the risk of bad local minima. A lower bound constraint for the length scales is also used to avoid obvious overfitting and requires the length scales to be greater than $50$. Due to the wide variety of different scenarios on the training set, the hyperparameters are optimized for each simulation iteration. This way, the robustness of the optimization is indirectly tested, as instances of bad local optima are included in the results.
 
@@ -83,39 +83,35 @@ The initial state uncertainty is set to $\boldsymbol{P}_0 = 500^2 \cdot \boldsym
 \begin{table}[h]
     \centering
     \begin{subtable}{0.49\textwidth}
-    \begin{tabular}{|lll|}
-        \textit{\textbf{Parameter}} &                  & \textit{\textbf{Value}}     \\ \hline
-        Measurement noise           & $\boldsymbol{R}_{\text{PDAF}}$ & $50^2 \cdot \boldsymbol{I}$ \\
-        Detection Probability       & $p_D$            & $0.8$                       \\
-        Clutter Rate                & $\lambda$        & $2 \cdot 10^{-3}$           \\
-        Gate Size                   & $g$              & $2$
-    \end{tabular}
-    \caption{Parameters used for \acrshort{pdaf} update}
-    \label{table:stats_pdaf_params}
+        \begin{tabular}{|lll|}
+            \textit{\textbf{Parameter}} &                                & \textit{\textbf{Value}}     \\ \hline
+            Measurement noise           & $\boldsymbol{R}_{\text{PDAF}}$ & $50^2 \cdot \boldsymbol{I}$ \\
+            Detection Probability       & $p_D$                          & $0.8$                       \\
+            Clutter Rate                & $\lambda$                      & $2 \cdot 10^{-3}$           \\
+            Gate Size                   & $g$                            & $2$
+        \end{tabular}
+        \caption{Parameters used for \acrshort{pdaf} update}
+        \label{table:stats_pdaf_params}
     \end{subtable}
     \begin{subtable}{0.49 \textwidth}
-        
-    \centering
-    \begin{tabular}{|lll|}
-        \textit{\textbf{Parameter}} &                  & \textit{\textbf{Value}}       \\ \hline
-        Noise                       & $\boldsymbol{R}_{\text{SL}}$ & $2000^2 \cdot \boldsymbol{I}$ \\
-        Search Radius               & & $500$\\
-        & & \\
-        & &
-    \end{tabular}
-    \caption{Parameters used for the SL update}
-    \label{table:stats_sl_params}
+
+        \centering
+        \begin{tabular}{|lll|}
+            \textit{\textbf{Parameter}} &                              & \textit{\textbf{Value}}       \\ \hline
+            Noise                       & $\boldsymbol{R}_{\text{SL}}$ & $2000^2 \cdot \boldsymbol{I}$ \\
+            Search Radius               &                              & $500$                         \\
+                                        &                              &                               \\
+                                        &                              &
+        \end{tabular}
+        \caption{Parameters used for the SL update}
+        \label{table:stats_sl_params}
     \end{subtable}
 \end{table}
 
 \subsection{Direct GP}
 The excact \acrshort{gp} formulation is implemented using the \texttt{GaussianProcessRegressor} from the Python library, \textit{sciki-learn} \cite{scikit-learn}. The library supports all kernels introduced in \cref{chap:theory} and supports hyperparameter optimization using multiple restarts to avoid bad local optimas.
 
-The slightly more complicated kernel in \cref{eq:direct_gp_kernel} from \cref{chap:direct_gp} is used. This kernel is preferred over a single \acrshort{rbf} kernel as it simply yields the best performance across a range of different simulations. The noise term $\sigma^2$ is included as a White kernel and optimized as any other hyperparameter. The parameters are optimized for each test scenario, using $10$ random restarts to reduce the risk of bad local optima. 
-
-
-
-%An approximate implementation using \acrshort{svgp} was also attempted without success.The \acrshort{svgp} turned out to be very complicated to make work. Even after several hours of training, the model performed rather poorly, with unrealistic trajectory estimates. It was decided that it was not worth the additional effort of performing statistical testing on this implementation, so only the excact \acrshort{gp} implementation is included.
+The slightly more complicated kernel in \cref{eq:direct_gp_kernel} from \cref{chap:direct_gp} is used. This kernel is preferred over a single \acrshort{rbf} kernel as it simply yields the best performance across a range of different simulations. The noise term $\sigma^2$ is included as a White kernel and optimized like any other hyperparameter. The parameters are optimized for each test scenario, using $10$ random restarts to reduce the risk of bad local optima.
 
 \section{Results}
 The results for straight-line and curved trajectories are available in \cref{table:stats_straight_line_error} and \cref{table:stats_curved_error} respectively which are both found at the end of this chapter. Some hand-picked test scenarios are also included in \cref{chap:gp_ekf_examples} for the different GP-EKF variations.

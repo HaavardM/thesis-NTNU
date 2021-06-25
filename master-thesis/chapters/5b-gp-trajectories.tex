@@ -10,7 +10,7 @@ The vessel trajectory $\boldsymbol{\mathcal{T}}$ can be expressed using the dyna
         \boldsymbol{\mathcal{T}}_t & = \boldsymbol{x}_t + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
     \end{align}
 \end{subequations}
-The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. The output dimensions are assumed to be independent. 
+The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. The output dimensions are assumed to be independent.
 
 \begin{equation}\label{eq:gp_vec_field}
     \vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_E (\boldsymbol{\eta})\\ f_N (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(0 , \; k(\boldsymbol{\eta}, \boldsymbol{\eta}')\big)
@@ -55,7 +55,7 @@ Given a current estimate $p(\boldsymbol{x}_t)$, the marginal next state distribu
     p(\boldsymbol{x}_{t+1}) = \int_{\boldsymbol{x}_t} p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t) p(\boldsymbol{x}_t) d\boldsymbol{x}_t
 \end{equation}
 
-However, this integral is intractable, as both the mean and variance depend on the current state $\boldsymbol{x}_t$ with non-trivial relationship \cite{pedestrian,multistep_gp}. A solution to this problem is to use sampling-based methods, and one such approach is discussed later in \cref{sec:dyngp_particle}. 
+However, this integral is intractable, as both the mean and variance depend on the current state $\boldsymbol{x}_t$ with non-trivial relationship \cite{pedestrian,multistep_gp}. A solution to this problem is to use sampling-based methods, and one such approach is discussed later in \cref{sec:dyngp_particle}.
 However, the main method proposed in this chapter will approximate this integral by making a few simplifying assumptions. The integral can be approximated by assuming the posterior distribution is Gaussian, and the mean and variance of the can be calculated using the law of iterated expectations and conditional variance \cite{multistep_gp}. Assuming the current estimate is distributed according to the Gaussian distribution $p(\boldsymbol{x}_t) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_t)$, the mean and variance of $\boldsymbol{x}_{t+1}$ is given by
 
 \begin{subequations}\label{eq:gp_prediction_mean_variance}
@@ -72,7 +72,7 @@ However, the main method proposed in this chapter will approximate this integral
     \end{align}
 \end{subequations}
 
-The mean and variance of the \acrshort{gp} is the same conditional mean and variance as in \cref{eq:gp_conditional_simple} from \cref{chap:theory}, which both are non-linear functions of $\boldsymbol{x}_t$. A first-order Taylor approximation around the current best estimate $\bar{\boldsymbol{x}}_t$ is then applied to linearize the \acrshort{gp} mean and variance, with respect to $\boldsymbol{x}_t$. 
+The mean and variance of the \acrshort{gp} is the same conditional mean and variance as in \cref{eq:gp_conditional_simple} from \cref{chap:theory}, which both are non-linear functions of $\boldsymbol{x}_t$. A first-order Taylor approximation around the current best estimate $\bar{\boldsymbol{x}}_t$ is then applied to linearize the \acrshort{gp} mean and variance, with respect to $\boldsymbol{x}_t$.
 
 \begin{subequations}\label{eq:gp_predict_taylor_approx}
     \begin{align}
@@ -120,17 +120,17 @@ which those familiar with sensor fusion may recognize as the \acrfull{ekf} predi
 \end{align}
 where the notation $\boldsymbol{x}_*[i]$ refers to the i-th dimension of $\boldsymbol{x}_*$ and $\boldsymbol{\eta}_k$ is the k-th training input.
 
-Note that this approximation to \cref{eq:dyngp_true_posterior} implicitly makes a few assumptions about the motion model $\vec{f}$, namely that the dynamics are continuous and highly smooth. It is believed to be a reasonable assumption for vessels in transit but makes this approximation unsuitable for complicated situations. Including higher-order derivatives in the Taylor approximation may yield even better results for more complex dynamics and as proposed by \cite{multistep_gp}, it is natural to extend the method by using a second-order approximation for the variance.  
+Note that this approximation to \cref{eq:dyngp_true_posterior} implicitly makes a few assumptions about the motion model $\vec{f}$, namely that the dynamics are continuous and highly smooth. It is believed to be a reasonable assumption for vessels in transit but makes this approximation unsuitable for complicated situations. Including higher-order derivatives in the Taylor approximation may yield even better results for more complex dynamics and as proposed by \cite{multistep_gp}, it is natural to extend the method by using a second-order approximation for the variance.
 
-\subsection{EKF trajectory prediction}
+\subsection{GP-EKF}
 The joint distribution of all states $\boldsymbol{x}_{0:t}$ up to timestep $t$ is given by
 
 \begin{equation}
     p(\boldsymbol{x}_{0:t}) = p(\boldsymbol{x}_0) \prod_{i=0}^{t-1} p(\boldsymbol{x}_{i+1} | \boldsymbol{x}_{0:i})
 \end{equation}
-where the initial distribution $p(\boldsymbol{x}_0) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_0)$ is assumed to be a known Gaussian.
+where the initial distribution $p(\boldsymbol{x}_0) = \mathcal{N}(\bar{\boldsymbol{x}}_0, \boldsymbol{P}_0)$ is assumed to be a known Gaussian.
 
-Applying the Markov assumption allow this joint distribution to be expressed in terms of the predictive distribution $p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t)$ from \cref{eq:dyngp_predictive_distribution}.
+Applying the Markov assumption allow this joint distribution to be expressed in terms of the predictive distribution from \cref{eq:dyngp_predictive_distribution}, i.e.  $p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_{0:t}) = p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t)$.
 
 \begin{equation}
     p(\boldsymbol{x}_{0:t}) = p(\boldsymbol{x}_0) \prod_{i=0}^{t-1} p(\boldsymbol{x}_{i+1} | \boldsymbol{x}_{i})
@@ -197,7 +197,7 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
 
 \section{Incorporating vessel position}
 While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. \todo[]{Add figure to showcase this issue} It would be desirable if the prediction converged towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, weak feedback compensating for minor prediction errors. Expressed using Bayes law
-\begin{equation}
+\begin{equation}\label{eq:gp_ekf_update_posterior}
     p(\boldsymbol{x}_{0:t} | \mathcal{D}) = \frac{p(\mathcal{D} | \boldsymbol{x}_{0:t}) p(\boldsymbol{x}_{0:t})}{p(\mathcal{D})} \propto p(\mathcal{D} | \boldsymbol{x}_{0:t})p(\boldsymbol{x}_{0:t})
 \end{equation}
 where $\mathcal{D}$ here is all available training data.
@@ -207,23 +207,54 @@ The problem is that the dataset $\mathcal{D}$ does not contain any samples from 
 This is still very much considered an unsolved problem. This thesis attempts two different approaches, but the solutions are not yet satisfactory.
 
 \subsection{Synthetic Likelihood}
+This section is inspired by the work of \citeauthor{praveen-syn} \cite{praveen-syn}.
 
-This section is inspired by the unpublished work of 
-The first approach assumes that if the vessel is indeed following a typical trajectory, there should be plenty of historical \acrshort{ais} messages distributed in the vicinity of any given state in the trajectory $\boldsymbol{x}_t$.
-
-In this thesis, a fixed radius around the predicted state is used to define vicinity of the predicted state. The relevant subset $\tilde{\mathcal{D}}$ of \acrshort{ais} samples for a given state $\boldsymbol{x}_t$ is then given by
-
+A proper likelihood $p(\mathcal{D} | \boldsymbol{x}_{0:t})$ is unavailable, or at least considered infeasible to compute. This motivates the use of so-called \textit{likelihood-free} methods, where the most common method is the \textit{Approximate Bayesian Computation} (ABC). Likelihood-free methods are used when the likelihood cannot be computed, while simulation from the model is still possible \cite{likelihood_free,frazier2021bayesian}. In this thesis, the focus will be on another likelihood-free approach, namely, the \textit{\acrfull{sl}} which replaces the likelihood by one or several approximate Gaussian summary statistics, $S_{0:t} = S(\boldsymbol{x}_{0:t}) \sim \mathcal{N}(\boldsymbol{\mu}(\boldsymbol{x}_{0:t}), \boldsymbol{\Sigma}(\boldsymbol{x}_{0:t}))$, of the data. Assuming the summary statistic contains sufficient information about $\boldsymbol{x}_{0:t}$, it should yield a good approximation of the true likelihood, i.e.
 \begin{equation}
-    \tilde{\mathcal{D}}_t = \tilde{\mathcal{D}}_t(\boldsymbol{x}_t) = \{\boldsymbol{d}_i \in \mathcal{D} : \; ||\boldsymbol{x}_t - \boldsymbol{p}_i|| \leq S\}
-\end{equation}
-where the threshold $S$ as a fixed parameter. It is then assumed that only the \acrshort{ais} samples in a close vicinity of the state $\boldsymbol{x}_t$ is sufficient to approximate the true posterior distribution, i.e.
-
-\begin{equation}
-    p(\boldsymbol{x}_{0:t} | \mathcal{D}) \approx p(\boldsymbol{x}_{0:t} | \tilde{\mathcal{D}}_{0:t}) = \frac{p(\tilde{\mathcal{D}}_{0:t} | \boldsymbol{x}_{0:t}) p(\boldsymbol{x}_{0:t})}{p(\tilde{\mathcal{D}}_{0:t})}
+    p(\mathcal{D} | \boldsymbol{x}_{0:t}) \approx p(S_{0:t} | \boldsymbol{x}_{0:t})
 \end{equation}
 
+In this thesis, the likelihood is assumed to factorize into
+\begin{equation}
+    p(S_{0:T} | \boldsymbol{x}_{0:T}) = \prod_{t=0}^{T} p(S_t | \boldsymbol{x}_t)
+\end{equation} and the summary statistic $S_i$ is selected as the mean of the samples in the vicinity of $\boldsymbol{x}_i$. A simple solution is to define the vicinity as a fixed radius around the state $\boldsymbol{x}_i$
+
+\begin{equation}
+    \mathcal{Y}_t = \mathcal{Y}_t(\boldsymbol{x}_t) = \{\boldsymbol{z}_i \in \mathcal{D} : \; ||\boldsymbol{x}_t - \boldsymbol{z}_i|| \leq r\}
+\end{equation}
+where the threshold $r$ is a fixed parameter. The summary statistic $S_i$ is then given by
+
+\begin{equation}
+    S_t = S(\boldsymbol{x}_t) = \frac{1}{N} \sum_{\boldsymbol{z}_i \in \mathcal{Y}_t} \boldsymbol{z}_i
+\end{equation}
+where $N$ is the number of samples in $\mathcal{Y}_t$. Assuming a simple measurement model
+\begin{equation}\label{eq:gp_ekf_sl_z}
+    \boldsymbol{z} = \boldsymbol{x} + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \boldsymbol{R})
+\end{equation}
+
+yields the following distribution for the summary statistic given the predicted state $\boldsymbol{x}_i$.
+
+\begin{equation}
+    p(S_t \;| \; \boldsymbol{x}_t) = \mathcal{N}(\boldsymbol{x}_t, \boldsymbol{R})
+\end{equation}
 
 
+
+The posterior distribution of the trajectory prediction can then be approximated by
+
+\begin{align}\label{eq:gp_ekf_sl_approx_posterior}
+    \begin{split}
+        p(\boldsymbol{x}_{0:t} | \mathcal{D}) \approx p(\boldsymbol{x}_{0:t} | S_{0:t}) &= \frac{p(S_{0:t} | \boldsymbol{x}_{0:t}) p(\boldsymbol{x}_{0:t})}{p(S_{0:t})}\\
+        &= \frac{p(S_t | \boldsymbol{x}_t)p(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}) p(\boldsymbol{x}_{0:t-1} | S_{0:t-1})}{p(S_t | S_{0:t-1})}
+    \end{split}
+\end{align}
+where the second equality yields a recursive formulation for the posterior distribution. As all distributions are Gaussian, \cref{eq:gp_ekf_sl_approx_posterior} boils down to the normal Kalman update step, using the summary statistic $S_i$ as measurement for each timestep.
+
+The derivations in this sections blindly make quite subtaintial assumptions which can have a serious impact on the results.
+\begin{enumerate}
+    \item The derivations claims the summary statistics are approximate Gaussian by the central limit theorem. The underlying assumption is that the data is \acrshort{iid} and that there is a large number of samples. As the samples originate from several types of vessels and from different trajectories, there is reason to suspect the samples might not be \acrshort{iid}.
+    \item The measurement model in \cref{eq:gp_ekf_sl_z} assumes the measurements are distributed around the target vessel's trajectory. In practice, the samples might be heavily influenced by several different trajectories at once. 
+\end{enumerate}
 
 
 \subsection{Probabilistic Data Association Filter}
@@ -402,7 +433,7 @@ The whole dataset cannot be used to find the optimal hyperparameters due to the 
     \item Rerun the hyperparameter optimization for each scenario. This approach tends to find the optimal parameters in each case. However, it is also error-prone as it is not guaranteed to find a global optimum, and it may cause overfitting.
 \end{enumerate}
 
-The first approach is likely the preferred choice in practical applications, as the hyperparameter optimization is prone to bad local optima, and the results should ideally be inspected before deployment to real-world applications. A possible extension is to find a global set of parameters for each distinct vessel type, assuming a vessel's behavior is somewhat consistent across the entire region. 
+The first approach is likely the preferred choice in practical applications, as the hyperparameter optimization is prone to bad local optima, and the results should ideally be inspected before deployment to real-world applications. A possible extension is to find a global set of parameters for each distinct vessel type, assuming a vessel's behavior is somewhat consistent across the entire region.
 
 \section{Summary}
 This chapter has so far introduced a lot of new concepts so that it might be nice with a summary of the overall pipeline:
