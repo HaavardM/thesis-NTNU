@@ -257,6 +257,23 @@ The derivations in this sections blindly make quite subtaintial assumptions whic
 \end{enumerate}
 
 
+\begin{figure}
+    \centering
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_syn.pdf}
+        \caption{Trajectory plotted against the vector-field $\vec{f}(\boldsymbol{x})$. The ellipses show the $95\%$ credibility interval for the predicted trajectory at the ground-truth timestamps.}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_syn_state.pdf}
+        \caption{$95\%$ credibility interval for the trajectory plotted against time}
+    \end{subfigure}
+    \caption{Predicted position with the \acrshort{sl} update procedure.}
+    \label{fig:gp_ekf_with_syn}
+\end{figure}
+
+
 \subsection{Probabilistic Data Association Filter}
 As no actual position measurements of the vessel's future position are available, the available training data are considered as \textbf{potential} measurements, which at any timestep may or may not originate from the vessel. Thus, incorporating vessel position becomes a data association problem, for which one can look to target tracking for inspiration.
 
