@@ -401,8 +401,14 @@ The derivation of the Sequential Monte-Carlo approach is embarrassingly simple a
 $N$ different trajectories are initialized with similar initial conditions. The trajectories are then simulated by drawing independent increments from $\vec{f}$ using the approach described in \cref{sec:gp_samples}, conditioned on the current state of each trajectory. The result is visualized in \cref{fig:gp_particle} for $N=500$ trajectories.
 \begin{figure}[h]
     \centering
+    %\begin{subfigure}{\textwidth}
     \includegraphics[width=\textwidth]{figures/dyngp/gp_particle.pdf}
-    \caption{}
+    \caption{Trajectories simulated by sampling from $\vec{f}$. Notice how it is able to represent the multimodal trajectory distribution. }
+    %\end{subfigure}
+    %\begin{subfigure}{\textwidth}
+    %\includegraphics[width=\textwidth]{figures/gp_particle_hist.pdf}
+    %\caption{}
+    %\end{subfigure}
     \label{fig:gp_particle}
 \end{figure}
 
