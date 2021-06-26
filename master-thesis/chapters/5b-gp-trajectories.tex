@@ -232,7 +232,7 @@ where $N$ is the number of samples in $\mathcal{Y}_t$. Assuming a simple measure
     \boldsymbol{z} = \boldsymbol{x} + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \boldsymbol{R})
 \end{equation}
 
-yields the following distribution for the summary statistic given the predicted state $\boldsymbol{x}_i$.
+which yields the following distribution for the summary statistic given the predicted state $\boldsymbol{x}_i$.
 
 \begin{equation}
     p(S_t \;| \; \boldsymbol{x}_t) = \mathcal{N}(\boldsymbol{x}_t, \boldsymbol{R})
@@ -248,9 +248,9 @@ The posterior distribution of the trajectory prediction can then be approximated
 \end{align}
 where the second equality yields a recursive formulation for the posterior distribution. As all distributions are Gaussian, \cref{eq:gp_ekf_sl_approx_posterior} boils down to the normal Kalman update step, using the summary statistic $S_i$ as measurement for each timestep.
 
-The derivations in this sections blindly make quite subtaintial assumptions which can have a serious impact on the results.
+The derivations in this section blindly make quite substantial assumptions which can have a serious impact on the results.
 \begin{enumerate}
-    \item The derivations claims the summary statistics are approximate Gaussian by the central limit theorem. The underlying assumption is that the data is \acrshort{iid} and that there is a large number of samples. As the samples originate from several types of vessels and from different trajectories, there is reason to suspect the samples might not be \acrshort{iid}.
+    \item The derivations claim the summary statistics are approximate Gaussian by the central limit theorem. The underlying assumption is that the data is \acrshort{iid} and that there is a large number of samples. As the samples originate from several types of vessels and from different trajectories, there is reason to suspect the samples might not be \acrshort{iid}.
     \item The measurement model in \cref{eq:gp_ekf_sl_z} assumes the measurements are distributed around the target vessel's trajectory. In practice, the samples might be heavily influenced by several different trajectories at once. This makes tuning $\boldsymbol{R}$ a challenge.
 \end{enumerate}
 
@@ -273,9 +273,9 @@ The derivations in this sections blindly make quite subtaintial assumptions whic
 
 
 \subsection{Probabilistic Data Association Filter}
-The \acrshort{sl} update above end up using an overly simplistic measurement model, and do not consider the possibility that some measurements may originate from different underlying trajectories. For the target vessel following a specific underlying trajectory, the dataset may actually contain a substantial false measurements which negatively affect the prediction. As the \acrshort{sl} update has no notion of false measurements, the result is overconfident uncertianty measurements can be seen in \cref{fig:gp_ekf_with_syn}.
+The \acrshort{sl} update above ends up using an overly simplistic measurement model and does not consider the possibility that some measurements may originate from different underlying trajectories. For the target vessel following a specific underlying trajectory, the dataset may actually contain substantial false measurements which negatively affect the prediction. As the \acrshort{sl} update has no notion of false measurements, the result is overconfident uncertainty measurements can be seen in \cref{fig:gp_ekf_with_syn}.
 
-This section attempts a rather different approach by incorporating the notion of data association into the mix. More specifically, the idea is to view the entire problem as single target tracking and then apply the \textit{\acrfull{pdaf}} to solve the problem.
+This section attempts a rather different approach by incorporating the notion of data association into the mix. More specifically, the idea is to view the entire problem as single-target tracking and then apply the \textit{\acrfull{pdaf}} to solve the problem.
 
 The \acrshort{pdaf} is a method commonly used in target tracking which combines data association and filtering. The following introduction to \acrshort{pdaf} is mostly inspired by \cite{sensorfusjon}, with some adaptations to fit the current problem better. As single target tracking and data association is not the topic of this thesis, only a short introduction to the \acrshort{pdaf} will be included here. For more details, see \cite{sensorfusjon,bar1995multitarget}
 
@@ -462,7 +462,7 @@ The first approach is likely the preferred choice in practical applications, as 
 This chapter has so far introduced a lot of new concepts so that it might be nice with a summary of the overall pipeline:
 
 \begin{enumerate}
-    \item Based on the target vessel's current state, such as position, \acrshort{cog} and \acrshort{sog}, trajectories with similar initial conditions are selected from the training set.
+    \item Based on the target vessel's current state, such as position, \acrshort{cog} and \acrshort{sog}, trajectories with similar initial conditions is selected from the training set.
     \item Training inputs $\boldsymbol{\eta}$ and outputs $\boldsymbol{y}$ for $\vec{f}$ are generated from the training trajectories.
     \item The kernel hyperparameters are optimized using \acrshort{ml} to find the parameters which best explains the training data. This is either done once to find a global set of parameters or individually for each scenario.
     \item The training data and kernel can then used to get the conditional distribution for $\vec{f}$.
