@@ -108,9 +108,9 @@ which those familiar with sensor fusion may recognize as the \acrfull{ekf} predi
 
 \begin{align}\label{eq:gp_jacobian}
     \begin{split}
-        \frac{\partial \vec{f}(\boldsymbol{x}_*, \tau_*)}{\partial \boldsymbol{x}_*} = \frac{\partial \vec{f}(\boldsymbol{\eta})}{\partial \boldsymbol{x}_*} &= \frac{\partial}{\partial \boldsymbol{x}_*} \bigg(\boldsymbol{k}_*^\intercal K^{-1} \big(\boldsymbol{y} - m(X)\big)\bigg)\\
-        &= \frac{\partial \boldsymbol{k}_*^\intercal}{\partial \boldsymbol{x}_*} K^{-1} \big(\boldsymbol{y} - m(X)\big)\\
-        &= \frac{\partial \boldsymbol{k}_*^\intercal}{\partial \boldsymbol{x}_*} \boldsymbol{\alpha} = \begin{bmatrix}
+        \frac{\partial \vec{f}(\boldsymbol{x}_*, \tau_*)}{\partial \boldsymbol{x}_*} = \frac{\partial \vec{f}(\boldsymbol{\eta})}{\partial \boldsymbol{x}_*} &= \frac{\partial}{\partial \boldsymbol{x}_*} \bigg(\boldsymbol{k}_*^\intercal \boldsymbol{\alpha}\bigg)\\
+        &= \frac{\partial \boldsymbol{k}_*^\intercal}{\partial \boldsymbol{x}_*} \boldsymbol{\alpha}\\
+        &= \begin{bmatrix}
             \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_1)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_1)}{\partial \boldsymbol{x}_*[2]} \\
             \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_2)}{\partial \boldsymbol{x}_*[1]} & \frac{\partial k(\boldsymbol{\eta}_*, \boldsymbol{\eta}_2)}{\partial \boldsymbol{x}_*[2]} \\
             \vdots                                                                                    & \vdots                                                                                    \\
@@ -227,12 +227,12 @@ where the threshold $r$ is a fixed parameter. The summary statistic $S_i$ is the
 \begin{equation}
     S_t = S(\boldsymbol{x}_t) = \frac{1}{N} \sum_{\boldsymbol{z}_i \in \mathcal{Y}_t} \boldsymbol{z}_i
 \end{equation}
-where $N$ is the number of samples in $\mathcal{Y}_t$. Assuming a simple measurement model
+where $N$ is the number of samples in $\mathcal{Y}_t$. Assuming the measurements in $\mathcal{Y}$ are \acrshort{iid}, then the summary statistics is approximately Gaussian by the central limit theorem (see \cref{sec:clt}). By further assuming a simple measurement model
 \begin{equation}\label{eq:gp_ekf_sl_z}
     \boldsymbol{z} = \boldsymbol{x} + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \boldsymbol{R})
 \end{equation}
 
-which yields the following distribution for the summary statistic given the predicted state $\boldsymbol{x}_i$.
+yields the following distribution for the summary statistic given the predicted state $\boldsymbol{x}_i$
 
 \begin{equation}
     p(S_t \;| \; \boldsymbol{x}_t) = \mathcal{N}(\boldsymbol{x}_t, \boldsymbol{R})
@@ -435,7 +435,7 @@ The approximation used to calculate the posterior distribution in \cref{eq:dyngp
 \end{equation}
 is found to work well in most cases, as long as the vessel follows a reasonably smooth trajectory. $\boldsymbol{W}$ is a diagonal matrix a separate lengthscale for each input dimension. The \acrshort{rbf} is the go-to kernel for the GP-EKF in this thesis, though other kernels, such as the Matern class of kernels, may work just as well, if not better.
 
-The derivative of this kernel with respect to the $i$-th input dimension $\boldsymbol{\eta}[i]$ can be computed as
+The derivative of this kernel with respect to the $i$-th input dimension $\boldsymbol{\eta}[i]$ can be computed as \cite{pedestrian, gpekf}
 
 \begin{equation}
     \frac{\partial k(\boldsymbol{\eta}, \boldsymbol{\eta}')}{\partial \boldsymbol{\eta}[i]} = -W_{ii}^{-1}(\boldsymbol{\eta}[i] - \boldsymbol{\eta}'[i]) \sigma^2 \exp \big[ - \frac{1}{2} (\boldsymbol{\eta} - \boldsymbol{\eta}')^\intercal \boldsymbol{W}^{-1} (\boldsymbol{\eta} - \boldsymbol{\eta}')^\intercal\big]

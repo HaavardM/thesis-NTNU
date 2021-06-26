@@ -15,7 +15,7 @@ The typical \acrshort{ais} receiver has a range of about 10-20 nautical miles. H
         \textit{\textbf{Parameter}} & \textit{\textbf{Explanation}}                                                                                                     \\ \hline
         IMO                         & 7 digit vessel identification number that remains unchanged when transferring a vessel's registration to a new country            \\
         \acrshort{mmsi}                        & \textit{\acrfull{mmsi}}, a 9 digit vessel identification number                                                          \\
-        Long                        & Degress longitude in range $[-180^\circ W, 180^\circ E]$                                                                          \\
+        Long                        & Degrees longitude in range $[-180^\circ W, 180^\circ E]$                                                                          \\
         Lat                         & Degrees latitude in range $[90^\circ S, 90^\circ N]$                                                                             \\
         \acrshort{cog}                         & \textit{\acrfull{cog}} is the clockwise rotation of the vessel's velocity vector relative to true north                               \\
         \acrshort{sog}                         & \textit{\acrfull{sog}} is the absolute value of the vessel's velocity vector in knots.                                               \\
@@ -39,35 +39,34 @@ The total dataset contains $2995644$ \acrshort{ais} samples collected between 1.
     \label{fig:ais_cdf}
 \end{figure}
 
-However, the dataset is currently too large to work with on a single computer conveniently. So two local regions are instead used in this thesis and are shown in \cref{fig:ais_data}. The first subset is from a curved section of the Trondheim fjord with a lot of traffic. The subset also includes a ferry crossing, which crosses the traffic lane. The other subset is from deeper into the fjord, from a relatively straight section. The dataset, therefore, contains both straight-line and curved trajectories, as well as crossing trajectories. 
+However, the dataset is currently too large to conveniently work with on a single computer. Two local regions are instead used in this thesis, and they are shown in \cref{fig:ais_data}. The first subset is from a curved section of the Trondheim fjord with a lot of traffic. The subset also includes a ferry crossing, which crosses the traffic lane. The other subset is from deeper into the fjord, from a relatively straight section. The dataset therefore contains both straight-line and curved trajectories, as well as crossing trajectories. 
 
 \begin{figure}
     \centering
     \begin{subfigure}{\textwidth}
         \centering
         \includegraphics{figures/ais_map.pdf}
-        \caption{Full dataset. The blue areas marks the subset which will be used for testing purposes.}
+        \caption{Full dataset. The blue areas mark the subset that will be used for testing purposes.}
     \end{subfigure}
     \begin{subfigure}{\textwidth}
         \centering
         \includegraphics{figures/ais_map_zoom.pdf}
-        \caption{Zoomed-in version of the subsets used in this thesis. The blue subset in the left-most map show the \acrshort{ais} data from three local ferries which make ut more than half of the dataset.}
+        \caption{Zoomed-in version of the subsets used in this thesis. The blue subset in the left-most map shows the \acrshort{ais} data from three local ferries, which make out more than half of the dataset.}
     \end{subfigure}
     \caption{The available \acrshort{ais} data used in this thesis. }
     \label{fig:ais_data}
 \end{figure}
 
 \section{Scenario}
-The \acrshort{ais} dataset contains samples from a wide variety of different trajectories as each trajectory is the result of a vessel's intention, be it reaching a specific destination, fishing, or simply leisure. As a result, there is a wide range of possible overlapping trajectories a vessel might follow in any given area. Therefore, this thesis will narrow the problem of long-term prediction down to prediction in specific \textit{scenarios}. A scenario is in this thesis characterized by the vessel's initial position, speed, and course, and the assumption is that vessels in a given scenario tend to follow similar trajectories. Though not used in this thesis, it would also be natural to incorporate contextual information such as vessel type, as there is likely quite a lot of variability between the behavior of different vessel types. 
+The \acrshort{ais} dataset contains samples from a wide variety of different trajectories, as each trajectory is the result of a vessel's intention, be it reaching a specific destination, commercial fishing, or simply for leisure. As a result, there is a wide range of possible overlapping trajectories that a vessel might follow in any given area. Therefore, this thesis will narrow the problem of long-term prediction down to prediction in specific \textit{scenarios}. A scenario is in this thesis characterized by the vessel's initial position, speed and course, and it is assumed that vessels in a given scenario tend to follow similar trajectories. Though not used in this thesis, it would also be natural to incorporate contextual information such as vessel type, as there is likely quite a lot of variability between the behavior of different types of vessels. 
 
-When predicting the trajectory for a given target vessel, only the subset of \acrshort{ais} messages from similar situations will be used. In this thesis, the following requirements must be satisfied for a trajectory to qualify as being in a similar scenario as the target vessel:
+When predicting the trajectory for a given target vessel, only the subset of \acrshort{ais} messages from similar situations will be used. This simplifying assumption is a critical part of all methods proposed in this thesis. It allows the \acrshort{ais} to be reduced significantly for any given prediction and is what makes the methods computationally feasible. The following requirements must be satisfied for a trajectory to qualify as being in a similar scenario as the target vessel:
 \begin{enumerate}
-    \item The trajectories' initial position of the trajectory must be close to the target vessel's position $\boldsymbol{x}$. In this thesis, a fixed threshold at $\boldsymbol{x} \pm \Delta \boldsymbol{x}$ is used.
-    \item The trajectories' initial \acrshort{cog} must be close to the target vessel's heading $\mathcal{X}$. In this thesis, a fixed threshold at $\mathcal{X} \pm \Delta \mathcal{X}$ is used.
-    \item The trajectories' initial \acrshort{sog} must be close to the queried velocity $v$. In this thesis, a fixed threshold at $v \pm \Delta v$ is used.
+    \item The trajectories' initial position must be close to the target vessel's position $\boldsymbol{x}$. A fixed threshold at $\boldsymbol{x} \pm \Delta \boldsymbol{x}$ is used.
+    \item The trajectories' initial \acrshort{cog} must be close to the target vessel's heading $\mathcal{X}$. A fixed threshold at $\mathcal{X} \pm \Delta \mathcal{X}$ is used.
+    \item The trajectories' initial \acrshort{sog} must be close to the queried velocity $v$. A fixed threshold at $v \pm \Delta v$ is used.
 \end{enumerate}
 
-This simplifying assumption is a critical part of all methods proposed in this thesis. It allows the \acrshort{ais} to be reduced significantly for any given prediction and is what makes the methods computationally feasible. 
 
 The notion of only using a small subset of close-by samples from the \acrshort{ais} data is somewhat similar to the SPNS method proposed by \cite{Hexeberg2017AISbasedVT}, though a key distinction is that this thesis selects entire trajectories based on the initial conditions, rather than individual points. 
 
@@ -76,7 +75,7 @@ In practical applications, it may be beneficial to use a fixed number of scenari
 
 
 \section{Preprocessing}
-The position (longitude and latitude) is converted from the standard World Geodetic System (WGS84) coordinates into the EUREF89 UTM32 (EPSG-25832) coordinate system \cite{kartverket}.  As a result, the coordinates are converted from spherical coordinates to a 2D euclidian coordinate system, where the first and second axis corresponds to easting and northing, respectively. This coordinate system is one of two official coordinate systems in Norway and yields significantly better projections in this area than other alternatives such as the Web-Mercator projector frequently used by online maps. Zone 32 was selected as it encompasses the target region.
+The position (longitude and latitude) is converted from the standard World Geodetic System (WGS84) coordinates into the EUREF89 UTM32 (EPSG-25832) coordinate system \cite{kartverket}.  As a result, the coordinates are converted from spherical coordinates to a 2D euclidian coordinate system, where the first and second axis corresponds to easting and northing, respectively. This coordinate system is one of two official coordinate systems in Norway and yields significantly better projections in this area than other alternatives, such as the Web-Mercator projector frequently used by online maps. Zone 32 is selected as it encompasses the target region.
 
 \subsection{From samples to trajectories}\label{sec:from_ais_to_traj}
-Samples with identical \acrshort{mmsi} and less than $15$ minutes between subsequent samples are considered part of the same trajectory. The $15$ minute requirement is added to ensure samples before and after docking are considered separate trajectories. The length of the trajectories must be between $15$ and $30$ minutes, and the number of samples in each trajectory must be greater than $4$. 
+Samples with identical \acrshort{mmsi} and less than $15$ minutes between subsequent samples are considered part of the same trajectory. The $15$ minute requirement is added to ensure that samples before and after docking are considered separate trajectories. The length of the trajectories must be between $15$ and $30$ minutes, and the number of samples in each trajectory must be greater than $4$. 
