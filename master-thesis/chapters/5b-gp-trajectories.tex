@@ -251,7 +251,7 @@ where the second equality yields a recursive formulation for the posterior distr
 The derivations in this section blindly make quite substantial assumptions that can seriously impact the results.
 \begin{enumerate}
     \item The derivations claim the summary statistics are approximate Gaussian by the central limit theorem. The underlying assumption is that the data is \acrshort{iid} and that there is a large number of samples. As the samples originate from several types of vessels and from different trajectories, there is reason to suspect the samples might not be \acrshort{iid}.
-    \item The measurement model in \cref{eq:gp_ekf_sl_z} assumes the measurements are distributed around the target vessel's trajectory. In practice, the samples might be heavily influenced by several different trajectories at once. This makes tuning $\boldsymbol{R}$ a challenge.
+    \item The measurement model in \cref{eq:gp_ekf_sl_z} assumes the measurements are distributed around the target vessel's trajectory. However, in practice, the samples might be heavily influenced by several different trajectories at once. This makes tuning $\boldsymbol{R}$ a challenge.
 \end{enumerate}
 
 
