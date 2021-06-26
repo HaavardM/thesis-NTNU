@@ -235,7 +235,7 @@ where $N$ is the number of samples in $\mathcal{Y}_t$. Assuming a simple measure
 which yields the following distribution for the summary statistic given the predicted state $\boldsymbol{x}_i$.
 
 \begin{equation}
-    p(S_t \;| \; \boldsymbol{x}_t) = \mathcal{N}(\boldsymbol{x}_t, \boldsymbol{R})
+    p(S_t \;| \; \boldsymbol{x}_t) = \mathcal{N}(\boldsymbol{x}_t, \frac{\boldsymbol{R}}{N})
 \end{equation}
 
 The posterior distribution of the trajectory prediction can then be approximated by
@@ -248,7 +248,7 @@ The posterior distribution of the trajectory prediction can then be approximated
 \end{align}
 where the second equality yields a recursive formulation for the posterior distribution. As all distributions are Gaussian, \cref{eq:gp_ekf_sl_approx_posterior} boils down to the normal Kalman update step, using the summary statistic $S_i$ as measurement for each timestep.
 
-The derivations in this section blindly make quite substantial assumptions which can have a serious impact on the results.
+The derivations in this section blindly make quite substantial assumptions that can seriously impact the results.
 \begin{enumerate}
     \item The derivations claim the summary statistics are approximate Gaussian by the central limit theorem. The underlying assumption is that the data is \acrshort{iid} and that there is a large number of samples. As the samples originate from several types of vessels and from different trajectories, there is reason to suspect the samples might not be \acrshort{iid}.
     \item The measurement model in \cref{eq:gp_ekf_sl_z} assumes the measurements are distributed around the target vessel's trajectory. In practice, the samples might be heavily influenced by several different trajectories at once. This makes tuning $\boldsymbol{R}$ a challenge.
