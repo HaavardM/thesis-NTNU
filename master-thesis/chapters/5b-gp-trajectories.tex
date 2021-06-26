@@ -1,5 +1,5 @@
 \chapter{GP-EKF: Non-parametric dynamic system using AIS tracking data}\label{chap:gp_ekf}
-One of the significant issues with the direct approach is the unimodal assumption of using a \acrshort{gp}. It works well as long as vessels agree on a specific trajectory but fails as soon as there are multiple branching trajectories. A non-parametric dynamical model is proposed in this chapter and used to simulate vessel trajectories to solve this problem. This chapter was inspired by \cite{pedestrian,gpekf,vehicle_gp_prediction,multistep_gp}.
+One of the significant issues with the direct approach is the unimodal assumption of using a \acrshort{gp}. It works well as long as vessels agree on a specific trajectory, but fails as soon as there are multiple branching trajectories. To solve this problem, a non-parametric dynamical model is proposed in this chapter and is used to simulate vessel trajectories. This chapter is inspired by \cite{pedestrian,gpekf,vehicle_gp_prediction,multistep_gp}.
 
 
 
@@ -10,7 +10,7 @@ The vessel trajectory $\boldsymbol{\mathcal{T}}$ can be expressed using the dyna
         \boldsymbol{\mathcal{T}}_t & = \boldsymbol{x}_t + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2)
     \end{align}
 \end{subequations}
-The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ is unknown and is unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. The output dimensions are assumed to be independent.
+The function $\vec{f}(\cdot): \mathcal{R}^3 \to \mathcal{R}^2$ denotes the vector field describing the expected velocity. In the case of long-term prediction, the dynamics $\vec{f}(\cdot)$ are unknown and unlikely to be stationary. Instead of using the usual parametric approaches to ODE models, the goal of this chapter is to use a \acrshort{gp} to create a non-parametric representation of the dynamics $\vec{f}(\cdot)$ by learning from historical trajectories of other vessels. This way, arbitrary complex dynamics can be learned without being limited by a fixed parametrization. The \acrshort{gp} considered in this chapter is a vector-valued \acrshort{gp} with zero mean and identical kernel for each output dimension, as expressed in \cref{eq:gp_vec_field}. The output dimensions are assumed to be independent.
 
 \begin{equation}\label{eq:gp_vec_field}
     \vec{f}(\boldsymbol{x}, t) = \vec{f}(\boldsymbol{\eta}) = \begin{bmatrix} f_E (\boldsymbol{\eta})\\ f_N (\boldsymbol{\eta})\end{bmatrix} \sim \text{GP} \big(0 , \; k(\boldsymbol{\eta}, \boldsymbol{\eta}')\big)
@@ -41,7 +41,7 @@ The key variables for this chapter are summarized in \cref{table:dyngp_key_varia
     \label{table:dyngp_key_variables}
 \end{table}
 
-Note that throughout this chapter, some of the notation used in \cref{sec:gp} will be relaxed in order to reduce the notational complexity. More specifically, the \acrshort{gp}s in this chapter is always assumed to be conditioned on available data, i.e. $p\big(\vec{f}(\boldsymbol{x})\big) = p\big(\vec{f}(\boldsymbol{x}) \; | \; \boldsymbol{y} \big)$.
+Note that throughout this chapter, some of the notation used in \cref{sec:gp} will be relaxed in order to reduce the notational complexity. More specifically, the \acrshort{gp}s in this chapter are always assumed to be conditioned on available data, i.e. $p\big(\vec{f}(\boldsymbol{x})\big) = p\big(\vec{f}(\boldsymbol{x}) \; | \; \boldsymbol{y} \big)$.
 
 \section{Simulating Trajectories}
 
@@ -55,8 +55,8 @@ Given a current estimate $p(\boldsymbol{x}_t)$, the marginal next state distribu
     p(\boldsymbol{x}_{t+1}) = \int_{\boldsymbol{x}_t} p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t) p(\boldsymbol{x}_t) d\boldsymbol{x}_t
 \end{equation}
 
-However, this integral is intractable, as both the mean and variance depend on the current state $\boldsymbol{x}_t$ with non-trivial relationship \cite{pedestrian,multistep_gp}. A solution to this problem is to use sampling-based methods, and one such approach is discussed later in \cref{sec:dyngp_particle}.
-However, the main method proposed in this chapter will approximate this integral by making a few simplifying assumptions. The integral can be approximated by assuming the posterior distribution is Gaussian, and the mean and variance of the can be calculated using the law of iterated expectations and conditional variance \cite{multistep_gp}. Assuming the current estimate is distributed according to the Gaussian distribution $p(\boldsymbol{x}_t) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_t)$, the mean and variance of $\boldsymbol{x}_{t+1}$ is given by
+However, this integral is intractable, as both the mean and variance depend on the current state $\boldsymbol{x}_t$ with non-trivial relationships \cite{pedestrian,multistep_gp}. A solution to this problem is to use sampling-based methods, and one such approach is discussed later in \cref{sec:dyngp_particle}.
+However, the main method proposed in this chapter will approximate this integral by making a few simplifying assumptions. The integral can be approximated by assuming that the posterior distribution is Gaussian, and the mean and variance can be calculated using the law of iterated expectations and conditional variance \cite{multistep_gp}. Assuming the current estimate to be distributed according to the Gaussian distribution $p(\boldsymbol{x}_t) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_t)$, the mean and variance of $\boldsymbol{x}_{t+1}$ is given by
 
 \begin{subequations}\label{eq:gp_prediction_mean_variance}
     \begin{align}
@@ -72,7 +72,7 @@ However, the main method proposed in this chapter will approximate this integral
     \end{align}
 \end{subequations}
 
-The mean and variance of the \acrshort{gp} is the same conditional mean and variance as in \cref{eq:gp_conditional_simple} from \cref{chap:theory}, which both are non-linear functions of $\boldsymbol{x}_t$. A first-order Taylor approximation around the current best estimate $\bar{\boldsymbol{x}}_t$ is then applied to linearize the \acrshort{gp} mean and variance, with respect to $\boldsymbol{x}_t$.
+The mean and variance of the \acrshort{gp} are the same conditional mean and variance as in \cref{eq:gp_conditional_simple} from \cref{chap:theory}, which both are non-linear functions of $\boldsymbol{x}_t$. A first-order Taylor approximation around the current best estimate $\bar{\boldsymbol{x}}_t$ is then applied to linearize the \acrshort{gp} mean and variance, with respect to $\boldsymbol{x}_t$.
 
 \begin{subequations}\label{eq:gp_predict_taylor_approx}
     \begin{align}
@@ -104,7 +104,7 @@ and inserting \cref{eq:gp_predict_taylor_approx} into \cref{eq:gp_prediction_mea
         \end{split}
     \end{align}
 \end{subequations}
-which those familiar with sensor fusion may recognize as the \acrfull{ekf} prediction \cite{gpekf}. Notice that only the Jacobian of the expected value $\frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\big|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t}$ was actually neccessary in the end. This Jacobian is easy to compute and only relies on the covariance between the test point $\boldsymbol{\nu}_*$ and the training inputs as expressed in
+which those familiar with sensor fusion may recognize as the \acrfull{ekf} prediction \cite{gpekf}. Notice that only the Jacobian of the expected value $\frac{\partial  \mathbb{E}[\vec{f}(\boldsymbol{x}_*, \tau_t)]}{\partial \boldsymbol{x}_*}\big|_{\boldsymbol{x}_* = \bar{\boldsymbol{x}}_t}$ is actually neccessary in the end. This Jacobian is easy to compute and only relies on the covariance between the test point $\boldsymbol{\nu}_*$ and the training inputs as expressed in
 
 \begin{align}\label{eq:gp_jacobian}
     \begin{split}
@@ -120,7 +120,7 @@ which those familiar with sensor fusion may recognize as the \acrfull{ekf} predi
 \end{align}
 where the notation $\boldsymbol{x}_*[i]$ refers to the i-th dimension of $\boldsymbol{x}_*$ and $\boldsymbol{\eta}_k$ is the k-th training input.
 
-Note that this approximation to \cref{eq:dyngp_true_posterior} implicitly makes a few assumptions about the motion model $\vec{f}$, namely that the dynamics are continuous and highly smooth. It is believed to be a reasonable assumption for vessels in transit but makes this approximation unsuitable for complicated situations. Including higher-order derivatives in the Taylor approximation may yield even better results for more complex dynamics and as proposed by \cite{multistep_gp}, it is natural to extend the method by using a second-order approximation for the variance.
+Note that this approximation to \cref{eq:dyngp_true_posterior} implicitly makes a few assumptions about the motion model $\vec{f}$, namely that the dynamics are continuous and highly smooth. It is believed to be a reasonable assumption for vessels in transit, but makes this approximation unsuitable for complicated situations. Including higher-order derivatives in the Taylor approximation may yield even better results for more complex dynamics, and as proposed by \cite{multistep_gp} it is natural to extend the method by using a second-order approximation for the variance.
 
 \subsection{GP-EKF}
 The joint distribution of all states $\boldsymbol{x}_{0:t}$ up to timestep $t$ is given by
@@ -130,25 +130,25 @@ The joint distribution of all states $\boldsymbol{x}_{0:t}$ up to timestep $t$ i
 \end{equation}
 where the initial distribution $p(\boldsymbol{x}_0) = \mathcal{N}(\bar{\boldsymbol{x}}_0, \boldsymbol{P}_0)$ is assumed to be a known Gaussian.
 
-Applying the Markov assumption allow this joint distribution to be expressed in terms of the predictive distribution from \cref{eq:dyngp_predictive_distribution}, i.e.  $p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_{0:t}) = p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t)$.
+Applying the Markov assumption allows this joint distribution to be expressed in terms of the predictive distribution from \cref{eq:dyngp_predictive_distribution}, i.e.  $p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_{0:t}) = p(\boldsymbol{x}_{t+1} | \boldsymbol{x}_t)$.
 
 \begin{equation}
     p(\boldsymbol{x}_{0:t}) = p(\boldsymbol{x}_0) \prod_{i=0}^{t-1} p(\boldsymbol{x}_{i+1} | \boldsymbol{x}_{i})
 \end{equation}
 
-At each step, the true posterior distribution from \cref{eq:dyngp_true_posterior} is approximated using a Gaussian distribution as derived in the previous section. The full trajectory can then be simulated by recursively applying \cref{eq:gp_prediction_mean_variance_final}.
+At each step, the true posterior distribution from \cref{eq:dyngp_true_posterior} is approximated using a Gaussian distribution, as derived in the previous section. The full trajectory can then be simulated by recursively applying \cref{eq:gp_prediction_mean_variance_final}.
 
 
-This solution is heavily inspired by the \textit{\acrfull{ekf}}, which is why the rest of this thesis will refer to this method as the GP-EKF. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to be already familiar with the Kalman filter and, by extension, the \acrshort{ekf}. The proposed method will now be restated in terms of the \acrshort{ekf}
+This solution is heavily inspired by the \textit{\acrfull{ekf}}, which is why the rest of this thesis will refer to this method as the GP-EKF. The combination of \acrshort{gp}s and \acrshort{ekf} was proposed by \cite{gpekf} and is summarized here. The reader is assumed to already be familiar with the Kalman filter and, by extension, the \acrshort{ekf}. The proposed method will now be restated in terms of the \acrshort{ekf}.
 
 During the prediction procedure, the state is updated incrementally by adding $\vec{f}$ to the current state. In other words, the \acrshort{ekf} prediction model, $g_t(\boldsymbol{x})$, is given by
 
 \begin{equation}\label{eq:gp_ekf_prediction}
     \hat{\boldsymbol{x}}_{t} = \boldsymbol{g}_t(\boldsymbol{x}_{t-1}) = \boldsymbol{x}_{t-1} + \vec{f}(\boldsymbol{x}_{t-1}, \tau_{t-1})\Delta \tau
 \end{equation}
-where the time increment $\Delta \tau$ is factored out of $\vec{f}$ to simplify the implementation\footnote{Factoring out $\Delta \tau$ allow the implementation of $\vec{f}$ to only focus on modelling the dynamics in meters per second. This utilizes the fact that $\vec{f}$ follows a Gaussian distribution, for which any linear combination is still Gaussian.}.
+where the time increment $\Delta \tau$ is factored out of $\vec{f}$ to simplify the implementation\footnote{Factoring out $\Delta \tau$ allows for the implementation of $\vec{f}$ to only focus on modelling the dynamics in meters per second. This utilizes the fact that $\vec{f}$ follows a Gaussian distribution, for which any linear combination is still Gaussian.}.
 
-Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, it is neccessary to linearize the prediction in order to propagate the previous state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac} where the jacobian of $\vec{f}$ can be computed using \cref{eq:gp_jacobian}.
+Due to the potentially non-linear dynamics of $\vec{f}$, which implies non-linearity in $\boldsymbol{g}(\cdot)$, it is neccessary to linearize the prediction in order to propagate the previous state uncertianty $\boldsymbol{P}_{t-1}$. The Jacobian of the prediction model, $\boldsymbol{G}_t$, is given by \cref{eq:gp_ekf_prediction_jac}, where the jacobian of $\vec{f}$ can be computed using \cref{eq:gp_jacobian}.
 
 \begin{equation}\label{eq:gp_ekf_prediction_jac}
     \boldsymbol{G}_t = \frac{\partial \boldsymbol{g}_t(\boldsymbol{x}_{t-1})}{\partial \boldsymbol{x}_{t-1}} = I + \frac{\partial \vec{f}(\boldsymbol{x}_{t-1}, \tau_t)}{\partial \boldsymbol{x}_{t-1}} \Delta \tau
