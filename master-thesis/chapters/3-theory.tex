@@ -1,18 +1,18 @@
 \chapter{Theory}\label{chap:theory}
 
 \section{A short recap of necessary probability theory}
-The reader is assumed to be already comfortable with basic probability theory. A more detailed introduction was already covered in a previous specialization project \cite{mellbye}, though some concepts will nevertheless be reintroduced here mainly to introduce the mathematical notation used throughout this thesis. 
+The reader is assumed to be already comfortable with basic probability theory. A more detailed introduction has already been covered in a previous specialization project \cite{mellbye}, but some concepts will nevertheless be reintroduced here mainly to specify the mathematical notation used throughout this thesis. 
 
 \subsection{Probability Distributions}
-The notation $p(X)$ is used to denote the probability distribution of the random variable $X$, regardless of $X$ being discrete or random. Whether $p(X)$ refers to the \textit{\acrfull{pdf}} for continous random variables or \textit{\acrfull{pmf}} for discrete random variables therefore depend on the context. For the probability of a specific event occuring, the notation $\Pr\{X=x\}$ and $\Pr\{X \leq x\}$ will be used instead. The result is always a real number, i.e. $\Pr\{\cdot\} \in (0, 1)$. 
+The notation $p(X)$ is used to denote the probability distribution of the random variable $X$, regardless of $X$ being discrete or random. Whether $p(X)$ refers to the \textit{\acrfull{pdf}} for continuous random variables or \textit{\acrfull{pmf}} for discrete random variables therefore depends on the context. For the probability of a specific event occurring, the notation $\Pr\{X=x\}$ and $\Pr\{X \leq x\}$ will be used instead. The result is always a real number, i.e. $\Pr\{\cdot\} \in (0, 1)$. 
 
 \subsection{Joint Distribution}
 The notation $p(X, Y) = p(X \cap Y)$ is used to denote the joint probability of $X$ and $Y$. It is the probability of both events occurring at once.
 
 \subsection{Conditional Distribution}
-The notation $X | Y$ is used to express the event $X$ occurring given the known event occurrence $Y$. In the context of probability distributions, $p(X | Y)$ denotes the probability of $X$ occurring, given that the event $Y$ has happened. It is perhaps easier to read as the current belief about a quantity $X$ given a known value of $Y$, as $Y$ will in this thesis usually be some parameter rather than a discrete event. 
+The notation $X | Y$ is used to express the event $X$ occurring given the known event occurrence $Y$. In the context of probability distributions, $p(X | Y)$ denotes the probability of $X$ occurring, given that the event $Y$ has already occurred. It is perhaps easier to read as ``the current belief about a quantity $X$ given a known value of $Y$'', as $Y$ will in this thesis usually be some parameter rather than a discrete event. 
 
-As this thesis will use a Bayesian interpretation of probability, the notation may also be used to express the parameters of a distribution, e.g., $\mathcal{N}(x \; | \;\mu, \sigma^2)$ is the \acrshort{pdf}  for the Gaussian distribution $x$ with mean $\mu$ and variance $\sigma$.
+As this thesis will use a Bayesian interpretation of probability, the notation may also be used to express the parameters of a distribution, for instance $\mathcal{N}(x \; | \;\mu, \sigma^2)$ is the \acrshort{pdf}  for the Gaussian distribution $x$ with mean $\mu$ and variance $\sigma$.
 
 \subsection{Marginal Distribution}
 The integral notation will be used to denote the marginal distribution for both discrete and continuous random variables. For discrete variables, the integral is implicitly replaced by a sum.  
@@ -26,28 +26,28 @@ The last equality is commonly referred to as \textit{The Law of total probabilit
 \subsection{The Law of Iterated Expectations \& Conditional Variance}
 
 \subsection{Central Limit Theorem}\label{sec:clt}
-The \textit{central limit theorem} should be familiar to most readers but is central to the derivations in a later chapter. Consider a set of \textit{\acrfull{iid}} random variables $X_i$ following any distribution with mean $\mu$ and variance $\sigma^2$. The sum of these variables 
+The \textit{central limit theorem} should be familiar to most readers, and it is essential to the derivations in a later chapter. Consider a set of \textit{\acrfull{iid}} random variables $X_i$ following any distribution with mean $\mu$ and variance $\sigma^2$. The sum of these variables 
 \begin{equation}
     S_N = \sum_{i=0}^{N-1} X_i
 \end{equation} 
-can be shown to approach the distribution Gaussian distribution
+can be shown to approach the Gaussian distribution
 \begin{equation}
     \lim_{N \to \infty} p(S_N=s) = \mathcal{N}(s \; | \; N \mu, N\sigma^2)
 \end{equation}
-as N increases, even if the original variables are not Gaussian distributed \cite{murphy}. For a finite $N$ it can be used to approximate the the sum \acrshort{iid} random variables as a Gaussian distribution.
+as N increases, even if the original variables are not Gaussian distributed \cite{murphy}. For a finite $N$ it can be used to approximate the sum of \acrshort{iid} random variables as a Gaussian distribution.
 
 \subsection{Interpretation of Probability}
-This thesis will heavily rely on a Bayesian interpretation of probability. Bayesian Statistics is extensively covered in the specialization project \cite{mellbye}, and only a short introduction is included here for completeness. Without going into unnecessary philosophical details, the Bayesian view interprets probabilities as beliefs rather than relative frequencies\footnote{The interpretation of probabilities as the relative frequency of outcomes from repeated trials is what is often taught in statistics courses and is called the \textit{frequentist} interpretation.}. 
-The benefit of the Bayesian interpretation is that it naturally can be used to model uncertainty of events which cannot easily be expressed as repeated trials. Examples include one-off events and parameter estimation of fixed but unknown quantities.\footnote{As a thought experiment, let us say you want to determine the number of trees on the planet. There is a fixed amount of trees, but the actual number is unknown as you cannot count every single one. There is nothing uncertain about the number of trees itself, only your beliefs which are uncertain due to incomplete knowledge.} \cite{murphy}.
+This thesis will heavily rely on a Bayesian interpretation of probability. Bayesian Statistics is extensively covered in the specialization project \cite{mellbye}, and only a short introduction is included here. Without going into unnecessary philosophical details, the Bayesian view interprets probabilities as beliefs rather than relative frequencies\footnote{The interpretation of probabilities as the relative frequency of outcomes from repeated trials is what is often taught in statistics courses and is called the \textit{frequentist} interpretation.}. 
+The benefit of the Bayesian interpretation is that it can naturally be used to model uncertainty of events that cannot easily be expressed as repeated trials. Examples include one-off events and parameter estimation of fixed but unknown quantities.\footnote{As a thought experiment, let us say you want to determine the number of trees on the planet. There is a fixed amount of trees, but the actual number is unknown as you cannot count every single one. There is nothing uncertain about the number of trees itself, only about your beliefs, which are uncertain due to incomplete knowledge.} \cite{murphy}.
 
-Central to the Basian view of probability is \textit{Bayes rule}, which is used to update the prior beliefs $\boldsymbol{\theta}$ when observing new data $\mathcal{D}$, and is given by \cref{eq:bayes} where $p(\boldsymbol{\theta})$ is the prior belief about $\boldsymbol{\theta}$ before observing $\mathcal{D}$, $p(\mathcal{D} | \boldsymbol{\theta})$ is the likelihood of observing $\mathcal{D}$ given a known value for $\boldsymbol{\theta}$, $p(\mathcal{D})$ is a normalization constant and $p(\boldsymbol{\theta} | \mathcal{D})$ is the \textit{posterior} beliefs about $\boldsymbol{\theta}$ after observing $\mathcal{D}$. 
+Central to the Basian view of probability is \textit{Bayes rule}, which is used to update the prior beliefs $\boldsymbol{\theta}$ when observing new data $\mathcal{D}$. Bayes rule is given by \cref{eq:bayes} where $p(\boldsymbol{\theta})$ is the prior belief about $\boldsymbol{\theta}$ before observing $\mathcal{D}$, $p(\mathcal{D} | \boldsymbol{\theta})$ is the likelihood of observing $\mathcal{D}$ given a known value for $\boldsymbol{\theta}$, $p(\mathcal{D})$ is a normalization constant and $p(\boldsymbol{\theta} | \mathcal{D})$ is the \textit{posterior} beliefs about $\boldsymbol{\theta}$ after observing $\mathcal{D}$. 
 
 \begin{tcolorbox}[ams equation, title={Bayes Rule}]\label{eq:bayes}
     p(\boldsymbol{\theta} | \mathcal{D}) = \frac{p(\boldsymbol{\theta} \cap \mathcal{D})}{p(\mathcal{D})} = \frac{p(\mathcal{D} | \boldsymbol{\theta}) p(\boldsymbol{\theta})}{p(\mathcal{D})}
 \end{tcolorbox}
 
 \section{The Multivariate Gaussian Distribution}
-The Gaussian Distribution is one one the most used distributions in statistics \cite{murphy} and generalizes well for multivariate variables. The pdf for the $D$ dimensional multivariate Gaussian is given by \cref{eq:multivariate_gaussian} \cite{murphy,rasmussen}.
+The Gaussian Distribution is one of the most used distributions in statistics \cite{murphy} and generalizes well for multivariate variables. The pdf for the $D$ dimensional multivariate Gaussian is given by \cref{eq:multivariate_gaussian} \cite{murphy,rasmussen}.
 \begin{equation}\label{eq:multivariate_gaussian}
     \mathcal{N}(\boldsymbol{x} \; | \; \boldsymbol{\mu}, \boldsymbol{\Sigma}) \triangleq \frac{1}{(2 \pi)^{D/2} |\boldsymbol{\Sigma} | ^{1/2}} \exp \bigg[- \frac{1}{2} (\boldsymbol{x} - \boldsymbol{\mu})^\intercal \boldsymbol{\Sigma}^{-1}(\boldsymbol{x} - \boldsymbol{\mu})\bigg]
 \end{equation}
@@ -66,7 +66,7 @@ Consider the joint multivariate Gaussian distribution for two (potentially vecto
     \end{bmatrix}\bigg)
 \end{equation}
 The marginal and posterior conditional distribution are given by \cref{eq:multivariate_gaussian_marginal} and \cref{eq:multivariate_gaussian_conditional} respectively \cite{rasmussen}, and will be used extensively throughout this thesis.
-Note that the marginal distribution do not actually require any calculations and is found by selecting the corresponding values from $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$. 
+Note that the marginal distribution does not actually require any calculations and is found by selecting the corresponding values from $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$. 
 \begin{tcolorbox}[ams align, title={Marginal Distribution}]\label{eq:multivariate_gaussian_marginal}
     p(\boldsymbol{x}) = \int_{\boldsymbol{y}} p(\boldsymbol{x}, \boldsymbol{y}) d\boldsymbol{y} = \mathcal{N}(\boldsymbol{x} \; | \; \boldsymbol{\mu}_x, \boldsymbol{\Sigma}_{xx})
 \end{tcolorbox}
@@ -84,7 +84,7 @@ Note that the marginal distribution do not actually require any calculations and
 
 \section{Introduction to Gaussian Processes}\label{sec:gp}
 
-This introduction is heavily inspired by \cite{rasmussen} where more details can be found for those interested. This introduction will only consider the scalar case, and the discussion of vector-valued functions is delayed until \cref{sec:theory_vector_gp}. Rest assured, this introduction easily extends to vector-valued functions!
+This introduction is heavily inspired by \cite{rasmussen}, where more details can be found for those interested. This introduction will only consider the scalar case, and the discussion of vector-valued functions is delayed until \cref{sec:theory_vector_gp}. Rest assured, this introduction easily extends to vector-valued functions!
 
 A \acrfull{gp} can formally be defined as Definition \ref{def:gp}.
 
@@ -93,24 +93,24 @@ A \acrfull{gp} can formally be defined as Definition \ref{def:gp}.
 A Gaussian Process is a collection of random variables, any finite number of which has a joint Gaussian Distribution.
 \end{gp_def}
 
-In this thesis, a more specific definition is adopted in order to interpret \acrshort{gp}'s as a statistical distribution over functions. A \acrshort{gp} for a random function $f \triangleq f(\boldsymbol{x})$ is fully specified by its mean function $m(\boldsymbol{x})$ and covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$.
+In this thesis, a more specific definition is adopted in order to interpret \acrshort{gp}s as a statistical distribution over functions. A \acrshort{gp} for a random function $f \triangleq f(\boldsymbol{x})$ is fully specified by its mean function $m(\boldsymbol{x})$ and covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$.
 
 \begin{equation}\label{eq:gp}
     f \sim GP(\;m(\boldsymbol{x}), \; k(\boldsymbol{x}, \boldsymbol{x}')\;)
 \end{equation}
 
-This interpretation of a \acrshort{gp} might seem a bit odd at first. It may help to think of functions as infinitely long vectors containing the function values for all possible inputs. The key observation is that the marginal distribution $p(\boldsymbol{x})$ of a multivariate Gaussian distribution $p(\boldsymbol{x}, \boldsymbol{y})$ is another Gaussian distribution that is completely independent of $\boldsymbol{y}$, as expressed in \cref{eq:multivariate_gaussian_marginal}. Any variables not of interest can, therefore, easily be marginalized away. Any \acrshort{gp} by Definition \ref{def:gp} can therefore be viewed as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
+This interpretation of a \acrshort{gp} might seem a bit odd at first. It may help to think of functions as infinitely long vectors containing the function values for all possible inputs. The key observation is that the marginal distribution $p(\boldsymbol{x})$ of a multivariate Gaussian distribution $p(\boldsymbol{x}, \boldsymbol{y})$ is another Gaussian distribution that is completely independent of $\boldsymbol{y}$, as expressed in \cref{eq:multivariate_gaussian_marginal}. Any variables not of interest can therefore be easily marginalized away. Any \acrshort{gp} by Definition \ref{def:gp} can therefore be viewed as the finite marginal distribution of an infinite Gaussian Distribution, jointly describing the values of $f$ at all possible inputs $\boldsymbol{x}$. In the end, a \acrshort{gp} is nothing more than a joint Gaussian Distribution with a fancy interpretation.
 
 \subsection{A quick note on vector notation}
-Different notations for vector values is used to differentiate between three common cases:
+Different notations for vector values are used to differentiate between three common cases:
 \begin{description}
-\item[Bold letters] are used to indicate a single, multivariate value. $f(\boldsymbol{x})$ is the scalar function $f$ evaluated at the multivariate input $\boldsymbol{x}$. In practice, this implies the input is a column vector $\boldsymbol{x} \in \mathcal{R}^{M}$ with $M \geq 2$ elements. 
+\item[Bold letters] are used to indicate a single, multivariate value. $f(\boldsymbol{x})$ is the scalar function $f$ evaluated at the multivariate input $\boldsymbol{x}$. In practice, this implies that the input is a column vector $\boldsymbol{x} \in \mathcal{R}^{M}$ with $M \geq 2$ elements. 
 \item[Capital letters] such as $X$, are used to indicate multiple (potentially multivariate) samples. $f(X)$ is the scalar function $f$ evaluated at each row in $X$. In practice this implies that the input $X \in \mathcal{R}^{N x M}$ with $N \geq 2$ rows (samples) and $M \geq 1$ columns (dimensions).
-\item[Vector Arrow] such as $\vec{f}$ is used to denote vector-fields (i.e. vector-valued functions). This will be useful for vector-valued \acrshort{gp}s as it allows the distinction between shorthand notations such as $\boldsymbol{f}_* = f(X_*)$, $\vec{f}_* = \vec{f}(\boldsymbol{x}_*)$ and $\vec{\boldsymbol{f}}_* = \vec{f}(X_*)$.
+\item[Vector Arrows] such as $\vec{f}$ are used to denote vector-fields (i.e. vector-valued functions). This will be useful for vector-valued \acrshort{gp}s as it allows the distinction between shorthand notations such as $\boldsymbol{f}_* = f(X_*)$, $\vec{f}_* = \vec{f}(\boldsymbol{x}_*)$ and $\vec{\boldsymbol{f}}_* = \vec{f}(X_*)$.
 \end{description}
 
 \subsection{Introduction to kernels}
-The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will in this thesis be referred to as \textit{kernels}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Kernel functions are discussed in greater detail in \cref{sec:kernels}.
+The covariance function $k(\boldsymbol{x}, \boldsymbol{x}')$ determines the similarity between two different points $\boldsymbol{x}$ and $\boldsymbol{x}'$. These covariance functions will be referred to as \textit{kernels}, which maps the input space to a \textit{feature-space} \cite{rasmussen}. The output of the kernel is a value describing the similarity (i.e., covariance) between the two inputs. Kernel functions are discussed in greater detail in \cref{sec:kernels}.
 
 The kernel must be positive definite to produce a valid covariance matrix, which requires that
 
@@ -118,7 +118,7 @@ The kernel must be positive definite to produce a valid covariance matrix, which
     k(\boldsymbol{x}, \boldsymbol{x}') = k(\boldsymbol{x}', \boldsymbol{x})
 \end{equation}
 
-The covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cdot)$ on all pairs on inputs, i.e.
+The covariance matrix $K(X, X)$ is the result of calling $k(\cdot, \cdot)$ on all pairs of inputs, i.e.
 \begin{equation} 
     K(X, X)_{ij} = k(\boldsymbol{x}_i, \boldsymbol{x}_j) \quad \forall i, j
 \end{equation}
@@ -158,7 +158,7 @@ As the notation quickly gets messy for the general case, the shorthand notation 
 \end{align}
 \end{subequations}
 
-In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing number of samples. To avoid numerical instability, using the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$ assuming $K$ is symmetric and positive definite, and is considered numerically extremely stable \cite{rasmussen}. \cref{eq:gp_conditional} can then be computed using $L$. The diagonal entry $\sigma^2 I$ added to the kernel matrix is intended to model noisy observations while, in practice, it also improves the numerical stability. A small value is therefore recommended even if the observations are noise-free \cite{scikit-learn}.
+In practice, computing the inverse $K(X, X)$ becomes expensive for an increasing number of samples. To avoid numerical instability, using the \textit{Cholesky Decomposition} is usually preferred. The Cholesky Decomposition forms a new lower-triangular matrix $L$ such that $K = L L^\intercal$, assuming $K$ is symmetric and positive definite, and it is considered extremely numerically stable \cite{rasmussen}. \cref{eq:gp_conditional} can then be computed using $L$. The diagonal entry $\sigma^2 I$ added to the kernel matrix is intended to model noisy observations, while in practice it also improves the numerical stability. A small value is therefore recommended even if the observations are noise-free \cite{scikit-learn}.
 \begin{subequations}
 \begin{align}
     \begin{split}
@@ -234,22 +234,22 @@ The \textit{White Kernel} is useful for modeling whitenoise in a system as \acrs
 where $\delta_{ij}$ is the Kronecker-delta which is $1$ if $i=j$ and $0$ otherwise. This is the same as the noise term added in \cref{alg:gp_prediction}.
 
 \subsubsection{Radial Basis Function}\label{sec:kernels_rbf}
-The \textit{\acrfull{rbf}} kernel, also referred to as \textit{squared exponential kernel}, is one of the most frequently used kernels, and is given by the covariance function in \cref{sec:kernels_rbf}. The scaling parameter $l$ is the \textit{charactheristic length scale} and can intuitively be thought of as a smoothness parameter. This kernel yields infinitely differentiable functions, meaning that any functions drawn from a \acrshort{gp} with this kernel are very smooth\cite{rasmussen}.
+The \textit{\acrfull{rbf}} kernel, also referred to as \textit{squared exponential kernel}, is one of the most frequently used kernels, and is given by the covariance function in \cref{sec:kernels_rbf}. The scaling parameter $l$ is the \textit{charactheristic length scale} and can intuitively be thought of as a smoothness parameter. This kernel yields infinitely differentiable functions, meaning that any function drawn from a \acrshort{gp} with this kernel is very smooth\cite{rasmussen}.
 \begin{equation}\label{eq:kernel_rbf}
     k(\boldsymbol{r}) = \exp \big\{-\frac{||\boldsymbol{r}||^2}{2 l^2}\big\}
 \end{equation} 
 
 \subsubsection{Matérn class}
-The \textit{Matérn Class} of kernels are given by the covariance function in \cref{eq:kernel_matern}, where $K_v$ is the \textit{modified Bessel function}. 
+The \textit{Matérn Class} of kernels is given by the covariance function in \cref{eq:kernel_matern}, where $K_v$ is the \textit{modified Bessel function}. 
 
 \begin{equation}\label{eq:kernel_matern}
     k(\boldsymbol{r}) = \frac{2^{1-\nu}}{\Gamma(\nu)}\bigg(\frac{\sqrt{2 \nu} ||\boldsymbol{r}||}{l} \bigg)^\nu K_\nu \bigg(\frac{\sqrt{2\nu} || \boldsymbol{r}||}{l} \bigg)
 \end{equation}
 The parameter $\nu > 0$ determines the smoothness, where:
 \begin{itemize}
-    \item $\nu=\frac{1}{2}$ yields the \textit{Ornstein-Uhlenbeck Process} and functions, that when drawn from a \acrshort{gp} with this kernel, are continious, but not differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \exp \big\{-\frac{||\boldsymbol{r}||}{l}\big\}$$
-    \item $\nu=\frac{3}{2}$ yields functions that, when drawn from a \acrshort{gp} with this kernel, are continous and once-differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big) \exp\big\{- \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big\}$$
-    \item $\nu=\frac{5}{2}$ yields functions, that when drawn from a \acrshort{gp} with this kernel,  are continous and twice differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{5} ||\boldsymbol{r}||}{l} + \frac{5 ||\boldsymbol{r}||^2}{3 l^2}\big) \exp\big\{- \frac{\sqrt{5} ||\boldsymbol{r}||}{l}\big\}$$
+    \item $\nu=\frac{1}{2}$ yields the \textit{Ornstein-Uhlenbeck Process} and functions, that when drawn from a \acrshort{gp}, are continious, but not differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \exp \big\{-\frac{||\boldsymbol{r}||}{l}\big\}$$
+    \item $\nu=\frac{3}{2}$ yields functions that, when drawn from a \acrshort{gp}, are continous and once-differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big) \exp\big\{- \frac{\sqrt{3} ||\boldsymbol{r}||}{l}\big\}$$
+    \item $\nu=\frac{5}{2}$ yields functions, that when drawn from a \acrshort{gp},  are continous and twice differentiable. The kernel is equivalent to $$k(\boldsymbol{r}) = \big(1 + \frac{\sqrt{5} ||\boldsymbol{r}||}{l} + \frac{5 ||\boldsymbol{r}||^2}{3 l^2}\big) \exp\big\{- \frac{\sqrt{5} ||\boldsymbol{r}||}{l}\big\}$$
 \end{itemize}
 More generally, the functions drawn from a \acrshort{gp} with a Matérn class kernel, is $k$-times differentiable if and only if $\nu > k$\cite{rasmussen}. The Matérn class of kernels is argued to be a better choice than the \acrshort{rbf} kernel for many physical systems, as the infinitely smooth function generated by \acrshort{rbf} is too smooth \cite{rasmussen}.
 Further mathematical details can be found in \cite[sec.~4.2]{rasmussen} as it is outside the scope of this thesis.
@@ -261,7 +261,7 @@ Kernels can be mixed and matched through multiplication and addition, where the 
 Manually tuning the kernel hyperparameters is tedious and time-consuming, motivating the need for automatic selection of parameters. This section will discuss an automated approach for hyperparameter selection with \acrshort{gp}s.
 
 \subsection{Maximum Likelihood - The Marginal Likelihood}\label{sec:gp_mle}
-The \textit{marginal likelihood}, the likelihood of observing a set of given observations $\boldsymbol{y}$, conditioned on a \acrshort{gp} with kernel parameters $\boldsymbol{\theta}$ and inputs $X$ is given by 
+The \textit{marginal likelihood}, which is the likelihood of observing a set of given observations $\boldsymbol{y}$, conditioned on a \acrshort{gp} with kernel parameters $\boldsymbol{\theta}$ and inputs $X$, is given by 
 
 \begin{equation}
     p(\boldsymbol{y} \; | \; X, \boldsymbol{\theta}) = \mathcal{N}\big(\boldsymbol{y} \; | \; \boldsymbol{m}(X), K_{\boldsymbol{\theta}}(X, X)\big)
@@ -273,29 +273,29 @@ Defining $\tilde{\boldsymbol{y}} \triangleq \boldsymbol{y} - \boldsymbol{m}(X)$ 
     \log p(\boldsymbol{y} \; | \; X, \boldsymbol{\theta}) = &-\frac{1}{2} \tilde{\boldsymbol{y}}^\intercal K_{\boldsymbol{\theta}}(X, X)^{-1}\tilde{\boldsymbol{y}} - \frac{1}{2} \log |K_{\boldsymbol{\theta}}(X, X)| \ldots\\ &- \frac{n}{2} \log (2 \pi)
     \end{split}
 \end{tcolorbox} where the optimal hyperparameters $\boldsymbol{\theta}_{\text{ML}}$ can be found by maximizing this quantity\footnote{
-    The marginal likelihood is generally not a convex function of $\boldsymbol{\theta}$ as the kernel functions usually are non-linear functions of $\boldsymbol{\theta}$, and multiple local optima may exist. The practical effects include that the observed data may be explained well by different combinations of parameters, and each combination serves as a distinct interpretation of the data. During optimization, care should be taken to avoid a bad local optimum \cite{rasmussen}.}, i.e.
+    The marginal likelihood is generally not a convex function of $\boldsymbol{\theta}$ as the kernel functions are usually non-linear functions of $\boldsymbol{\theta}$, and multiple local optima may exist. The practical effects include that the observed data may be explained well by different combinations of parameters, and each combination serves as a distinct interpretation of the data. During optimization, care should be taken to avoid a bad local optimum \cite{rasmussen}.}, i.e.
 \begin{equation}
     \boldsymbol{\theta}_{\text{ML}} = \arg \max_{\boldsymbol{\theta}} \log p(\boldsymbol{y} \; | \; X, \boldsymbol{\theta}) = \arg \min_{\boldsymbol{\theta}} \big(- \log p(\boldsymbol{y} \; | \; X, \boldsymbol{\theta})\big)
 \end{equation}
 
-The name marginal likelihood comes from the fact that the latent function $\boldsymbol{f}$ is marginalized out, i.e., the parameters are optimized over all possible latent functions $\boldsymbol{f}$.
+The name marginal likelihood comes from the fact that the latent function $\boldsymbol{f}$ is marginalized out, i.e. the parameters are optimized over all possible latent functions $\boldsymbol{f}$.
 
 \begin{equation}
     p(\boldsymbol{y} \; | \; X, \boldsymbol{\theta}) = \int_{\boldsymbol{f}} p\big(\boldsymbol{y} \;| \; \boldsymbol{f}\big) p\big(\boldsymbol{f} \; |\; m(X), K(X, X)\big) d\boldsymbol{f}
 \end{equation}
 
-The marginal likelihood is somewhat resilient to overfitting as it naturally incorporates a tradeoff between model complexity and model fit. However, the optimization step always imposes the risk of overfitting, especially if there are many hyperparameters \cite{rasmussen}. 
+The marginal likelihood is somewhat resilient to overfitting, as it naturally incorporates a trade-off between model complexity and model fit. However, the optimization step always imposes the risk of overfitting, especially if there are many hyperparameters \cite{rasmussen}. 
 
-Optimizing \cref{eq:gp_log_marginal_likelihood} with gradient descent requires the inversion of the kernel matrix at each iteration. It quickly becomes a costly operation, limiting the size of the dataset which realistically can be used. A possible solution to this problem is to approximate the global \acrshort{gp} by several local models as proposed in work such as \cite{paralell_gp_mle,paralell_gp_mle_2}. These smaller \acrshort{gp} models can then be evaluated in parallel and collaborate in the search for a global optimum. 
+Optimizing \cref{eq:gp_log_marginal_likelihood} with gradient descent requires the inversion of the kernel matrix at each iteration. It quickly becomes a costly operation, limiting the size of the dataset that can be used realistically. A possible solution to this problem is to approximate the global \acrshort{gp} by several local models, as proposed in work such as \cite{paralell_gp_mle,paralell_gp_mle_2}. These smaller \acrshort{gp} models can then be evaluated in parallel and collaborate in the search for a global optimum. 
 
 \section{Sampling from a Gaussian Process}\label{sec:gp_samples}
-As the \acrshort{gp} is a jointly Gaussian distribution, random samples can be drawn from it as with any other multivariate Gaussian.
+As the \acrshort{gp} is a joint Gaussian distribution, random samples can be drawn from it as with any other multivariate Gaussian.
 
 \begin{equation}\label{eq:gp_samples}
     \boldsymbol{f}_* \sim \mathcal{N}(\bar{\boldsymbol{f}}_*, \mathbb{V}[\boldsymbol{f}_*])
 \end{equation}
 
-More specifically, a vector of \acrshort{iid} standard normal samples, $Z$, can be turned into samples from a jointly Gaussian distribution.
+More specifically, a vector of \acrshort{iid} standard normal samples, $Z$, can be turned into samples from a joint Gaussian distribution.
 
 Once again, the Cholesky decomposition is used to decompose the \acrshort{gp} covariance, i.e. $\mathbb{V}[\boldsymbol{f}_*] = L L^\intercal$. Using $L$ and $\bar{\boldsymbol{f}}_*$, \cref{eq:gp_samples} can be expressed as 
 \begin{equation}
@@ -310,32 +310,32 @@ which yields a way to convert indendent standard normal samples into samples fro
 \section{Standardization}
 The method of \textit{standardization}\todo[]{find source} is the process of converting the data into a standard unit of measurement, which in practice involves transforming the data to have zero mean and unit variance. This is useful when comparing measures of different scales.
 
-The proposed \acrshort{gp} implementation works well with and without standardized input data, but standardization has one crucial benefit. While the current implementation allows separate kernel hyperparameters for each input dimension in $\boldsymbol{x}$, the kernel is assumed to be identical for each of the outputs of $\vec{f}$. The kernel, therefore, represents the variability of \textbf{both} output dimensions at once. However, with standardized training outputs $Y$, the kernel is relative to the standard deviation of the training data. This way, the \acrshort{gp} can express the different levels of uncertainty for each output dimension while still sharing the same kernel. An even more flexible approach would be to allow separate kernels for each dimension, though at the cost of more complex hyperparameter tuning.
+The proposed \acrshort{gp} implementation works well with and without standardized input data, but standardization has one crucial benefit. While the current implementation allows separate kernel hyperparameters for each input dimension in $\boldsymbol{x}$, the kernel is assumed to be identical for each output of $\vec{f}$. The kernel therefore represents the variability of \textbf{both} output dimensions at once. However, with standardized training outputs $Y$, the kernel is relative to the standard deviation of the training data. This way, the \acrshort{gp} can express the different levels of uncertainty for each output dimension while still sharing the same kernel. An even more flexible approach would be to allow separate kernels for each dimension, though at the cost of more complex hyperparameter tuning.
 
 \section{Approximate methods}
-The standard derivation of the \acrshort{gp} requires inverting the kernel matrix, either through the Cholesky Decomposition or directly. Unfortunately, the computational complexity is $\frac{n^3}{6}$ operations and similarly $\frac{n^2}{2})$ for solving triangular systems \cite{rasmussen}. This may be acceptable for sparse datasets but makes \acrshort{gp}s infeasible for Big Data applications. 
+The standard derivation of the \acrshort{gp} requires inverting the kernel matrix, either through the Cholesky Decomposition or directly. Unfortunately, the computational complexity is $\frac{n^3}{6}$ operations for the Cholesky Decomposition and similarly $\frac{n^2}{2}$ for solving triangular systems \cite{rasmussen}. This may be acceptable for sparse datasets, but it makes \acrshort{gp}s infeasible for Big Data applications. 
 
-For simple functions, it often works well only to use a representable subset of the data. However, throwing away the majority of available data is not an elegant solution to the problem. 
+For simple functions, it often works well to only use a representable subset of the data. However, throwing away the majority of available data is not an elegant solution to the problem. 
 
 \subsection{Reduced-rank approximation}
 
-Several approximations are discussed in \cite{rasmussen} and typically use a \textit{reduced-rank approximation} of the kernel matrix $K=Q Q^\intercal$ with $Q \in \mathcal{R}^{n \times q}$, and use the \textit{matrix inversion lemma} \cite[p .~201]{rasmussen} , reducing the inversion of the $n \times n$ matrix to the inversion of a $q \times q$ matrix instead. Unfortunately, the optimal reduced-rank approximations depend on the eigenvalue decomposition, which itself is a $\mathcal{O}(n^3)$ operation. However, if a cheap approximation to the eigenvalue decomposition can be found, it can potentially then be used to approximate the \acrshort{gp}. One such low-rank approximation is the Nyström method, where a subset of the dataset is used to approximate the eigenvalues.    
+Several approximations are discussed in \cite{rasmussen} and typically use a \textit{reduced-rank approximation} of the kernel matrix $K=Q Q^\intercal$ with $Q \in \mathcal{R}^{n \times q}$, and use the \textit{matrix inversion lemma} \cite[p.~201]{rasmussen}, reducing the inversion of the $n \times n$ matrix to the inversion of a $q \times q$ matrix instead. Unfortunately, the optimal reduced-rank approximations depend on the eigenvalue decomposition, which itself is a $\mathcal{O}(n^3)$ operation. However, if a cheap approximation to the eigenvalue decomposition can be found, it can potentially be used to approximate the \acrshort{gp}. One such low-rank approximation is the Nyström method, where a subset of the dataset is used to approximate the eigenvalues.    
 
 \subsection{Variational Gaussian Process}
 
 \subsubsection{A short introduction to Variational Inference}\todo[]{This may be a bit out of scope, consider removing}
-Variational Inference was covered thoroughly in a previous specialization project \cite{mellbye}. Therefore, a quick introduction of the necessary concepts is included here, and more details can be found in \cite{mellbye, murphy}.
+Variational Inference is covered thoroughly in a previous specialization project \cite{mellbye}. Therefore, a quick introduction of the necessary concepts is included here, and more details can be found in \cite{mellbye, murphy}.
 
-In many cases, using the true posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ turns out to be challenging. Calculating the posterior using Bayes Rule requires a normalizing constant $p(\mathcal{D})$, which quickly becomes infeasible unless the distributions are simple. The true posterior are therefore often assumed only to be known up to a normalizing constant, i.e.
+In many cases, using the true posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ turns out to be challenging. Calculating the posterior using Bayes Rule requires a normalizing constant $p(\mathcal{D})$, which quickly becomes infeasible unless the distributions are simple. The true posterior is therefore often assumed only to be known up to a normalizing constant, i.e.
 
 \begin{equation}
     \tilde{p}(\boldsymbol{\theta} | \mathcal{D}) \triangleq p(\mathcal{D} | \boldsymbol{\theta})p(\boldsymbol{\theta}) \propto p(\boldsymbol{\theta} | \mathcal{D})
 \end{equation}
 
-An exact analytical solution to the posterior is unavailable, and one would have to use approximate inference methods. 
+An exact analytical solution of the posterior is unavailable, and one would therefore have to use approximate inference methods. 
 One such method, \textit{\acrfull{vi}}, approximates the posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ with a simpler, \textit{surrogate distribution} $q(\boldsymbol{\theta})$. If a $q(\boldsymbol{\theta})$ similar to $p(\boldsymbol{\theta} | \mathcal{D})$ is found, then the simpler surrogate density can be used for approximate inference.
 
-To find a good surrogate density $q(\cdot)$, the \textit{\acrfull{kl}} is used as a measure of similarity between the two probability distributions, where the reverse\footnote{\acrshort{kl} is generally not symmetric in its input arguments, i.e. $\mathbb{KL}(p || q) \neq \mathbb{KL}(q || p)$ where the latter is called the reverse \acrshort{kl}} \acrshort{kl} is given by
+To find a good surrogate density $q(\cdot)$, the \textit{\acrfull{kl}} is used as a measure of similarity between the two probability distributions, where the reverse\footnote{\acrshort{kl} is generally not symmetric in its input arguments, i.e. $\mathbb{KL}(p || q) \neq \mathbb{KL}(q || p)$ where the latter is called the reverse \acrshort{kl}.} \acrshort{kl} is given by
 \begin{align}
     \mathbb{KL}(q || p) = \int_{\boldsymbol{\theta}} q(\boldsymbol{\theta}) \log \frac{q(\boldsymbol{\theta})}{p(\boldsymbol{\theta})} d\boldsymbol{\theta} = E_{q} \big[ \log \frac{q(\boldsymbol{\theta})}{p(\boldsymbol{\theta})} \big]\label{eq:kl_qp}
 \end{align}

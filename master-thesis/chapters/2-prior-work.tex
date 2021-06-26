@@ -10,16 +10,16 @@ A case study is performed where the model is trained and tested on three months 
 However, there is extensive \todo[]{Find more examples or drop the extensive} work on using \acrshort{gp}s for trajectory prediction outside of the maritime field. \citeauthor{vehicle_gp_prediction} \cite{vehicle_gp_prediction} utilizes \acrshort{gp}s for long-term trajectory prediction for collision avoidance in a connected vehicle environment. The vehicles are assumed to share position through vehicle-to-vehicle communication, somewhat in a similar fashion to \acrshort{ais} for maritime vessels. The paper uses a \acrshort{gp} to learn a motion model from historical data, mapping a vehicle's current position to a trajectory derivative. The historical data is clustered into a finite number of clusters, where the trajectories in each cluster are assumed to have similar properties. The paper utilizes K-means clustering \cite{murphy} to group trajectories based on the first and last position of a trajectory. For each cluster, independent \acrshort{gp}s are then fitted for each of the two coordinate axes, using independent \acrshort{rbf} kernels and zero mean priors. While this method should apply to \acrshort{ais} data, there are a few key distinctions to keep in mind:
 \begin{enumerate}
     \item In this paper, the trajectory derivatives are calculated using finite difference with a sampling interval of $0.1$ seconds. The typical sampling interval for \acrshort{ais} data is in the range of minutes, so relying on numerical derivatives might be challenging.
-    \item The vehicles trajectories are from an intersection, and the roads constrain the vehicles' behavior. There is, therefore, only a finite number of route options a vehicle may take.
+    \item The vehicles' trajectories are from an intersection, and the roads constrain the vehicles' behavior. There is therefore only a finite number of route options that a vehicle may take.
 \end{enumerate}
 
-A similar approach is used by \citeauthor{pedestrian} \cite{pedestrian} to predict the trajectory of pedestrians tracked using computer vision. The paper also learns a dynamical model using \acrshort{gp}s but utilizes a Bayes Filter framework proposed by \citeauthor{gpekf} \cite{gpekf} to simulate the trajectories. Two different approaches were used:
+A similar approach is used by \citeauthor{pedestrian} \cite{pedestrian} to predict the trajectory of pedestrians tracked using computer vision. The paper also learns a dynamical model using \acrshort{gp}s, but it utilizes a Bayes Filter framework proposed by \citeauthor{gpekf} \cite{gpekf} to simulate the trajectories. Two different approaches were used:
 \begin{enumerate}
     \item By assuming $p(\boldsymbol{x})$ is always uni-modal and Gaussian, the GP-EKF introduced in \cite{gpekf} was used to simulate the trajectory for multiple timesteps, using the dynamical \acrshort{gp} model as the prediction model. The GP-EKF is based on the Extended Kalman Filter, where the prediction model is learned from data using a \acrshort{gp}. This formulation is unable to express multimodal uncertainty.
     \item To retain the inherent multimodality, a sequential Monte-Carlo approach (i.e., the prediction step of a particle filter) was used to keep track of multiple modes (i.e., branching trajectories) at the cost of computational complexity.  
 \end{enumerate}
 
-Of some-more theoretical work, \citeauthor{multistep_gp}\cite{multistep_gp} discuss how \acrshort{gp}s can be used when the function inputs $\boldsymbol{x}$ are latent variables. It is used in the context of multi-step ahead time series forecasting, where the \acrshort{gp} is recursively evaluated using the output at one step as the input in the next. As the true posterior distribution of this recursive formulation is intractable, a Gaussian approximation is applied in combination with a Taylor approximation.
+Of some more theoretical work, \citeauthor{multistep_gp}\cite{multistep_gp} discuss how \acrshort{gp}s can be used when the function inputs $\boldsymbol{x}$ are latent variables. It is used in the context of multi-step ahead time series forecasting, where the \acrshort{gp} is recursively evaluated using the output at one step as the input in the next. As the true posterior distribution of this recursive formulation is intractable, a Gaussian approximation is applied in combination with a Taylor approximation.
 
 
 
@@ -29,14 +29,14 @@ Another common approach for trajectory prediction using \acrshort{ais} is based 
 \begin{enumerate}
     \item Cluster trajectories based on historical data
     \item Classify new target vessels into the appropriate cluster
-    \item Generate a representative trajectory the given cluster
-    \item Predict the movement using the representative trajectory.
+    \item Generate a representative trajectory for the given cluster
+    \item Predict the movement using the representative trajectory
 \end{enumerate}
 
 Examples of this approach can be found in \cite{palotta}, \cite{mazzarella} and \cite{mazzarella2}. 
 
 
-Traditional clustering methods, such as k-means or DBSCAN, tend to focus on clustering point values. In the context of trajectory prediction, the trajectories would then be clustered as a whole. The trajectory clustering algorithm TRACLUS was therefore introduced by \cite{traclus} where it was applied to hurricane trajectory and animal movement data. The key observation was that trajectories might have portions that share typical behavior, while the entire trajectory might still differ. TRACLUS allows clustering trajectories based on common sub-trajectories. It works by partitioning the trajectories into smaller line segments and grouping similar segments into clusters. 
+Traditional clustering methods, such as k-means or DBSCAN, tend to focus on clustering point values. In the context of trajectory prediction, the trajectories would then be clustered as a whole. The trajectory clustering algorithm TRACLUS was therefore introduced by \cite{traclus}, where it was applied to hurricane trajectory and animal movement data. The key observation was that trajectories might have portions that share typical behavior, while entire trajectories might still differ. TRACLUS allows for clustering of trajectories based on common sub-trajectories. It works by partitioning the trajectories into smaller line segments and grouping similar segments into clusters. 
 
 \section{Data Driven Approches}
 \citeauthor{Hexeberg2017AISbasedVT} \cite{Hexeberg2017AISbasedVT} introduced the \textit{Single Point Neighborhood Search} (SPNS), a purely data-driven approach. It deviates from the clustering-based methods as it estimates the future course and speed at each prediction time based on historical \acrshort{ais} data. 
