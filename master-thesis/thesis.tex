@@ -19,12 +19,15 @@ Co-supervisor: Trym Tengesdal
 \usepackage{ifthen}
 \usepackage[many]{tcolorbox}
 \usepackage{todonotes}
+\definecolor{bleu-de-france}{cmyk}{0.79, 0.39, 0.00, 0.09}
+\definecolor{bleu-de-france-light}{cmyk}{0.11, 0.04, 0.00, 0.01}
+
 
 
 \input{glossary.tex} % add glossary and acronym lists before document
 
 \begin{document}
-\tcbset{colback=blue!3!white!, colframe=blue!70!green!}
+\tcbset{colback=bleu-de-france-light, colframe=bleu-de-france}
 % gives the width of the current document in pts
 \input{chapters/0-preface.tex}
 \input{chapters/0a-abstract.tex}
