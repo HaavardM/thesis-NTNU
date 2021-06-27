@@ -331,9 +331,49 @@ For simple functions, it often works well to only use a representable subset of 
 Several approximations are discussed in \cite{rasmussen} and typically use a \textit{reduced-rank approximation} of the kernel matrix $K=Q Q^\intercal$ with $Q \in \mathcal{R}^{n \times q}$, and use the \textit{matrix inversion lemma} \cite[p.~201]{rasmussen}, reducing the inversion of the $n \times n$ matrix to the inversion of a $q \times q$ matrix instead. Unfortunately, the optimal reduced-rank approximations depend on the eigenvalue decomposition, which itself is a $\mathcal{O}(n^3)$ operation. However, if a cheap approximation to the eigenvalue decomposition can be found, it can potentially be used to approximate the \acrshort{gp}. One such low-rank approximation is the Nyström method, where a subset of the dataset is used to approximate the eigenvalues.    
 
 \subsection{Sparse Variational Gaussian Process}
+Another approximation is to consider the elements in the covariance matrix as the parameters to a surrogate distribution and then use \textit{variational inference} to approximate the true posterior distribution \cite{tran2016variational}. The problem of inverting large matrices is then turned into an optimization problem. Variational Inference was covered in the specialization project \cite{mellbye}. 
 
-To deal with the computational complexity of \acrshort{gp}s, \cite{Titsias2008VariationalMS} introduced the \textit{\acrfull{svgp}}. Rather than directly using all the available training data directly, one can instead attempt to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data. 
+The \textit{\acrfull{svgp}} is a sparse approximation of \acrshort{gp}s which builds on variational inference. 
+The idea is to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$ \cite{Titsias2008VariationalMS}. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data. Libraries such as \textit{GPFlow} \cite{GPflow2017} allow the \acrshort{svgp} to be combined with powerfull stochastic optimization teqniques to learn sparse approximations for large datasets.
 
 
 \section{The Kalman Filter}
+The Kalman filter is an algorithm for exact Bayesian filtering for linear Gaussian state-space models \cite{murphy}. The reader is assumed to already be familar to the Kalman filter, but a short introduction is nevertheless included for completeness. 
+
+The filtering is performed in two steps.
+The \textit{predictions step} computes the marginal distribution of the current state $\boldsymbol{x}_t$ given known measurements $\boldsymbol{z}_{1:t}$ for all states up to time $t$.
+
+\begin{align}
+    \begin{split}
+    p(\boldsymbol{x}_t | \boldsymbol{z}_{1:t-1}) &= \int_{\boldsymbol{x}_{t-1}} p(\boldsymbol{x}_t, \boldsymbol{x}_{t-1} | \boldsymbol{z}_{1:t-1})d\boldsymbol{x}_{t-1}\\ &= \int_{\boldsymbol{x}_{t-1}} p(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}) p(\boldsymbol{x}_{t-1} | \boldsymbol{z}_{1:t-1})d\boldsymbol{x}_{t-1}
+    \end{split}
+\end{align}
+
+The \textit{update step} directly follows from Bayes Rule
+\begin{equation}
+    p(\boldsymbol{x}_t | \boldsymbol{z}_{1:t}) = \frac{p(\boldsymbol{z}_{t} | \boldsymbol{x}_{t}) p(\boldsymbol{x}_t | \boldsymbol{z}_{1:t-1})}{p(\boldsymbol{x}_t | \boldsymbol{z}_{1:t-1})}
+\end{equation}
+
+These two equations yield what is known as the Bayes filter and by assuming all distributions to be linear Gaussian, there exists a closed form solution given by \cref{alg:kalman} \cite{murphy, sensorfusjon}.
+
+\begin{algorithm}
+    \begin{algorithmic}[1]
+        \Procedure{Kalman Filter}{$\boldsymbol{x}_{t-1}$, $\boldsymbol{P}_{t-1}$, $\boldsymbol{z}_t$}
+        \State $\hat{\boldsymbol{x}}_t = \boldsymbol{G}\boldsymbol{x}_{t-1}$\Comment{Predicted Mean}
+        \State $\hat{\boldsymbol{P}}_t = \boldsymbol{G}\boldsymbol{P}_{t-1}\boldsymbol{G}^\intercal + \boldsymbol{Q}$\Comment{Predicted Covariance}
+        \State $\hat{\boldsymbol{z}} = \boldsymbol{H}\hat{\boldsymbol{x}}_t$\Comment{Predicted measurement}
+        \State $\boldsymbol{v}_t = \boldsymbol{z}_t - \hat{\boldsymbol{z}}_t$\Comment{Innovation}
+        \State $\boldsymbol{S}_t = \boldsymbol{H}\hat{\boldsymbol{P}} \boldsymbol{H}^\intercal + \boldsymbol{R}$\Comment{Innovation Covariance}
+        \State $\boldsymbol{W}_t = \hat{\boldsymbol{P}}_t \boldsymbol{H}^\intercal \boldsymbol{S}_t^{-1}$\Comment{Kalman Gain}
+        \State $\boldsymbol{x}_t = \hat{\boldsymbol{x}}_t + \boldsymbol{W}_t \boldsymbol{v}_t$\Comment{Mean of Posterior}
+        \State $\boldsymbol{P}_t = (\boldsymbol{I} - \boldsymbol{W}_t) \hat{\boldsymbol{P}}_t$\Comment{Variance of Posterior}
+        \State \Return $\boldsymbol{x}_t, \boldsymbol{P}_t$
+        \EndProcedure
+    \end{algorithmic}
+    \caption{Kalman Filter}
+    \label{alg:kalman}
+\end{algorithm}
+
+Further details and derivations can be found in \cite{murphy, sensorfusjon}.
+
 
