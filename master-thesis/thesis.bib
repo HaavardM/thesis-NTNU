@@ -484,3 +484,18 @@
   keywords = {Approximate Bayesian computations, Stochastic gradient ascent, Synthetic likelihood, Variational Bayes},
   abstract = {One popular approach to likelihood-free inference is the synthetic likelihood method, which assumes that some data summary statistics which are informative about model parameters are approximately Gaussian for each value of the parameter. Based on this assumption, a Gaussian likelihood can be constructed, where the mean and covariance matrix of the summary statistics are estimated via Monte Carlo. The objective of the current work is to improve on a variational implementation of the Bayesian synthetic likelihood introduced recently in the literature, to enable the application of that approach to high-dimensional problems. Here high-dimensional can mean problems with more than one hundred parameters. The improvements introduced relate to shrinkage estimation of covariance matrices in estimation of the synthetic likelihood, improved implementation of control variate approaches to stochastic gradient variance reduction, and parsimonious but expressive parametrizations of variational normal posterior covariance matrices in terms of factor structures to reduce the dimension of the optimization problem. The shrinkage covariance estimation is particularly important for stability of stochastic gradient optimization with noisy likelihood estimates. However, as the dimension increases, the quality of the posterior approximation deteriorates unless the number of Monte Carlo samples used to estimate the synthetic likelihood also increases. We explore the properties of the method in some real examples in cases where either the number of summary statistics, the number of model parameters, or both, are large.}
 }
+
+@Article{matplotlib,
+  Author    = {Hunter, J. D.},
+  Title     = {Matplotlib: A 2D graphics environment},
+  Journal   = {Computing in Science \& Engineering},
+  Volume    = {9},
+  Number    = {3},
+  Pages     = {90--95},
+  abstract  = {Matplotlib is a 2D graphics package used for Python for
+  application development, interactive scripting, and publication-quality
+  image generation across user interfaces and operating systems.},
+  publisher = {IEEE COMPUTER SOC},
+  doi       = {10.1109/MCSE.2007.55},
+  year      = 2007
+}

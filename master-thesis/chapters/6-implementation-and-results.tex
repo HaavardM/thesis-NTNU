@@ -22,6 +22,9 @@ The \textit{\acrfull{nees}} is a metric that can be used to quantify consistency
 
 Assuming the prediction error follows a Gaussian distribution, the \acrshort{nees} follows a Chi-Squared distribution which can be used to form a confidence interval. Comparing the prediction errors with this confidence interval can then be used to get a sense of whether the estimated state uncertainty is consistent with the actual error rate.
 
+\subsection{Comparing distributions - Boxplot}
+The boxplot is used to visualize the distribution of the different metrics. The boxplot visualizes the estimated quartiles, i.e., the $25\%$, $50\%$, and $75$ quantiles, of the distribution. The "whiskers" show the range of values not considered to be outliers. Points outside of $[Q_{25} - 1.5 \text{ IQR}, Q_{75} + 1.5 \text{ IQR}]$ are considered outliers, where $\text{IQR} = Q_{75} - Q_{25}$ is the \text{inter-quartile range} \cite{matplotlib}.  
+
 \subsection{Interpolation}
 The metrics will be compared at fixed $5$ minute intervals using linear interpolation. The error for short trajectories is not extrapolated, so there might be fewer available samples for the metrics when moving past $15$ minutes.
 
