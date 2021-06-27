@@ -25,7 +25,7 @@ where $\boldsymbol{x}$ is ground truth and $\hat{\boldsymbol{x}}$ refers to the 
 Assuming that the prediction error follows a Gaussian distribution, the \acrshort{nees} follows a Chi-Squared distribution which can be used to form a confidence interval. Comparing the prediction errors with this confidence interval can then be used to get a sense of whether the estimated state uncertainty is consistent with the actual error rate.
 
 \subsection{Comparing distributions - Boxplot}
-The boxplot is used to visualize the distribution of the different metrics. The boxplot visualizes the estimated quartiles, i.e. the $25\%$, $50\%$, and $75\%$ quantiles, of the distribution. The "whiskers" show the range of values not considered to be outliers. Points outside of $[Q_{25} - 1.5 \text{ IQR}, Q_{75} + 1.5 \text{ IQR}]$ are considered outliers, where $\text{IQR} = Q_{75} - Q_{25}$ is the \text{inter-quartile range} \cite{matplotlib}.  
+The boxplot is used to visualize the distribution of the different metrics. The boxplot visualizes the estimated quartiles, i.e. the $25\%$, $50\%$, and $75\%$ quantiles, of the distribution. The "whiskers" show the range of values not considered to be outliers. Points outside of $[Q_{25} - 1.5 \text{ IQR}, Q_{75} + 1.5 \text{ IQR}]$ are considered outliers, where $\text{IQR} = Q_{75} - Q_{25}$ is the \text{inter-quartile range} \cite{matplotlib}.
 
 \subsection{Interpolation}
 The metrics will be compared at fixed $5$ minute intervals using linear interpolation. The error for short trajectories is not extrapolated, so there might be fewer available samples for the metrics when moving past $15$ minutes.
@@ -264,26 +264,24 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
                 \toprule
-                        &                & Time [Minutes]        & 5       & 10      & 15       & 20       & 25       \\
-                Summary & Method         & Training Source       &         &         &          &          &          \\
+                        &                & Time [Minutes]    & 5   & 10  & 15   & 20   & 25   \\
+                Summary & Method         & Training Source   &     &     &      &      &      \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS      & 183     & 405     & 652      & 802      & 1151     \\
-                        & Direct GP      & \bf Position          & \bf 532 & \bf 685 & \bf 915  & \bf 1274 & \bf 1636 \\
-                        & GP-EKF         & COG/SOG from AIS      & 350     & 704     & 1153     & 1704     & 1975     \\
-                        &                & \bf Finite Difference & \bf 359 & \bf 681 & \bf 1060 & \bf 1522 & \bf 1909 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS      & 341     & 679     & 1030     & 1434     & 1638     \\
-                        &                & \bf Finite Difference & \bf 341 & \bf 638 & \bf 972  & \bf 1396 & \bf 1753 \\
-                        & GP-EKF w/ SL   & COG/SOG from AIS      & 341     & 680     & 1105     & 1634     & 1879     \\
-                        &                & \bf Finite Difference & \bf 353 & \bf 667 & \bf 1029 & \bf 1476 & \bf 1778 \\
+                Mean    & Direct GP      & Position          & 603 & 720 & 944  & 1269 & 1727 \\
+                        & GP-EKF         & COG/SOG from AIS  & 328 & 668 & 1090 & 1560 & 2048 \\
+                        &                & Finite Difference & 331 & 656 & 1029 & 1417 & 1917 \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 331 & 668 & 1070 & 1494 & 1921 \\
+                        &                & Finite Difference & 332 & 657 & 1025 & 1392 & 1856 \\
+                        & GP-EKF w/ SL   & COG/SOG from AIS  & 325 & 654 & 1048 & 1489 & 1972 \\
+                        &                & Finite Difference & 334 & 663 & 1025 & 1414 & 1891 \\
                 \midrule
-                Median  & CVM            & COG/SOG from AIS      & 96      & 210     & 358      & 464      & 721      \\
-                        & Direct GP      & \bf Position          & \bf 312 & \bf 503 & \bf 649  & \bf 992  & \bf 1266 \\
-                        & GP-EKF         & COG/SOG from AIS      & 292     & 577     & 994      & 1598     & 1876     \\
-                        &                & \bf Finite Difference & \bf 297 & \bf 538 & \bf 835  & \bf 1285 & \bf 1474 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS      & 279     & 550     & 807      & 1141     & 1263     \\
-                        &                & \bf Finite Difference & \bf 289 & \bf 511 & \bf 752  & \bf 1115 & \bf 1563 \\
-                        & GP-EKF w/ SL   & COG/SOG from AIS      & 285     & 545     & 939      & 1530     & 1869     \\
-                        &                & \bf Finite Difference & \bf 287 & \bf 518 & \bf 813  & \bf 1246 & \bf 1346 \\
+                Median  & Direct GP      & Position          & 367 & 562 & 727  & 978  & 1509 \\
+                        & GP-EKF         & COG/SOG from AIS  & 295 & 575 & 883  & 1505 & 1911 \\
+                        &                & Finite Difference & 298 & 537 & 851  & 1325 & 1868 \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 301 & 554 & 850  & 1401 & 1845 \\
+                        &                & Finite Difference & 299 & 529 & 822  & 1250 & 1802 \\
+                        & GP-EKF w/ SL   & COG/SOG from AIS  & 297 & 526 & 829  & 1324 & 1805 \\
+                        &                & Finite Difference & 299 & 536 & 848  & 1315 & 1782 \\
                 \bottomrule
             \end{tabular}
         }
@@ -295,26 +293,24 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
                 \toprule
-                        &                & Time [Minutes]        & 5       & 10      & 15      & 20      & 25      \\
-                Summary & Method         & Training Source       &         &         &         &         &         \\
+                        &                & Time [Minutes]    & 5   & 10  & 15  & 20  & 25  \\
+                Summary & Method         & Training Source   &     &     &     &     &     \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS      & 52      & 150     & 284     & 344     & 582     \\
-                        & Direct GP      & \bf Position          & \bf 258 & \bf 239 & \bf 344 & \bf 473 & \bf 701 \\
-                        & GP-EKF         & COG/SOG from AIS      & 78      & 140     & 202     & 249     & 286     \\
-                        &                & \bf Finite Difference & \bf 80  & \bf 148 & \bf 224 & \bf 265 & \bf 332 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS      & 100     & 198     & 311     & 354     & 389     \\
-                        &                & \bf Finite Difference & \bf 81  & \bf 149 & \bf 234 & \bf 279 & \bf 404 \\
-                        & GP-EKF w/ SL   & COG/SOG from AIS      & 76      & 132     & 188     & 231     & 266     \\
-                        &                & \bf Finite Difference & \bf 79  & \bf 140 & \bf 207 & \bf 243 & \bf 306 \\
+                Mean    & Direct GP      & Position          & 362 & 318 & 428 & 575 & 794 \\
+                        & GP-EKF         & COG/SOG from AIS  & 82  & 158 & 245 & 283 & 330 \\
+                        &                & Finite Difference & 92  & 194 & 309 & 360 & 394 \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 81  & 157 & 248 & 295 & 319 \\
+                        &                & Finite Difference & 91  & 192 & 309 & 367 & 393 \\
+                        & GP-EKF w/ SL   & COG/SOG from AIS  & 87  & 169 & 253 & 298 & 329 \\
+                        &                & Finite Difference & 99  & 211 & 330 & 396 & 398 \\
                 \midrule
-                Median  & CVM            & COG/SOG from AIS      & 28      & 70      & 136     & 223     & 411     \\
-                        & Direct GP      & \bf Position          & \bf 76  & \bf 120 & \bf 197 & \bf 258 & \bf 419 \\
-                        & GP-EKF         & COG/SOG from AIS      & 58      & 99      & 142     & 180     & 233     \\
-                        &                & \bf Finite Difference & \bf 65  & \bf 105 & \bf 157 & \bf 167 & \bf 223 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS      & 60      & 104     & 149     & 184     & 240     \\
-                        &                & \bf Finite Difference & \bf 66  & \bf 104 & \bf 147 & \bf 179 & \bf 205 \\
-                        & GP-EKF w/ SL   & COG/SOG from AIS      & 55      & 94      & 132     & 159     & 192     \\
-                        &                & \bf Finite Difference & \bf 63  & \bf 101 & \bf 139 & \bf 155 & \bf 199 \\
+                Median  & Direct GP      & Position          & 97  & 138 & 224 & 311 & 390 \\
+                        & GP-EKF         & COG/SOG from AIS  & 60  & 97  & 150 & 182 & 262 \\
+                        &                & Finite Difference & 62  & 121 & 188 & 210 & 237 \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 57  & 97  & 145 & 181 & 196 \\
+                        &                & Finite Difference & 62  & 117 & 190 & 217 & 237 \\
+                        & GP-EKF w/ SL   & COG/SOG from AIS  & 62  & 101 & 149 & 189 & 247 \\
+                        &                & Finite Difference & 66  & 124 & 188 & 213 & 217 \\
                 \bottomrule
             \end{tabular}
         }
@@ -330,26 +326,26 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
                 \toprule
-                        &                & Time [Minutes]         & 5       & 10      & 15      & 20       & 25       \\
-                Summary & Method         & Training Source        &         &         &         &          &          \\
+                        &                & Time [Minutes]    & 5   & 10   & 15   & 20   & 25   \\
+                Summary & Method         & Training Source   &     &      &      &      &      \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS       & 440     & 1071    & 1898    & 2425     & 3313     \\
-                        & Direct GP      & \bf Position           & \bf 366 & \bf 522 & \bf 771 & \bf 993  & \bf 1298 \\
-                        & GP-EKF         & COG/SOG from AIS       & 352     & 674     & 950     & 1327     & 1856     \\
-                        &                & \bf Finite Difference  & \bf 329 & \bf 575 & \bf 823 & \bf 1081 & \bf 1388 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS       & 478     & 904     & 1255    & 1473     & 1824     \\
-                        &                & \bf Finite Difference  & \bf 371 & \bf 610 & \bf 835 & \bf 1056 & \bf 1220 \\
-                        & GP-EKF w/ SL   & COG/SOG from AIS       & 340     & 636     & 874     & 1194     & 1592     \\
-                        &                & \bf Finite Difference  & \bf 324 & \bf 555 & \bf 795 & \bf 1030 & \bf 1312 \\
-                \hline
-                Median  & CVM            & COG/SOG from AIS       & 167     & 452     & 1009    & 1561     & 2359     \\
-                        & Direct GP      & \bf Position           & \bf 229 & \bf 364 & \bf 550 & \bf 705  & \bf 942  \\
-                        & GP-EKF         & COG/SOG from AIS       & 257     & 483     & 724     & 1078     & 1505     \\
-                        &                & \bf Finite Difference  & \bf 255 & \bf 463 & \bf 635 & \bf 844  & \bf 1120 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS       & 368     & 654     & 923     & 1128     & 1327     \\
-                        &                & \bf Finite Difference  & \bf 315 & \bf 493 & \bf 651 & \bf 704  & \bf 854  \\
-                        & GP-EKF w/ SL   & COG/SOG from AIS       & 251     & 452     & 646     & 989      & 1357     \\
-                        &                & \bf  Finite Difference & \bf 256 & \bf 434 & \bf 626 & \bf 789  & \bf 1113 \\
+                Mean    & CVM            & COG/SOG from AIS  & 483 & 1184 & 1936 & 2148 & 2684 \\
+                        & Direct GP      & Position          & 329 & 507  & 717  & 898  & 1305 \\
+                        & GP-EKF         & COG/SOG from AIS  & 355 & 691  & 1009 & 1363 & 1895 \\
+                        &                & Finite Difference & 400 & 706  & 897  & 1159 & 1552 \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 349 & 663  & 925  & 1167 & 1392 \\
+                        &                & Finite Difference & 398 & 688  & 863  & 1078 & 1417 \\
+                        & GP-EKF w/ SL   & COG/SOG from AIS  & 351 & 672  & 950  & 1260 & 1751 \\
+                        &                & Finite Difference & 401 & 703  & 885  & 1134 & 1540 \\
+                \midrule
+                Median  & CVM            & COG/SOG from AIS  & 153 & 478  & 990  & 1441 & 2334 \\
+                        & Direct GP      & Position          & 192 & 342  & 524  & 652  & 806  \\
+                        & GP-EKF         & COG/SOG from AIS  & 273 & 532  & 821  & 1218 & 1880 \\
+                        &                & Finite Difference & 262 & 522  & 721  & 1024 & 1421 \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 262 & 501  & 724  & 961  & 1133 \\
+                        &                & Finite Difference & 261 & 502  & 699  & 939  & 1207 \\
+                        & GP-EKF w/ SL   & COG/SOG from AIS  & 264 & 500  & 732  & 1036 & 1616 \\
+                        &                & Finite Difference & 256 & 524  & 706  & 1018 & 1333 \\
                 \bottomrule
             \end{tabular}
         }
@@ -361,26 +357,26 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
         \makebox[\textwidth][c]{
             \begin{tabular}{lllrrrrr}
                 \toprule
-                        &                & Time [Minutes]         & 5        & 10       & 15      & 20      & 25       \\
-                Summary & Method         & Training Source        &          &          &         &         &          \\
+                        &                & Time [Minutes]    & 5   & 10  & 15   & 20   & 25   \\
+                Summary & Method         & Training Source   &     &     &      &      &      \\
                 \midrule
-                Mean    & CVM            & COG/SOG from AIS       & 204      & 574      & 1072    & 1518    & 2045     \\
-                        & Direct GP      & \bf Position           & \bf 175  & \bf 231  & \bf 403 & \bf 596 & \bf 827  \\
-                        & GP-EKF         & COG/SOG from AIS       & 143      & 269      & 356     & 484     & 687      \\
-                        &                & \bf Finite Difference  & \bf 160  & \bf 291  & \bf 412 & \bf 466 & \bf 509  \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS       & 177      & 355      & 587     & 775     & 1218     \\
-                        &                & \bf Finite Difference  & \bf 155  & \bf 277  & \bf 413 & \bf 515 & \bf  655 \\
-                        & GP-EKF w/ SL   & COG/SOG from AIS       & 137      & 240      & 300     & 392     & 522      \\
-                        &                & \bf Finite Difference  & \bf 151  & \bf 265  & \bf 375 & \bf 437 & \bf 523  \\
-                \hline
-                Median  & CVM            & COG/SOG from AIS       & 54       & 265      & 715     & 1138    & 1863     \\
-                        & Direct GP      & \bf Position           & \bf 81   & \bf 140  & \bf 234 & \bf 336 & \bf 447  \\
-                        & GP-EKF         & COG/SOG from AIS       & 99       & 152      & 216     & 295     & 408      \\
-                        &                & \bf Finite Difference  & \bf 106  & \bf 180  & \bf 323 & \bf 336 & \bf  377 \\
-                        & GP-EKF w/ PDAF & COG/SOG from AIS       & 97       & 157      & 290     & 401     & 908      \\
-                        &                & \bf  Finite Difference & \bf  101 & \bf  182 & \bf 304 & \bf 371 & \bf 402  \\
-                        & GP-EKF w/ SL   & COG/SOG from AIS       & 92       & 133      & 195     & 227     & 302      \\
-                        &                & \bf  Finite Difference & \bf 101  & \bf 173  & \bf 290 & \bf 309 & \bf 395  \\
+                Mean    & CVM            & COG/SOG from AIS  & 214 & 587 & 1066 & 1354 & 1748 \\
+                        & Direct GP      & Position          & 162 & 222 & 347  & 484  & 765  \\
+                        & GP-EKF         & COG/SOG from AIS  & 159 & 283 & 428  & 451  & 573  \\
+                        &                & Finite Difference & 194 & 357 & 466  & 492  & 502  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 153 & 269 & 393  & 424  & 415  \\
+                        &                & Finite Difference & 190 & 343 & 450  & 482  & 525  \\
+                        & GP-EKF w/ SL   & COG/SOG from AIS  & 160 & 285 & 414  & 435  & 512  \\
+                        &                & Finite Difference & 194 & 357 & 469  & 501  & 542  \\
+                \midrule
+                Median  & CVM            & COG/SOG from AIS  & 61  & 290 & 729  & 998  & 1497 \\
+                        & Direct GP      & Position          & 72  & 132 & 225  & 280  & 344  \\
+                        & GP-EKF         & COG/SOG from AIS  & 107 & 184 & 287  & 262  & 313  \\
+                        &                & Finite Difference & 115 & 221 & 337  & 354  & 331  \\
+                        & GP-EKF w/ PDAF & COG/SOG from AIS  & 100 & 171 & 242  & 226  & 219  \\
+                        &                & Finite Difference & 114 & 210 & 315  & 355  & 385  \\
+                        & GP-EKF w/ SL   & COG/SOG from AIS  & 103 & 186 & 249  & 249  & 240  \\
+                        &                & Finite Difference & 117 & 222 & 319  & 376  & 362  \\
                 \bottomrule
             \end{tabular}
         }
@@ -390,3 +386,63 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
     \caption{Error summary for $350$ curved trajectories. Mean and median summary statistics are calculated for the trajectory and path error at fixed timestamps. Linear interpolation is used between samples. Errors for short trajectories are not extrapolated, and therefore not included in the $20$ and $25$ minute bins.}
     \label{table:stats_curved_error}
 \end{table}
+
+\begin{table}[b]
+    \makebox[\textwidth][c]{
+        \begin{tabular}{lllrrrrr}
+            \toprule
+                    &                & Time [Minutes]    & 5  & 10  & 15  & 20  & 25  \\
+            Summary & Method         & Training Source   &    &     &     &     &     \\
+            \midrule
+            Mean    & Direct GP      & Position          & 4  & 12  & 21  & 34  & 42  \\
+                    & GP-EKF         & COG/SOG from AIS  & 3  & 83  & 113 & 68  & 25  \\
+                    &                & Finite Difference & 26 & 79  & 153 & 64  & 185 \\
+                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 3  & 94  & 126 & 22  & 33  \\
+                    &                & Finite Difference & 29 & 90  & 156 & 67  & 138 \\
+                    & GP-EKF w/ SL   & COG/SOG from AIS  & 98 & 531 & 583 & 232 & 191 \\
+                    &                & Finite Difference & 32 & 103 & 215 & 274 & 531 \\
+            \midrule
+            Median  & Direct GP      & Position          & 1  & 1   & 2   & 3   & 6   \\
+                    & GP-EKF         & COG/SOG from AIS  & 1  & 2   & 3   & 6   & 8   \\
+                    &                & Finite Difference & 2  & 4   & 7   & 13  & 25  \\
+                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 1  & 3   & 5   & 10  & 13  \\
+                    &                & Finite Difference & 2  & 5   & 9   & 18  & 34  \\
+                    & GP-EKF w/ SL   & COG/SOG from AIS  & 3  & 9   & 22  & 50  & 105 \\
+                    &                & Finite Difference & 3  & 10  & 28  & 74  & 139 \\
+            \bottomrule
+        \end{tabular}
+    }
+    \caption{\acrshort{nees} for $350$ straight-line trajectories at fixed timestamps. Linear interpolation is used between samples.}
+    \label{table:stats_curved_traj_err}
+    \vspace*{0.5cm}
+\end{table}
+\begin{table}
+    \makebox[\textwidth][c]{
+        \begin{tabular}{lllrrrrr}
+            \toprule
+                    &                & Time [Minutes]    & 5  & 10 & 15  & 20  & 25  \\
+            Summary & Method         & Training Source   &    &    &     &     &     \\
+            \midrule
+            Mean    & Direct GP      & Position          & 3  & 6  & 11  & 15  & 324 \\
+                    & GP-EKF         & COG/SOG from AIS  & 6  & 65 & 235 & 9   & 15  \\
+                    &                & Finite Difference & 37 & 28 & 94  & 40  & 90  \\
+                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 6  & 66 & 234 & 14  & 22  \\
+                    &                & Finite Difference & 37 & 30 & 59  & 53  & 71  \\
+                    & GP-EKF w/ SL   & COG/SOG from AIS  & 10 & 73 & 259 & 93  & 172 \\
+                    &                & Finite Difference & 46 & 60 & 114 & 159 & 250 \\
+            \midrule
+            Median  & Direct GP      & Position          & 0  & 1  & 2   & 3   & 4   \\
+                    & GP-EKF         & COG/SOG from AIS  & 1  & 1  & 1   & 1   & 2   \\
+                    &                & Finite Difference & 2  & 3  & 5   & 9   & 18  \\
+                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 1  & 1  & 2   & 4   & 3   \\
+                    &                & Finite Difference & 2  & 4  & 8   & 13  & 22  \\
+                    & GP-EKF w/ SL   & COG/SOG from AIS  & 2  & 7  & 15  & 40  & 78  \\
+                    &                & Finite Difference & 2  & 10 & 19  & 44  & 116 \\
+            \bottomrule
+        \end{tabular}
+    }
+    \caption{\acrshort{nees} for $350$ curved trajectories at fixed timestamps. Linear interpolation is used between samples.}
+    \label{table:stats_nees}
+\end{table}
+
+
