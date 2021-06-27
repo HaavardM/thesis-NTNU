@@ -196,7 +196,7 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
 
 
 \section{Incorporating vessel position}
-While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. \todo[]{Add figure to showcase this issue} It would be desirable if the prediction converged towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, a weak feedback compensates for minor prediction errors. Expressed using Bayes law
+While the prediction procedure proposed in \cref{alg:gp_ekf_prediction} yields good predictions in many cases, it is inherently an open-loop prediction. Inaccurate predictions will never be corrected, propagating through any remaining iterations, potentially leading to significant errors later on. It would be desirable if the prediction converged towards available position measurements, \textit{slowly and only if the prediction is clearly wrong}. In other words, a weak feedback compensates for minor prediction errors. Expressed using Bayes law
 \begin{equation}\label{eq:gp_ekf_update_posterior}
     p(\boldsymbol{x}_{0:t} | \mathcal{D}) = \frac{p(\mathcal{D} | \boldsymbol{x}_{0:t}) p(\boldsymbol{x}_{0:t})}{p(\mathcal{D})} \propto p(\mathcal{D} | \boldsymbol{x}_{0:t})p(\boldsymbol{x}_{0:t})
 \end{equation}

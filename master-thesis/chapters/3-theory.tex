@@ -320,39 +320,9 @@ For simple functions, it often works well to only use a representable subset of 
 
 Several approximations are discussed in \cite{rasmussen} and typically use a \textit{reduced-rank approximation} of the kernel matrix $K=Q Q^\intercal$ with $Q \in \mathcal{R}^{n \times q}$, and use the \textit{matrix inversion lemma} \cite[p.~201]{rasmussen}, reducing the inversion of the $n \times n$ matrix to the inversion of a $q \times q$ matrix instead. Unfortunately, the optimal reduced-rank approximations depend on the eigenvalue decomposition, which itself is a $\mathcal{O}(n^3)$ operation. However, if a cheap approximation to the eigenvalue decomposition can be found, it can potentially be used to approximate the \acrshort{gp}. One such low-rank approximation is the Nyström method, where a subset of the dataset is used to approximate the eigenvalues.    
 
-\subsection{Variational Gaussian Process}
+\subsection{Sparse Variational Gaussian Process}
 
-%\subsubsection{A short introduction to Variational Inference}\todo[]{This may be a bit out of scope, consider removing}
-%Variational Inference is covered thoroughly in a previous specialization project \cite{mellbye}. Therefore, a quick introduction of the necessary concepts is included here, and more details can be found in \cite{mellbye, murphy}.
-
-%In many cases, using the true posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ turns out to be challenging. Calculating the posterior using Bayes Rule requires a normalizing constant $p(\mathcal{D})$, which quickly becomes infeasible unless the distributions are simple. The true posterior is therefore often assumed only to be known up to a normalizing constant, i.e.
-
-%\begin{equation}
-%    \tilde{p}(\boldsymbol{\theta} | \mathcal{D}) \triangleq p(\mathcal{D} | \boldsymbol{\theta})p(\boldsymbol{\theta}) \propto p(\boldsymbol{\theta} | \mathcal{D})
-%\end{equation}
-
-%An exact analytical solution of the posterior is unavailable, and one would therefore have to use approximate inference methods. 
-%One such method, \textit{\acrfull{vi}}, approximates the posterior distribution $p(\boldsymbol{\theta} | \mathcal{D})$ with a simpler, \textit{surrogate distribution} $q(\boldsymbol{\theta})$. If a $q(\boldsymbol{\theta})$ similar to $p(\boldsymbol{\theta} | \mathcal{D})$ is found, then the simpler surrogate density can be used for approximate inference.
-
-%To find a good surrogate density $q(\cdot)$, the \textit{\acrfull{kl}} is used as a measure of similarity between the two probability distributions, where the reverse\footnote{\acrshort{kl} is generally not symmetric in its input arguments, i.e. $\mathbb{KL}(p || q) \neq \mathbb{KL}(q || p)$ where the latter is called the reverse \acrshort{kl}.} \acrshort{kl} is given by
-%\begin{align}
-%    \mathbb{KL}(q || p) = \int_{\boldsymbol{\theta}} q(\boldsymbol{\theta}) \log \frac{q(\boldsymbol{\theta})}{p(\boldsymbol{\theta})} d\boldsymbol{\theta} = E_{q} \big[ \log \frac{q(\boldsymbol{\theta})}{p(\boldsymbol{\theta})} \big]\label{eq:kl_qp}
-%\end{align}
-%As only the unnormalized posterior distribution, $\tilde{p}$, is assumed known, computing the reverse \acrshort{kl} is not feasible. However, the surrogate density $\hat{q}$ can still be optimized by observing that the argument minimizing $\mathbb{KL}(q || p)$ also minimizes $\mathbb{KL}(q || \tilde{p})$, i.e.
-
-%\begin{align}
-%    \hat{q}(\boldsymbol{\theta}) &= \arg \min_q \mathbb{KL}(q || p)\\ &= \arg \min_q \big(\mathbb{KL}(q || \tilde{p}) + \log p(\mathcal{D})\big) \\&= \arg \min_q \mathbb{KL} (q || \tilde{p})
-%\end{align}
-
-%The best surrogate density can therefore be found by maximizing the \textit{\acrfull{elbo}} given by 
-%\begin{equation}
-%    \text{ELBO} \triangleq -\mathbb{KL}(q || \tilde{p})
-%\end{equation} which can be computed using the unnormalized posterior $\tilde{p}$. If a known parametric representation of $q(\cdot)$ is assumed, then the problem of selecting a good surrogate density is turned into an optimization problem of finding the set of parameters maximizing \acrshort{elbo}. 
-
-\subsubsection{Sparse Variational Gaussian Process}
-To deal with the computational complexity of \acrshort{gp}s, \cite{Titsias2008VariationalMS} introduced the \textit{\acrfull{svgp}}. A short introduction is included here. 
-
-Rather than directly using all the available training data directly, one can instead attempt to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data.
+To deal with the computational complexity of \acrshort{gp}s, \cite{Titsias2008VariationalMS} introduced the \textit{\acrfull{svgp}}. Rather than directly using all the available training data directly, one can instead attempt to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data. 
 
 
 \section{The Kalman Filter}
