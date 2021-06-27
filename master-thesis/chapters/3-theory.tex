@@ -25,6 +25,16 @@ The last equality is commonly referred to as \textit{The Law of total probabilit
 
 \subsection{The Law of Iterated Expectations \& Conditional Variance}
 
+The \textit{Law of Iterated Expecations} states that 
+\begin{equation}
+    \mathbb{E}[X] = \mathbb{E} \big[ \mathbb{E}[ X | Y] \big]
+\end{equation} if all the expectations exists. Similarily, the \textit{Law of Total Variance} states that 
+\begin{equation}
+    \mathbb{V}[X] = \mathbb{E}\big[\mathbb{V}[X | Y]\big] + \mathbb{V}\big[ \mathbb{E}[X | Y] \big]
+\end{equation}
+
+These results are useful when computing the expected value and variance of complex distributions, as they allow the computations to be separated into simpler, conditional computations. Proofs are available in \cite{aronow_miller_2019}.
+
 \subsection{Central Limit Theorem}\label{sec:clt}
 The \textit{central limit theorem} should be familiar to most readers, and it is essential to the derivations in a later chapter. Consider a set of \textit{\acrfull{iid}} random variables $X_i$ following any distribution with mean $\mu$ and variance $\sigma^2$. The sum of these variables 
 \begin{equation}
@@ -307,7 +317,7 @@ which yields a way to convert indendent standard normal samples into samples fro
 \end{equation}
 
 \section{Standardization}
-The method of \textit{standardization}\todo[]{find source} is the process of converting the data into a standard unit of measurement, which in practice involves transforming the data to have zero mean and unit variance. This is useful when comparing measures of different scales.
+The method of \textit{standardization} is the process of converting the data into a standard unit of measurement, which in practice typically involves transforming the data to have zero mean and unit variance \cite{isl}. This is useful when comparing measures of different scales.
 
 The proposed \acrshort{gp} implementation works well with and without standardized input data, but standardization has one crucial benefit. While the current implementation allows separate kernel hyperparameters for each input dimension in $\boldsymbol{x}$, the kernel is assumed to be identical for each output of $\vec{f}$. The kernel therefore represents the variability of \textbf{both} output dimensions at once. However, with standardized training outputs $Y$, the kernel is relative to the standard deviation of the training data. This way, the \acrshort{gp} can express the different levels of uncertainty for each output dimension while still sharing the same kernel. An even more flexible approach would be to allow separate kernels for each dimension, though at the cost of more complex hyperparameter tuning.
 

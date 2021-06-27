@@ -485,17 +485,35 @@
   abstract = {One popular approach to likelihood-free inference is the synthetic likelihood method, which assumes that some data summary statistics which are informative about model parameters are approximately Gaussian for each value of the parameter. Based on this assumption, a Gaussian likelihood can be constructed, where the mean and covariance matrix of the summary statistics are estimated via Monte Carlo. The objective of the current work is to improve on a variational implementation of the Bayesian synthetic likelihood introduced recently in the literature, to enable the application of that approach to high-dimensional problems. Here high-dimensional can mean problems with more than one hundred parameters. The improvements introduced relate to shrinkage estimation of covariance matrices in estimation of the synthetic likelihood, improved implementation of control variate approaches to stochastic gradient variance reduction, and parsimonious but expressive parametrizations of variational normal posterior covariance matrices in terms of factor structures to reduce the dimension of the optimization problem. The shrinkage covariance estimation is particularly important for stability of stochastic gradient optimization with noisy likelihood estimates. However, as the dimension increases, the quality of the posterior approximation deteriorates unless the number of Monte Carlo samples used to estimate the synthetic likelihood also increases. We explore the properties of the method in some real examples in cases where either the number of summary statistics, the number of model parameters, or both, are large.}
 }
 
-@Article{matplotlib,
-  Author    = {Hunter, J. D.},
-  Title     = {Matplotlib: A 2D graphics environment},
-  Journal   = {Computing in Science \& Engineering},
-  Volume    = {9},
-  Number    = {3},
-  Pages     = {90--95},
+@article{matplotlib,
+  author    = {Hunter, J. D.},
+  title     = {Matplotlib: A 2D graphics environment},
+  journal   = {Computing in Science \& Engineering},
+  volume    = {9},
+  number    = {3},
+  pages     = {90--95},
   abstract  = {Matplotlib is a 2D graphics package used for Python for
   application development, interactive scripting, and publication-quality
   image generation across user interfaces and operating systems.},
   publisher = {IEEE COMPUTER SOC},
   doi       = {10.1109/MCSE.2007.55},
   year      = 2007
+}
+
+@book{aronow_miller_2019,
+  place     = {Cambridge},
+  title     = {Foundations of Agnostic Statistics},
+  doi       = {10.1017/9781316831762},
+  publisher = {Cambridge University Press},
+  author    = {Aronow, Peter M. and Miller, Benjamin T.},
+  year      = {2019}
+}
+
+@book{isl,
+author = {James, Gareth and Witten, Daniela and Hastie, Trevor and Tibshirani, Robert},
+title = {An Introduction to Statistical Learning: With Applications in R},
+year = {2014},
+isbn = {1461471370},
+publisher = {Springer Publishing Company, Incorporated},
+abstract = {An Introduction to Statistical Learning provides an accessible overview of the field of statistical learning, an essential toolset for making sense of the vast and complex data sets that have emerged in fields ranging from biology to finance to marketing to astrophysics in the past twenty years. This book presents some of the most important modeling and prediction techniques, along with relevant applications. Topics include linear regression, classification, resampling methods, shrinkage approaches, tree-based methods, support vector machines, clustering, and more. Color graphics and real-world examples are used to illustrate the methods presented. Since the goal of this textbook is to facilitate the use of these statistical learning techniques by practitioners in science, industry, and other fields, each chapter contains a tutorial on implementing the analyses and methods presented in R, an extremely popular open source statistical software platform. Two of the authors co-wrote The Elements of Statistical Learning (Hastie, Tibshirani and Friedman, 2nd edition 2009), a popular reference book for statistics and machine learning researchers. An Introduction to Statistical Learning covers many of the same topics, but at a level accessible to a much broader audience. This book is targeted at statisticians and non-statisticians alike who wish to use cutting-edge statistical learning techniques to analyze their data. The text assumes only a previous course in linear regression and no knowledge of matrix algebra.}
 }

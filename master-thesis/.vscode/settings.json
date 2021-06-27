@@ -36,6 +36,24 @@
                     "describe"
                 ]
             }
+        },
+        {
+            "files": [
+                "**/chapters/6-implementation-and-results.tex"
+            ],
+            "config": {
+                "audience": "knowledgeable",
+                "dialect": "american",
+                "domain": "technical",
+                "emotions": [
+                    "neutral",
+                    "confident",
+                    "optimistic"
+                ],
+                "goals": [
+                    "inform"
+                ]
+            }
         }
     ]
 }

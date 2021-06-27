@@ -227,15 +227,21 @@ where the threshold $r$ is a fixed parameter. The summary statistic $S_i$ is the
 \begin{equation}
     S_t = S(\boldsymbol{x}_t) = \frac{1}{N} \sum_{\boldsymbol{z}_i \in \mathcal{Y}_t} \boldsymbol{z}_i
 \end{equation}
-where $N$ is the number of samples in $\mathcal{Y}_t$. Assuming the measurements in $\mathcal{Y}$ are \acrshort{iid}, the summary statistics is then approximately Gaussian by the central limit theorem (see \cref{sec:clt}). By further assuming a simple measurement model
+where $N$ is the number of samples in $\mathcal{Y}_t$. Assuming the measurements in $\mathcal{Y}$ are \acrshort{iid}, the summary statistic is then approximately Gaussian by the central limit theorem (see \cref{sec:clt}). By further assuming a simple measurement model
 \begin{equation}\label{eq:gp_ekf_sl_z}
-    \boldsymbol{z} = \boldsymbol{x} + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \boldsymbol{R})
+    \boldsymbol{z}_t^{i} = \boldsymbol{x}_t + \epsilon^i_t, \quad \epsilon_t^i \sim \mathcal{N}(0, \boldsymbol{R})
 \end{equation}
-
-yields the following distribution for the summary statistic given the predicted state $\boldsymbol{x}_i$
+the expected value and variance of the summary statistic has a closed-form solution, i.e.
+\begin{subequations}
+\begin{align}
+    \mathbb{E}[S_t] &= \frac{1}{N} \sum_{\boldsymbol{z}_t^i \in \mathcal{Y}_t} \mathbb{E}[\boldsymbol{z}_t^i] = \boldsymbol{x}_t\\
+    \mathbb{V}[S_t] &= \frac{1}{N^2} \sum_{\boldsymbol{z}_t^i \in \mathcal{Y}_t} \mathbb{V}[\boldsymbol{z}_t^i] = \frac{1}{N} \boldsymbol{R}
+\end{align}
+\end{subequations}
+yields the following parametric distribution for the summary statistic given the predicted state $\boldsymbol{x}_i$
 
 \begin{equation}
-    p(S_t \;| \; \boldsymbol{x}_t) = \mathcal{N}(\boldsymbol{x}_t, \frac{\boldsymbol{R}}{N})
+    p(S_t \;| \; \boldsymbol{x}_t) = \mathcal{N}(\boldsymbol{x}_t, \frac{1}{N} \boldsymbol{R})
 \end{equation}
 
 The posterior distribution of the trajectory prediction can then be approximated by
@@ -246,12 +252,30 @@ The posterior distribution of the trajectory prediction can then be approximated
         &= \frac{p(S_t | \boldsymbol{x}_t)p(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}) p(\boldsymbol{x}_{0:t-1} | S_{0:t-1})}{p(S_t | S_{0:t-1})}
     \end{split}
 \end{align}
-where the second equality yields a recursive formulation for the posterior distribution. As all distributions are Gaussian, \cref{eq:gp_ekf_sl_approx_posterior} boils down to the normal Kalman update step, using the summary statistic $S_i$ as measurement for each timestep.
+where the second equality yields a recursive formulation for the posterior distribution. As all distributions are Gaussian, \cref{eq:gp_ekf_sl_approx_posterior} boils down to the normal Kalman update step, using the summary statistic $S_i$ as measurement for each timestep. The procedure is summarized in \cref{alg:gp_ekf_sl}.
+
+
+\begin{algorithm}[h]
+    \begin{algorithmic}[1]
+        \Procedure{GP-EKF-SL}{$\hat{\boldsymbol{x}}_{t}$, $\hat{\boldsymbol{P}}_{t}$, | $\mathbf{R}$, $r$}
+        \State $\mathcal{Y}_t = \mathcal{Y}_t(\boldsymbol{x}_t) = \{\boldsymbol{z}_i \in \mathcal{D} : \; ||\boldsymbol{x}_t - \boldsymbol{z}_i|| \leq r\}$\Comment{Relevant measurements}
+        \State $S_t = \frac{1}{N} \sum_{\boldsymbol{z}_i \in \mathcal{Y}_t} \boldsymbol{z}_i$\Comment{Compute summary}
+            \State $\boldsymbol{W}_t = \hat{\boldsymbol{P}}_t (\hat{\boldsymbol{P}}_t + \frac{1}{N} \boldsymbol{R})^{-1}$ \Comment{Kalman Gain}
+            \State $\boldsymbol{x}_t = \hat{\boldsymbol{x}}_t + \boldsymbol{W}(S_t - \hat{\boldsymbol{x}}_t)$\Comment{Conditional Mean}
+
+            \State $\boldsymbol{P}_t = (\boldsymbol{I} - \boldsymbol{W}_t) \hat{\boldsymbol{P}}_t$\Comment{Conditional Variance}
+
+            \State \textbf{return} $\boldsymbol{x}_t, \; \boldsymbol{P}_t$
+        \EndProcedure
+    \end{algorithmic}
+    \caption{SL update for GP-EKF}
+    \label{alg:gp_ekf_sl}
+\end{algorithm}
 
 The derivations in this section blindly make quite substantial assumptions that can seriously impact the results.
 \begin{enumerate}
     \item The derivations claim the summary statistics to be approximately Gaussian by the central limit theorem. The underlying assumption is that the data is \acrshort{iid} and that there is a large number of samples. As the samples originate from several types of vessels and from different trajectories, there is reason to suspect the samples might not be \acrshort{iid}.
-    \item The measurement model in \cref{eq:gp_ekf_sl_z} assumes that the measurements are distributed around the target vessel's trajectory. In practice, however, the samples might be heavily influenced by several different trajectories at once. This makes tuning $\boldsymbol{R}$ a challenge.
+    \item The measurement model in \cref{eq:gp_ekf_sl_z} assumes that the measurements are distributed around the target vessel's trajectory. In practice, however, the samples might be heavily influenced by several different trajectories at once. This makes tuning $\boldsymbol{R}$ a challenge. More complex measurement models can be used by replacing the mean and variance of $p(S_t | \boldsymbol{x})$ by estimates \cite{frazier2021bayesian}.
 \end{enumerate}
 
 
@@ -273,7 +297,7 @@ The derivations in this section blindly make quite substantial assumptions that 
 
 
 \subsection{Probabilistic Data Association Filter}
-The \acrshort{sl} update ends up using an overly simplistic measurement model and does not consider the possibility that some measurements may originate from different underlying trajectories. For the target vessel following a specific underlying trajectory, the dataset may actually contain substantial false measurements, which negatively affect the prediction. As the \acrshort{sl} update has no notion of false measurements, the result is overconfident uncertainty measurements, as can be seen in \cref{fig:gp_ekf_with_syn}.
+The \acrshort{sl} update ends up using an overly simplistic measurement model and does not consider the possibility that some measurements may originate from different underlying trajectories. Thus, for the target vessel following a specific underlying trajectory, the dataset may actually contain substantial false measurements, which negatively affect the prediction. As the \acrshort{sl} update has no notion of false measurements, the result is overconfident uncertainty measurements, as can be seen in \cref{fig:gp_ekf_with_syn}.
 
 This section attempts a rather different approach by incorporating the notion of data association into the mix. More specifically, the idea is to view the entire problem as single-target tracking and then apply the \textit{\acrfull{pdaf}} to solve the problem.
 
@@ -340,7 +364,7 @@ While available measurements could be used at each timestep, it is in practice m
 \end{equation}
 
 
-By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in \cref{alg:gp_ekf_prediction}, the predicted trajectory can be tuned to favor areas with a large number of samples, effectively pulling the state towards areas with available samples. Conversely, in regions with samples spread evenly around the predicted state, the \acrshort{pdaf}'s effect is then negligible (assuming proper tuning). 
+By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in \cref{alg:gp_ekf_prediction}, the predicted trajectory can be tuned to favor areas with a large number of samples, effectively pulling the state towards areas with available samples. Conversely, in regions with samples spread evenly around the predicted state, the \acrshort{pdaf}'s effect is then negligible (assuming proper tuning).
 
 \begin{algorithm}[h]
     \begin{algorithmic}[1]
@@ -362,7 +386,7 @@ By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in 
         \State \textbf{return} $\boldsymbol{x}_t, \; \boldsymbol{P}_t$
         \EndProcedure
     \end{algorithmic}
-    \caption{GP-EKF-PDAF update}
+    \caption{PDAF update for GP-EKF}
     \label{alg:gp_ekf_pdaf}
 \end{algorithm}
 
