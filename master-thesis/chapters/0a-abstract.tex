@@ -1,7 +1,7 @@
 \chapter*{Abstract}
 An essential aspect of safe operations of \textit{\acrfull{asv}} is a robust \acrfull{colav} system. In addition to the ability to react to dangerous situations, it is also highly beneficial for the \acrshort{colav} to be able to proactively avoid high-risk scenarios. In order to do so, the \acrshort{asv} requires solid situational awareness and the ability to understand how the future might unfold given a current scenario. 
 
-Predicting the future behaviour of surrounding vessels is the topic of this thesis. By utilizing historical data from the \acrfull{ais}, the goal is to predict the trajectories of vessels into the future. 
+Predicting the future behavior of surrounding vessels is the topic of this thesis. By utilizing historical data from the \acrfull{ais}, the goal is to predict the trajectories of vessels into the future. 
 
 Two methods based on a \acrfull{gp} framework are proposed. The \acrshort{gp}'s intuitive interpretation as a statistical distribution over functions allows the predictions to also incorporate uncertainty as a first-class citizen of the model. A Bayesian statistical framework is applied to always explicitly consider the underlying uncertainty when performing predictions. 
 
@@ -9,4 +9,4 @@ The first proposed method directly applies the \acrshort{gp} framework to model 
 
 As a more indirect approach, the second method attempts to use a \acrshort{gp} to describe a latent motion model and use it to simulate trajectories numerically. This formulation is far more flexible and is, in theory, able to express multimodal trajectory distributions. Combining this approach with an \acrfull{ekf}-based prediction scheme to simulate trajectories works well as long as the trajectories are sufficiently smooth, such that a Taylor approximation of the motion model serves as a reasonable approximation. These assumptions do, however, make this method more fragile than the first method.
 
-Both methods are tested extensively on a real \acrshort{ais} dataset collected from the Trondheim fjord over the course of one year, and the statistical performance of both methods are compared. The consistency of the uncertainty estimates are also tested to investigate whether the methods are able to accurately represent the true underlying uncertainty.
+Both methods are tested extensively on a real \acrshort{ais} dataset collected from the Trondheim fjord over the course of one year, and the statistical performance of both methods are compared. The consistency of the uncertainty estimates is also tested to investigate whether the methods are able to accurately represent the true underlying uncertainty.

@@ -94,10 +94,10 @@ The initial state uncertainty is set to $\boldsymbol{P}_0 = 500^2 \cdot \boldsym
     \centering
     \begin{subtable}{0.49\textwidth}
         \begin{tabular}{|lll|}
-            \textit{\textbf{Parameter}} &                                & \textit{\textbf{Value}}     \\ \hline
+            \textit{\textbf{Parameter}} &                                & \textit{\textbf{Value}}      \\ \hline
             Measurement noise           & $\boldsymbol{R}_{\text{PDAF}}$ & $500^2 \cdot \boldsymbol{I}$ \\
-            Detection Probability       & $p_D$                          & $0.8$                       \\
-            Clutter Rate                & $\lambda$                      & $2 \cdot 10^{-3}$           \\
+            Detection Probability       & $p_D$                          & $0.8$                        \\
+            Clutter Rate                & $\lambda$                      & $2 \cdot 10^{-3}$            \\
             Gate Size                   & $g$                            & $2$
         \end{tabular}
         \caption{Parameters used for \acrshort{pdaf} update}
@@ -107,10 +107,10 @@ The initial state uncertainty is set to $\boldsymbol{P}_0 = 500^2 \cdot \boldsym
 
         \centering
         \begin{tabular}{|lll|}
-            \textit{\textbf{Parameter}} &                              & \textit{\textbf{Value}}       \\ \hline
+            \textit{\textbf{Parameter}} &                              & \textit{\textbf{Value}}      \\ \hline
             Noise                       & $\boldsymbol{R}_{\text{SL}}$ & $500^2 \cdot \boldsymbol{I}$ \\
             Search Radius               &                              & $50$                         \\
-                                        &                              &                               \\
+                                        &                              &                              \\
                                         &                              &
         \end{tabular}
         \caption{Parameters used for the SL update}
@@ -121,13 +121,15 @@ The initial state uncertainty is set to $\boldsymbol{P}_0 = 500^2 \cdot \boldsym
 
 
 \section{Results}
-The results for straight-line and curved trajectories are available in \cref{table:stats_straight_line_error} and \cref{table:stats_curved_error} respectively, which are both found at the end of this chapter. Some hand-picked test scenarios are also included in \cref{chap:gp_ekf_examples} for the different GP-EKF variations.
+The error metrics for straight-line and curved trajectories are available in \cref{table:stats_straight_line_error} and \cref{table:stats_curved_error} respectively, while the \acrshort{nees} results are available in \cref{table:stats_nees_straight} and \cref{table:stats_nees_curved}. All tables are found at the end of this chapter. Some hand-picked test scenarios are also included in \cref{chap:gp_ekf_examples} for the different GP-EKF variations.
 
-It is unpractical to compare all the different variations of each method. Instead, this section will take a hierarchical approach, where the GP-EKF using finite-difference for training data is considered the basic configuration of the GP-EKF and will be used as a baseline when comparing the different variants of the GP-EKF. Unless explicitly stated otherwise, it is safe to assume that the GP-EKF uses finite-difference and no update step. For comparing specific combinations, the reader is referred to \cref{table:stats_curved_error} and \cref{table:stats_straight_line_error}.
+It is unpractical to compare all the different variations of each method. Instead, this section will take a hierarchical approach, where the GP-EKF using finite-difference for training data is considered the basic configuration of the GP-EKF and will be used as a baseline when comparing the different variants of the GP-EKF. Unless explicitly stated otherwise, it is safe to assume that the GP-EKF uses finite-difference and no update step. For comparing specific combinations, the reader is referred to \cref{table:stats_straight_line_error} and \cref{table:stats_curved_error}.
 
-As a base of comparison, the GP-EKF and Direct GP are compared to the \acrshort{cvm} on both straight-line and curved trajectories in \cref{fig:stats_both_vs_cvm}. On straight-line trajectories, both methods perform worse than the \acrshort{cvm} with higher trajectory error for all quartiles. As expected, the \acrshort{cvm} struggles on curved trajectories, whereas both the GP-EKF and Direct GP approaches perform significantly better with both lower median error and spread. The GP-EKF trajectory error has a lower spread than the Direct GP approach, while the Direct GP approach has a lower median error, as can be confirmed in \cref{table:stats_curved_traj_err}. Both the GP-EKF and the Direct \acrshort{gp} approach perform better on curved trajectories as opposed to straight-line trajectories. After manually inspecting the test cases, it appears that many of the straight-line test cases belong to slow-moving vessels that are part of longer curved trajectories.  The training samples used to fit the \acrshort{gp}s in these cases often contain samples from faster-moving vessels, making the \acrshort{gp}s overshoot in their predictions. This hypothesis is corroborated by the path error in \cref{table:stats_straight_path_err}, as the GP-EKF outperforms the \acrshort{cvm} on straight-line trajectories.
+As a base of comparison, the GP-EKF and Direct GP are compared to the \acrshort{cvm} on both straight-line and curved trajectories in \cref{fig:stats_both_vs_cvm}. On straight-line trajectories, both methods perform worse than the \acrshort{cvm} with higher trajectory error for all quartiles. As expected, the \acrshort{cvm} struggles on curved trajectories, whereas both the GP-EKF and Direct GP approaches perform significantly better with both lower median error and spread. The Direct GP approach performs slightly better than the GP-EKF, with lower median trajectory error and lower spread for both straight-line and curved trajectories. When comparing the path error for straight-line trajectories in \cref{table:stats_straight_path_err}, the GP-EKF performs consistently better than the Direct GP approach, with lower mean and median path error. The GP-EKF even outperforms the \acrshort{cvm} on straight-line paths when predicting beyond $15$ minutes. For curved trajectories, the GP-EKF performs worse than the Direct GP on the path error, as seen in \cref{table:stats_curved_path_err}.
 
-Neither the Direct GP nor the GP-EKF yield consistent uncertainty estimates as found by comparing the \acrshort{nees} to the theoretical $\mathcal{X}^2$ quartiles in \cref{fig:stats_straigth_nees_basic} and \cref{fig:stats_curved_nees_basic}. For both methods, the \acrshort{nees} is especially bad for straight-line trajectories with estimated quartiles far exceeding the theoretical quartiles, which is likely linked to the increased error for the straight-line trajectories. It is slightly better for curved trajectories, with the $25\%$ and $50\%$ quartiles close to the theoretical values, while the true distribution has a much fatter tail as the estimated $75\%$ quartile is almost twice the theoretical value for both methods.
+Both the GP-EKF and the Direct \acrshort{gp} approach perform better on curved trajectories as opposed to straight-line trajectories. After manually inspecting the test cases, it appears that many of the straight-line test cases belong to slow-moving vessels that are part of longer curved trajectories.  The training samples used to fit the \acrshort{gp}s in these cases often contain samples from faster-moving vessels, making the \acrshort{gp}s overshoot in their predictions. This hypothesis is corroborated by the path error in \cref{table:stats_straight_path_err}, as the GP-EKF outperforms the \acrshort{cvm} on long straight-line paths.
+
+Neither the Direct GP nor the GP-EKF yield consistent uncertainty estimates as found by comparing the \acrshort{nees} to the theoretical $\mathcal{X}^2$ quartiles in \cref{fig:stats_straigth_nees_basic} and \cref{fig:stats_curved_nees_basic}. For both methods, the \acrshort{nees} is especially bad for straight-line trajectories with estimated quartiles exceeding the theoretical quartiles, which is likely linked to the increased error for the straight-line trajectories. The Direct GP approach performs better than the GP-EKF, with the $25\%$ and $50\%$ quartiles close to the theoretical values, while the basic GP-EKF remains overconfident for all quartiles. The upper quartile for both methods exceeds the theoretical value for the $\mathcal{X}^2$ distribution.
 
 \subsection{GP-EKF: Finite Difference vs. COG/SOG from AIS}
 
@@ -148,21 +150,16 @@ Neither the Direct GP nor the GP-EKF yield consistent uncertainty estimates as f
 \end{figure}
 
 
-A key design choice for the GP-EKF is deciding which data source to use for training. The model can either be trained using the \acrshort{cog} and \acrshort{sog} values contained in the \acrshort{ais} samples or by calculating numerical derivatives of the position through a finite-difference approach. \cref{fig:stats_gp_ekf_fd_vs_cog} compares the difference side-by-side. For straight-line trajectories, the results are remarkably similar. The finite difference approach seems to have a slight advantage on the quartile errors, though the results are well within the margin of error. The finite difference performs slightly better for curved trajectories, especially as time increases, and has both lower median trajectory error and spread. A similar pattern is found for the path error in \cref{table:stats_straight_path_err} and \cref{table:stats_curved_path_err}.
+A key design choice for the GP-EKF is deciding which data source to use for training. The model can either be trained using the \acrshort{cog} and \acrshort{sog} values contained in the \acrshort{ais} samples or by calculating numerical derivatives of the position through a finite-difference approach. \cref{fig:stats_gp_ekf_fd_vs_cog} compares the difference side-by-side. For straight-line trajectories, the results are remarkably similar. The finite difference approach seems to have a slight advantage on the lower quartile error at $\tau=25 \text{ minutes}$, though with an increased spread and the advantage is likely due to random errors. The finite difference performs slightly better than \acrshort{cog}/\acrshort{sog} for curved trajectories, especially as time increases, and has both lower median trajectory error and spread.
+
+For the path errors in \cref{table:stats_straight_path_err} and \cref{table:stats_curved_path_err}, the results favor the \acrshort{cog}/\acrshort{sog} approach, with overall lower mean and median path errors when compared to the finite difference approach.
+
+Using \acrshort{cog}/\acrshort{sog} yield a considerable \acrshort{nees} improvement over the finite difference approach, as seen in \cref{fig:stats_straigth_nees_cog_vs_fd} and \cref{fig:stats_curved_nees_cog_vs_df}. On curved trajectories, the estimated \acrshort{nees} quartiles is close to the theoretical values when using \acrshort{cog}/\acrshort{sog} as input data, while the finite difference approach yields overconfident results. A similar pattern is found for the median \acrshort{nees} values in \cref{table:stats_nees_straight} and \cref{table:stats_nees_straight} for all variants of the GP-EKF. 
 
 \subsection{GP-EKF: Incorporating positions data}
-The effect on the mean prediction for both the \acrshort{pdaf} and the \acrshort{sl} update procedures are compared to the basic GP-EKF configuration in \cref{fig:stats_gp_ekf_with_or_without_update}. The results are remarkably similar for both straight-line and curved trajectories. On closer inspection, there appears to be a slight advantage to using the \acrshort{pdaf} update step, but the improvement is within the margin of error, so it is not possible to draw any conclusion. By looking closely, there also appears to be a slight benefit of using the \acrshort{sl} update, though the improvement is marginal.
+The effect on the mean prediction for both the \acrshort{pdaf} and the \acrshort{sl} update procedures are compared to the basic GP-EKF configuration in \cref{fig:stats_gp_ekf_with_or_without_update}. The results are remarkably similar for both straight-line and curved trajectories. On closer inspection, there appears to be a slight advantage to using the \acrshort{pdaf} update step, but the improvement is within the margin of error, so it is not possible to draw any definitive conclusion.
 
-However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has a detrimental effect on the \acrshort{nees}, leading to even more overconfident predictions. This is apparent when comparing the GP-EKF NEES with and without the update steps in \cref{fig:stats_straight_nees_update} and \cref{fig:stats_curved_nees_update}, as the \acrshort{nees} explodes compared to the basic GP-EKF method.
-
-
-
-
-
-
-
-
-
+However, the \acrshort{sl}, and, to some extent, the \acrshort{pdaf} update has a detrimental effect on the \acrshort{nees}, leading to even more overconfident predictions. This is apparent when comparing the GP-EKF NEES with and without the update steps in \cref{fig:stats_straight_nees_update} and \cref{fig:stats_curved_nees_update}, as the \acrshort{nees} for the \acrshort{sl} update explodes compared to the basic GP-EKF method. Similar patterns are found in \cref{table:stats_nees_straight} and \cref{table:stats_nees_curved} regardless of whether the GP-EKF is trained with finite difference or \acrshort{cog}/\acrshort{sog} data.
 
 \begin{figure}
     \centering
@@ -177,7 +174,7 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
         \caption{Curved trajectories.}
         \label{fig:stats_straight_both_vs_cvm}
     \end{subfigure}
-    \caption{GP-EKF and Direct GP compared to a \acrshort{cvm} on both curved and straigth-line trajectories. In both cases, the results are from 350 simulations.}
+    \caption{GP-EKF and Direct GP compared to a \acrshort{cvm} on $350$ straight-line and $350$ curved trajectories. For straight-line trajectories, the \acrshort{cvm} outperforms both the GP-EKF and the Direct GP, while the Direct GP yield slightly better performance than the GP-EKF. For curved trajectories, the \acrshort{cvm} struggles as expected. Both the GP-EKF and the Direct GP yields far better results with lower error and lower spread, while Direct GP has the lowest overall trajectory error quartiles. Interestingly, both GP-EKF and Direct GP performs better on curved trajectories than straight-line trajectories, with lower overall error and spread.}
     \label{fig:stats_both_vs_cvm}
 \end{figure}
 
@@ -193,7 +190,7 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
         \includegraphics[width=\textwidth]{figures/curved_line_stats/gp_vs_update.pdf}
         \caption{Curved Trajectories}
     \end{subfigure}
-    \caption{GP-EKF with and without the \acrshort{sl} and \acrshort{pdaf} updates on curved trajectories for $350$ trajectories. While there are some slight differences, the \acrshort{pdaf} does not appear to have any considerable effect on the trajectory errors. The \acrshort{sl} update have a slight benefit over the basic GP-EKF, with lower spread in the error distribution, especcially for long predition horizons.}
+    \caption{GP-EKF with and without the \acrshort{sl} and \acrshort{pdaf} updates on $350$ straight-line and $350$ curved trajectories. While there are some slight differences, the \acrshort{pdaf} and \acrshort{sl} update does not appear to have any considerable effect on the trajectory errors. On straight-line trajectories, the results are almost identicall across all three variants. On curved trajectories, the \acrshort{pdaf} yield slightly lower error for the median and upper quartiles, though the difference is well within the margin of error.}
     \label{fig:stats_gp_ekf_with_or_without_update}
 \end{figure}
 
@@ -227,28 +224,30 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
     }
     \makebox[\textwidth][c]{
         \begin{subfigure}{0.6\textwidth}
+            \includegraphics{figures/straight_line_stats/nees_vs_theoretical_cog_vs_fd.pdf}
+            \caption{Straight-Line Trajectory COG/SOG vs Finite Difference}
+            \label{fig:stats_straigth_nees_cog_vs_fd}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics{figures/curved_line_stats/nees_vs_theoretical_cog_vs_fd.pdf}
+            \caption{Curved Trajectory COG/SOG vs Finite Difference}
+            \label{fig:stats_curved_nees_cog_vs_df}
+        \end{subfigure}
+    }
+    \makebox[\textwidth][c]{
+        \begin{subfigure}{0.6\textwidth}
             \includegraphics{figures/straight_line_stats/nees.pdf}
-            \caption{Straight-Line Trajectory with normal update steps}
+            \caption{Straight-Line Trajectory with update steps}
             \label{fig:stats_straight_nees_update}
         \end{subfigure}
         \begin{subfigure}{0.6\textwidth}
             \includegraphics{figures/curved_line_stats/nees.pdf}
-            \caption{Curved Trajectory with normal update steps}
+            \caption{Curved Trajectory with update steps}
             \label{fig:stats_curved_nees_update}
         \end{subfigure}
     }
 
-    %\makebox[\textwidth][c]{
-    %    \begin{subfigure}{0.6\textwidth}
-    %        \includegraphics{figures/straight_line_stats/nees_no_P.pdf}
-    %        \caption{Straight-Line Trajectory with modified update steps}
-    %    \end{subfigure}
-    %    \begin{subfigure}{0.6\textwidth}
-    %        \includegraphics{figures/curved_line_stats/nees_no_P.pdf}
-    %        \caption{Curved Trajectory with modified update steps}
-    %    \end{subfigure}
-    %}
-    \caption{The NEES compared between the different methods. The top row compares the \acrshort{nees} for the Direct GP and the base GP-EKF to the theoretical quartile values for the $\mathcal{X}^2$ distribution (black lines), and is intended as a base of comparison for the subsequent rows. The second row compares the effect of the normal update steps for the GP-EKF.}
+    \caption{The NEES compared between the different methods. The top row compares the \acrshort{nees} for the Direct GP and the base GP-EKF to the theoretical quartile values for the $\mathcal{X}^2$ distribution (red dashed lines) and is intended as a base of comparison. The second row compares the difference in consistency between using \acrshort{cog}/\acrshort{sog} and finite difference as input data. The last row compares the effect of the update steps for the GP-EKF. The theoretical quartiles are not included in the last row due to the large differences in scale, and the reader is advised to use the Direct GP and basic GP-EKF for comparison.}
 
 \end{figure}
 
@@ -267,7 +266,8 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
                         &                & Time [Minutes]    & 5   & 10  & 15   & 20   & 25   \\
                 Summary & Method         & Training Source   &     &     &      &      &      \\
                 \midrule
-                Mean    & Direct GP      & Position          & 603 & 720 & 944  & 1269 & 1727 \\
+                Mean    & CVM            & COG/SOG from AIS  & 172 & 383 & 623  & 786  & 772  \\
+                        & Direct GP      & Position          & 603 & 720 & 944  & 1269 & 1727 \\
                         & GP-EKF         & COG/SOG from AIS  & 328 & 668 & 1090 & 1560 & 2048 \\
                         &                & Finite Difference & 331 & 656 & 1029 & 1417 & 1917 \\
                         & GP-EKF w/ PDAF & COG/SOG from AIS  & 331 & 668 & 1070 & 1494 & 1921 \\
@@ -275,7 +275,8 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
                         & GP-EKF w/ SL   & COG/SOG from AIS  & 325 & 654 & 1048 & 1489 & 1972 \\
                         &                & Finite Difference & 334 & 663 & 1025 & 1414 & 1891 \\
                 \midrule
-                Median  & Direct GP      & Position          & 367 & 562 & 727  & 978  & 1509 \\
+                Median  & CVM            & COG/SOG from AIS  & 94  & 226 & 387  & 463  & 549  \\
+                        & Direct GP      & Position          & 367 & 562 & 727  & 978  & 1509 \\
                         & GP-EKF         & COG/SOG from AIS  & 295 & 575 & 883  & 1505 & 1911 \\
                         &                & Finite Difference & 298 & 537 & 851  & 1325 & 1868 \\
                         & GP-EKF w/ PDAF & COG/SOG from AIS  & 301 & 554 & 850  & 1401 & 1845 \\
@@ -284,6 +285,7 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
                         &                & Finite Difference & 299 & 536 & 848  & 1315 & 1782 \\
                 \bottomrule
             \end{tabular}
+
         }
         \caption{Trajectory errors in meters}
         \label{table:stats_straight_traj_err}
@@ -296,7 +298,8 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
                         &                & Time [Minutes]    & 5   & 10  & 15  & 20  & 25  \\
                 Summary & Method         & Training Source   &     &     &     &     &     \\
                 \midrule
-                Mean    & Direct GP      & Position          & 362 & 318 & 428 & 575 & 794 \\
+                Mean    & CVM            & COG/SOG from AIS  & 58  & 180 & 351 & 491 & 504 \\
+                        & Direct GP      & Position          & 362 & 318 & 428 & 575 & 794 \\
                         & GP-EKF         & COG/SOG from AIS  & 82  & 158 & 245 & 283 & 330 \\
                         &                & Finite Difference & 92  & 194 & 309 & 360 & 394 \\
                         & GP-EKF w/ PDAF & COG/SOG from AIS  & 81  & 157 & 248 & 295 & 319 \\
@@ -304,7 +307,8 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
                         & GP-EKF w/ SL   & COG/SOG from AIS  & 87  & 169 & 253 & 298 & 329 \\
                         &                & Finite Difference & 99  & 211 & 330 & 396 & 398 \\
                 \midrule
-                Median  & Direct GP      & Position          & 97  & 138 & 224 & 311 & 390 \\
+                Median  & CVM            & COG/SOG from AIS  & 29  & 82  & 187 & 301 & 418 \\
+                        & Direct GP      & Position          & 97  & 138 & 224 & 311 & 390 \\
                         & GP-EKF         & COG/SOG from AIS  & 60  & 97  & 150 & 182 & 262 \\
                         &                & Finite Difference & 62  & 121 & 188 & 210 & 237 \\
                         & GP-EKF w/ PDAF & COG/SOG from AIS  & 57  & 97  & 145 & 181 & 196 \\
@@ -391,58 +395,58 @@ However, the \acrshort{pdaf}, and, to some extent, the \acrshort{sl} update has 
     \makebox[\textwidth][c]{
         \begin{tabular}{lllrrrrr}
             \toprule
-                    &                & Time [Minutes]    & 5  & 10  & 15  & 20  & 25  \\
-            Summary & Method         & Training Source   &    &     &     &     &     \\
+                    &                & Time [Minutes]    & 5     & 10     & 15     & 20     & 25     \\
+            Summary & Method         & Training Source   &       &        &        &        &        \\
             \midrule
-            Mean    & Direct GP      & Position          & 4  & 12  & 21  & 34  & 42  \\
-                    & GP-EKF         & COG/SOG from AIS  & 3  & 83  & 113 & 68  & 25  \\
-                    &                & Finite Difference & 26 & 79  & 153 & 64  & 185 \\
-                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 3  & 94  & 126 & 22  & 33  \\
-                    &                & Finite Difference & 29 & 90  & 156 & 67  & 138 \\
-                    & GP-EKF w/ SL   & COG/SOG from AIS  & 98 & 531 & 583 & 232 & 191 \\
-                    &                & Finite Difference & 32 & 103 & 215 & 274 & 531 \\
+            Mean    & Direct GP      & Position          & 3.88  & 11.79  & 21.07  & 34.11  & 42.03  \\
+                    & GP-EKF         & COG/SOG from AIS  & 2.88  & 83.09  & 112.68 & 67.59  & 24.88  \\
+                    &                & Finite Difference & 25.66 & 79.24  & 153.31 & 64.10  & 185.33 \\
+                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 2.99  & 94.05  & 126.13 & 22.34  & 33.41  \\
+                    &                & Finite Difference & 28.90 & 89.65  & 156.13 & 66.86  & 137.51 \\
+                    & GP-EKF w/ SL   & COG/SOG from AIS  & 97.91 & 530.52 & 582.50 & 231.68 & 191.07 \\
+                    &                & Finite Difference & 31.76 & 102.66 & 214.88 & 274.35 & 530.58 \\
             \midrule
-            Median  & Direct GP      & Position          & 1  & 1   & 2   & 3   & 6   \\
-                    & GP-EKF         & COG/SOG from AIS  & 1  & 2   & 3   & 6   & 8   \\
-                    &                & Finite Difference & 2  & 4   & 7   & 13  & 25  \\
-                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 1  & 3   & 5   & 10  & 13  \\
-                    &                & Finite Difference & 2  & 5   & 9   & 18  & 34  \\
-                    & GP-EKF w/ SL   & COG/SOG from AIS  & 3  & 9   & 22  & 50  & 105 \\
-                    &                & Finite Difference & 3  & 10  & 28  & 74  & 139 \\
+            Median  & Direct GP      & Position          & 0.66  & 1.18   & 2.09   & 3.23   & 6.05   \\
+                    & GP-EKF         & COG/SOG from AIS  & 1.30  & 2.39   & 3.36   & 5.64   & 7.92   \\
+                    &                & Finite Difference & 1.80  & 4.10   & 7.26   & 12.52  & 25.43  \\
+                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 1.42  & 2.85   & 4.81   & 9.62   & 13.24  \\
+                    &                & Finite Difference & 1.99  & 4.79   & 8.90   & 18.12  & 34.17  \\
+                    & GP-EKF w/ SL   & COG/SOG from AIS  & 2.79  & 9.13   & 22.42  & 49.73  & 104.53 \\
+                    &                & Finite Difference & 2.96  & 10.16  & 27.99  & 73.56  & 139.15 \\
             \bottomrule
         \end{tabular}
     }
     \caption{\acrshort{nees} for $350$ straight-line trajectories at fixed timestamps. Linear interpolation is used between samples.}
-    \label{table:stats_curved_traj_err}
+    \label{table:stats_nees_straight}
     \vspace*{0.5cm}
 \end{table}
 \begin{table}
     \makebox[\textwidth][c]{
         \begin{tabular}{lllrrrrr}
             \toprule
-                    &                & Time [Minutes]    & 5  & 10 & 15  & 20  & 25  \\
-            Summary & Method         & Training Source   &    &    &     &     &     \\
+                    &                & Time [Minutes]    & 5     & 10    & 15     & 20     & 25     \\
+            Summary & Method         & Training Source   &       &       &        &        &        \\
             \midrule
-            Mean    & Direct GP      & Position          & 3  & 6  & 11  & 15  & 324 \\
-                    & GP-EKF         & COG/SOG from AIS  & 6  & 65 & 235 & 9   & 15  \\
-                    &                & Finite Difference & 37 & 28 & 94  & 40  & 90  \\
-                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 6  & 66 & 234 & 14  & 22  \\
-                    &                & Finite Difference & 37 & 30 & 59  & 53  & 71  \\
-                    & GP-EKF w/ SL   & COG/SOG from AIS  & 10 & 73 & 259 & 93  & 172 \\
-                    &                & Finite Difference & 46 & 60 & 114 & 159 & 250 \\
+            Mean    & Direct GP      & Position          & 2.74  & 6.05  & 10.62  & 14.79  & 323.69 \\
+                    & GP-EKF         & COG/SOG from AIS  & 6.08  & 65.25 & 235.24 & 8.86   & 15.08  \\
+                    &                & Finite Difference & 36.86 & 28.44 & 94.24  & 39.93  & 89.61  \\
+                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 6.32  & 65.66 & 234.01 & 13.75  & 22.44  \\
+                    &                & Finite Difference & 36.94 & 29.88 & 59.10  & 52.79  & 70.95  \\
+                    & GP-EKF w/ SL   & COG/SOG from AIS  & 10.21 & 72.72 & 258.65 & 92.60  & 171.51 \\
+                    &                & Finite Difference & 45.92 & 59.75 & 114.19 & 158.79 & 249.64 \\
             \midrule
-            Median  & Direct GP      & Position          & 0  & 1  & 2   & 3   & 4   \\
-                    & GP-EKF         & COG/SOG from AIS  & 1  & 1  & 1   & 1   & 2   \\
-                    &                & Finite Difference & 2  & 3  & 5   & 9   & 18  \\
-                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 1  & 1  & 2   & 4   & 3   \\
-                    &                & Finite Difference & 2  & 4  & 8   & 13  & 22  \\
-                    & GP-EKF w/ SL   & COG/SOG from AIS  & 2  & 7  & 15  & 40  & 78  \\
-                    &                & Finite Difference & 2  & 10 & 19  & 44  & 116 \\
+            Median  & Direct GP      & Position          & 0.29  & 0.85  & 2.13   & 3.49   & 3.91   \\
+                    & GP-EKF         & COG/SOG from AIS  & 0.62  & 0.76  & 0.91   & 1.18   & 1.85   \\
+                    &                & Finite Difference & 1.53  & 3.09  & 4.89   & 8.72   & 18.20  \\
+                    & GP-EKF w/ PDAF & COG/SOG from AIS  & 0.80  & 1.27  & 2.16   & 4.46   & 3.35   \\
+                    &                & Finite Difference & 1.67  & 4.07  & 8.13   & 13.30  & 22.23  \\
+                    & GP-EKF w/ SL   & COG/SOG from AIS  & 1.66  & 6.53  & 15.23  & 40.30  & 77.91  \\
+                    &                & Finite Difference & 2.38  & 9.56  & 19.29  & 44.08  & 116.12 \\
             \bottomrule
         \end{tabular}
     }
     \caption{\acrshort{nees} for $350$ curved trajectories at fixed timestamps. Linear interpolation is used between samples.}
-    \label{table:stats_nees}
+    \label{table:stats_nees_curved}
 \end{table}
 
 
