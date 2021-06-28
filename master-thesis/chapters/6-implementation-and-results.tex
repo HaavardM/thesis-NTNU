@@ -10,7 +10,7 @@ Three different metrics -- trajectory error, path error and normalized estimatio
 \subsection{Trajectory Error}
 The trajectory error is found by comparing the predicted mean position with the ground truth. As the predicted trajectory is simulated in discrete time, the points with the closest timestamps are used for comparison. The simulation will use $\Delta \tau = 10\text{ seconds}$, which yields a maximum error in time $\frac{\Delta \tau}{2} = 5 \text{ seconds}$, which is considered to be acceptable considering the time-horizon of between $15$ and $30$ minutes.
 \subsection{Path Error}
-The path error is defined as the closest point in the predicted trajectory to each point in the ground truth, under the constraint that the corresponding predicted timestamps must be monotonically increasing. In other words, the path cannot move backwards in time. Linear interpolation is used to get the path error at fixed timestamps to simplify the comparison.
+The path error is defined as the closest point in the predicted trajectory to each point in the ground truth, under the constraint that the corresponding predicted timestamps must be monotonically increasing. In other words, the path cannot move backwards in time.
 
 \subsection{Normalized Estimation Error Squared}
 For the uncertainty estimates to provide any value, the predictions must be consistent. In this context, the term consistency is borrowed from the term \textit{filter consistency} used when tuning Kalman filters \cite{sensorfusjon}. The idea is that prediction errors, on average, should scale with the state covariance. In other words, the model should not place much confidence in a prediction that is wrong while being highly confident when a prediction is correct. Consistency can also be interpreted using a frequentistic interpretation of probability, where after many predictions, the state uncertainty should reflect the actual error rate.
@@ -72,14 +72,14 @@ Due to the way trajectories are generated from the \acrshort{ais} dataset, there
 The implementation details for each method are described in this section.
 
 \subsection{Direct GP}
-The excact \acrshort{gp} formulation is implemented using the \texttt{GaussianProcessRegressor} from the Python library, \textit{scikit-learn} \cite{scikit-learn}. The library supports all kernels introduced in \cref{chap:theory} and supports hyperparameter optimization using multiple restarts to avoid bad local optima.
+The excact \acrshort{gp} formulation is implemented using the \texttt{GaussianProcessRegressor} from the Python library, \textit{scikit-learn} \cite{scikit-learn}. The library supports all kernels introduced in \cref{chap:theory} and supports hyperparameter optimization using multiple restarts to avoid bad local optima. 
 
 The slightly more complicated kernel in \cref{eq:direct_gp_kernel} from \cref{chap:direct_gp} is used. This kernel is preferred over a single \acrshort{rbf} kernel as it simply yields the best performance across a range of different simulations. The noise term $\sigma^2$ is included as a White kernel and optimized like any other hyperparameter. The parameters are optimized for each test scenario, using $10$ random restarts to reduce the risk of bad local optima.
 
 \subsection{GP-EKF}
 The GP-EKF is tested with and without both the \acrshort{sl} and the \acrshort{pdaf} update steps, as well as using both finite difference and the \acrshort{cog}/\acrshort{sog} from the \acrshort{ais} dataset, resulting in $6$ different instances.
 
-The GP-EKF requires more flexibility during development. Due to the need for calculating the gradient $\frac{\delta \vec{f}}{\delta \boldsymbol{x}}$, it is impractical to use existing \acrshort{gp} implementations. Due to the simple implementation of \cref{alg:gp_prediction}, it is easier to implement it from the ground up rather than adapting existing solutions.
+The GP-EKF requires more flexibility during development. Due to the need for calculating the gradient $\frac{\partial \vec{f}}{\partial \boldsymbol{x}}$, it is impractical to use existing \acrshort{gp} implementations. Due to the simple implementation of \cref{alg:gp_prediction}, it is easier to implement it from the ground up rather than adapting existing solutions.
 The GP-EKF used in this thesis is therefore implemented directly in Python using only \textit{scipy}\cite{scipy} and \textit{numpy}\cite{numpy} to speed up linear algebra routines. The Cholesky decomposition in \cref{alg:gp_prediction} can be computed using \texttt{scipy.linalg.cho\_factor}, which calls a highly optimized LAPACK routine. Similarily, \texttt{scipy.linalg.solve\_\-trianglular} can be used to solve the lower triangular system of equations by forward substitution. The implementation of GP-EKF and the \acrshort{pdaf} update is then straightforward using \cref{alg:gp_ekf_prediction} and \cref{alg:gp_ekf_pdaf} from \cref{chap:gp_ekf}. The implementation used for the statistical testing use standardized training outputs $\boldsymbol{y}$.
 
 For statistical testing, the proposed \acrshort{rbf} kernel from \cref{eq:dyngp_kernel} with independent length scales will be used due to its simplicity. More complicated kernels are avoided due to challenges with bad local optima during hyperparameter optimization.
@@ -247,7 +247,7 @@ However, the \acrshort{sl}, and to some extent the \acrshort{pdaf} update, have 
         \end{subfigure}
     }
 
-    \caption{A comparison of the NEES for the different methods. The top row compares the \acrshort{nees} for the Direct GP and the base GP-EKF to the theoretical quartile values for the $\mathcal{X}^2$ distribution (red dashed lines) and is intended as a base of comparison. The second row compares the difference in consistency between using \acrshort{cog}/\acrshort{sog} and finite difference as input data. The last row compares the effect of the update steps for the GP-EKF. The theoretical quartiles are not included in the last row due to the large differences in scale, and the reader is advised to use the Direct GP and basic GP-EKF for comparison.}
+    \caption{A comparison of the NEES for the different methods. \textbf{(a)-(b)} compare the \acrshort{nees} for the Direct GP and the base GP-EKF to the theoretical quartile values for the $\mathcal{X}^2$ distribution (red dashed lines) and is intended as a base of comparison. \textbf{(c)-(d)} compare the difference in consistency between using \acrshort{cog}/\acrshort{sog} and finite difference as input data. \textbf{(e)-(f)} compare the effect of the update steps for the GP-EKF. The theoretical quartiles are not included in the last row due to the large differences in scale, and the reader is advised to use the Direct GP and basic GP-EKF for comparison.}
 
 \end{figure}
 
