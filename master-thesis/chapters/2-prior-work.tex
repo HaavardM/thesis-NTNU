@@ -38,7 +38,7 @@ Examples of this approach can be found in \cite{palotta}, \cite{mazzarella} and 
 
 Traditional clustering methods, such as k-means or DBSCAN, tend to focus on clustering point values. In the context of trajectory prediction, the trajectories would then be clustered as a whole. The trajectory clustering algorithm TRACLUS was therefore introduced by \cite{traclus}, where it was applied to hurricane trajectory and animal movement data. The key observation was that trajectories might have portions that share typical behavior, while entire trajectories might still differ. TRACLUS allows for clustering of trajectories based on common sub-trajectories. It works by partitioning the trajectories into smaller line segments and grouping similar segments into clusters. 
 
-\section{Data Driven Approches}
+\section{Data Driven Approaches}
 \citeauthor{Hexeberg2017AISbasedVT} \cite{Hexeberg2017AISbasedVT} introduced the \textit{Single Point Neighborhood Search} (SPNS), a purely data-driven approach. It deviates from the clustering-based methods as it estimates the future course and speed at each prediction time based on historical \acrshort{ais} data. 
 Historical \acrshort{ais} samples in the vicinity of the target vessel with a similar course are used to calculate the median course and velocity, which is then used to simulate the trajectory one step forward in time before the whole process is repeated. 
 
