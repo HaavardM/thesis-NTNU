@@ -417,12 +417,12 @@ The Kalman-based prediction scheme proposed in the previous section works well a
 Inspired by the prediction step used by \textit{particle filters} \cite{sensorfusjon}, the idea of sampling trajectories can be used to explore the multimodal trajectory distribution. While inspired by the particle filter, this approach will from now on be referred to as \textit{Sequential Monte-Carlo} to avoid confusion\footnote{A vital part of the particle filter is weighting the particles based on available measurements. As only the sampling of trajectories is performed, Sequential Monte-Carlo seems like a better fit.}, as well as to follow the same naming convention as used by \citeauthor{pedestrian} \cite{pedestrian}.
 
 The derivation of the Sequential Monte-Carlo approach is embarrassingly simple, as this method trades high computational complexity for more straightforward mathematics. Instead of analytical propagation of uncertainty, many trajectories are simulated through random sampling and used to express the uncertainty empirically. As a result, the uncertainty for any trajectory distribution can be described, though at the cost of considerable computational complexity.
-$N$ different trajectories are initialized with similar initial conditions. The trajectories are then simulated by drawing independent increments from $\vec{f}$ using the approach described in \cref{sec:gp_samples}, conditioned on the current state of each trajectory. The result is visualized in \cref{fig:gp_particle} for $N=500$ trajectories.
+$N$ different trajectories are initialized with similar initial conditions. The trajectories are then simulated by drawing independent increments from $\vec{f}$ using the approach described in \cref{sec:gp_samples}, conditioned on the current state of each trajectory. The result is visualized in \cref{fig:gp_particle} for $N=1000$ trajectories.
 \begin{figure}[h]
     \centering
     %\begin{subfigure}{\textwidth}
     \includegraphics[width=\textwidth]{figures/dyngp/gp_particle.pdf}
-    \caption{Trajectories simulated by sampling from $\vec{f}$. Notice how it is able to represent the multimodal trajectory distribution. }
+    \caption{Trajectories simulated by sampling from $\vec{f}$. Notice how it is able to represent the multimodal trajectory distribution. The color represent the motion model's confidence when predicting the next step. }
     %\end{subfigure}
     %\begin{subfigure}{\textwidth}
     %\includegraphics[width=\textwidth]{figures/gp_particle_hist.pdf}
