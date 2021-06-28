@@ -18,12 +18,13 @@ While there still are some quirks, this thesis has hopefully showcased the power
 
 
 \section{Future Work}
-There are several possible extensions to the GP-EKF:
+There are several possible extensions to the methods proposed in this thesis:
 \begin{enumerate}
-    \item Allow independent kernels for each output dimension.
-    \item Combine \acrshort{gp} approximations with the GP-EKF to use as much of the available data as possible.
-    \item Reduce the computational complexity of the GP-EKF by speeding up the hyperparameter optimization.
+    \item Allow independent kernels for each output dimension of the \acrshort{gp}s.
+    \item Include correlation between the outputs. 
+    \item Use \acrshort{gp} approximations to utilize more of the available data. Alternatively, consider more clever preprocessing of the dataset, such as clustering.
+    \item Investigate the effect of different kernel choices and perform more rigorous model selection
     \item Use a more informative prior for the motion model. As an example, the \acrshort{cvm} could be used as the mean function and yield a constant velocity estimate in areas with low data.
     \item Relax the GP-EKF assumptions in order to improve the uncertainty estimates. Using the motion model in a Sequential Monte-Carlo context may yield significantly better estimates, as it avoids linearization as well as the assumption of a Gaussian posterior distribution.
-    \item Develop a more realistic likelihood for the GP-EKF update procedure. Neither the \acrshort{sl} nor the \acrshort{pdaf} introduced in this thesis accurately represent the possibility that the vessel is following the wrong trajectory and that the measurements might be all wrong. For the \acrshort{pdaf} it might be good to look into a more elaborate clutter model and not assume a fixed clutter rate.  
+    \item Develop a more realistic likelihood for the GP-EKF update procedure. Neither the \acrshort{sl} nor the \acrshort{pdaf} introduced in this thesis accurately represents the possibility that the vessel is following the wrong trajectory and that the measurements might be all wrong. For the \acrshort{pdaf} it might be good to look into a more elaborate clutter model and not assume a fixed clutter rate.  
 \end{enumerate}
