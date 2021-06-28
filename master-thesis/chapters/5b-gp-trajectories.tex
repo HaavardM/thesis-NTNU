@@ -56,7 +56,7 @@ Given a current estimate $p(\boldsymbol{x}_t)$, the marginal next state distribu
 \end{equation}
 
 However, this integral is intractable, as both the mean and variance depend on the current state $\boldsymbol{x}_t$ with non-trivial relationships \cite{pedestrian,multistep_gp}. A solution to this problem is to use sampling-based methods, and one such approach is discussed later in \cref{sec:dyngp_particle}.
-However, the main method proposed in this chapter will approximate this integral by making a few simplifying assumptions. The integral can be approximated by assuming that the posterior distribution is Gaussian, and the mean and variance can be calculated using the law of iterated expectations and conditional variance \cite{multistep_gp}. Assuming the current estimate to be distributed according to the Gaussian distribution $p(\boldsymbol{x}_t) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_t)$, the mean and variance of $\boldsymbol{x}_{t+1}$ is given by
+However, the main method proposed in this chapter will approximate this integral by making a few simplifying assumptions. The integral can be approximated by assuming that the posterior distribution is Gaussian, and the mean and variance can be calculated using the law of iterated expectations and the law of total variance \cite{multistep_gp}. Assuming the current estimate to be distributed according to the Gaussian distribution $p(\boldsymbol{x}_t) = \mathcal{N}(\bar{\boldsymbol{x}}_t, \boldsymbol{P}_t)$, the mean and variance of $\boldsymbol{x}_{t+1}$ is given by
 
 \begin{subequations}\label{eq:gp_prediction_mean_variance}
     \begin{align}

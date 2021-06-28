@@ -2,7 +2,7 @@
 
 The \textit{\acrfull{ais}} is a vessel-to-vessel communication system, which allows a vessel to share vital information about its current state with other ships, base stations, and satellites electronically. International voyaging ships with gross tonnage larger than 300 and all passenger ships are required to install an \acrshort{ais} transceiver according to the \textit{Safety Of Life At Sea} (SOLAS) convention \cite{ais_wiki}
 
-The typical \acrshort{ais} receiver has a range of about 10-20 nautical miles. However, \acrshort{ais} transceivers have been installed on satellites in later years, resulting in global coverage. The messages are divided into two types of classes:
+The typical \acrshort{ais} receiver has a range of about 10-20 nautical miles. However, \acrshort{ais} transceivers have been installed on satellites in later years, resulting in global coverage. The transceivers are divided into two types of classes \cite{ais_wiki}:
 \begin{description}
     \item[Class A] typically transmits at a higher rate, ranging between 30 times per minute for high-velocity vessels to every third minute for vessels at rest. 
     \item[Class B] are typically smaller, cheaper, and simpler than their Class A counterparts. The position message for Class B is sent every 3 minutes when the vessel's speed is less than 2 knots and every 30 seconds for faster speeds. 
@@ -30,7 +30,7 @@ The typical \acrshort{ais} message contains unique identification (MMSI / IMO), 
 Several other fields may additionally be available, depending on the transceiver and which information the crew has entered. 
 
 \section{The Dataset}
-The total dataset contains $2995644$ \acrshort{ais} samples collected between 1. Jan and 31. Des 2015. There are $1555$ unique \acrshort{mmsi} values, though most of the messages come from a small subset of the vessels. More than $80\%$ of the dataset originates from the top $250$ vessels, as seen in \cref{fig:ais_cdf}.
+The total dataset contains $2995644$ \acrshort{ais} samples collected between 1. Jan and 31. Des 2015 from the Trondheim Fjord in Norway. There are $1555$ unique \acrshort{mmsi} values, though most of the messages come from a small subset of the vessels. More than $80\%$ of the dataset originates from the top $250$ vessels, as seen in \cref{fig:ais_cdf}.
 
 \begin{figure}[h]
     \centering
@@ -58,11 +58,11 @@ However, the dataset is currently too large to conveniently work with on a singl
 \end{figure}
 
 \section{Scenario}
-The \acrshort{ais} dataset contains samples from a wide variety of different trajectories, as each trajectory is the result of a vessel's intention, be it reaching a specific destination, commercial fishing, or simply for leisure. As a result, there is a wide range of possible overlapping trajectories that a vessel might follow in any given area. Therefore, this thesis will narrow the problem of long-term prediction down to prediction in specific \textit{scenarios}. A scenario is in this thesis characterized by the vessel's initial position, speed and course, and it is assumed that vessels in a given scenario tend to follow similar trajectories. Though not used in this thesis, it would also be natural to incorporate contextual information such as vessel type, as there is likely quite a lot of variability between the behavior of different types of vessels. 
+The \acrshort{ais} dataset contains samples from a wide variety of different trajectories, as each trajectory is the result of a vessel's intention, be it reaching a specific destination, commercial fishing, or simply for leisure. As a result, there is a wide range of possible overlapping trajectories that a vessel might follow in any given area. Therefore, this thesis will narrow the problem of long-term prediction down to prediction in specific \textit{scenarios}. A scenario is in this thesis characterized by the vessel's initial position, speed, and course, and it is assumed that vessels in a given scenario tend to follow similar trajectories. Though not used in this thesis, it would also be natural to incorporate contextual information such as vessel type, as there is likely quite a lot of variability between the behavior of different types of vessels. 
 
-When predicting the trajectory for a given target vessel, only the subset of \acrshort{ais} messages from similar situations will be used. This simplifying assumption is a critical part of all methods proposed in this thesis. It allows the \acrshort{ais} to be reduced significantly for any given prediction and is what makes the methods computationally feasible. The following requirements must be satisfied for a trajectory to qualify as being in a similar scenario as the target vessel:
+When predicting the trajectory for a given target vessel, only the subset of \acrshort{ais} messages from similar scenarios will be used. This simplifying assumption is a critical part of all methods proposed in this thesis. It allows the \acrshort{ais} data to be reduced significantly for any given prediction and is what makes the methods computationally feasible. The following requirements must be satisfied for a trajectory to qualify as being in a similar scenario as the target vessel:
 \begin{enumerate}
-    \item The trajectories' initial position must be close to the target vessel's position $\boldsymbol{x}$. A fixed threshold at $\boldsymbol{x} \pm \Delta \boldsymbol{x}$ is used.
+    \item The trajectories' initial position must be close to the target vessel's position $\boldsymbol{x}_0$. A fixed threshold at $||\Delta \boldsymbol{x}_0|| \leq r$ is used, where $\Delta \boldsymbol{x}_0$ is the difference between the target vessel's current position and the initial conditions of a potential training trajectory and $r$ is a fixed radius.
     \item The trajectories' initial \acrshort{cog} must be close to the target vessel's heading $\mathcal{X}$. A fixed threshold at $\mathcal{X} \pm \Delta \mathcal{X}$ is used.
     \item The trajectories' initial \acrshort{sog} must be close to the queried velocity $v$. A fixed threshold at $v \pm \Delta v$ is used.
 \end{enumerate}
