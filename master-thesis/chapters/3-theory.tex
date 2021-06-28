@@ -28,7 +28,7 @@ The last equality is commonly referred to as \textit{The Law of total probabilit
 The \textit{Law of Iterated Expecations} states that 
 \begin{equation}
     \mathbb{E}[X] = \mathbb{E} \big[ \mathbb{E}[ X | Y] \big]
-\end{equation} if all the expectations exists. Similarily, the \textit{Law of Total Variance} states that 
+\end{equation} if all the expectations exist. Similarily, the \textit{Law of Total Variance} states that 
 \begin{equation}
     \mathbb{V}[X] = \mathbb{E}\big[\mathbb{V}[X | Y]\big] + \mathbb{V}\big[ \mathbb{E}[X | Y] \big]
 \end{equation}
@@ -331,17 +331,17 @@ For simple functions, it often works well to only use a representable subset of 
 Several approximations are discussed in \cite{rasmussen} and typically use a \textit{reduced-rank approximation} of the kernel matrix $K=Q Q^\intercal$ with $Q \in \mathcal{R}^{n \times q}$, and use the \textit{matrix inversion lemma} \cite[p.~201]{rasmussen}, reducing the inversion of the $n \times n$ matrix to the inversion of a $q \times q$ matrix instead. Unfortunately, the optimal reduced-rank approximations depend on the eigenvalue decomposition, which itself is a $\mathcal{O}(n^3)$ operation. However, if a cheap approximation to the eigenvalue decomposition can be found, it can potentially be used to approximate the \acrshort{gp}. One such low-rank approximation is the Nyström method, where a subset of the dataset is used to approximate the eigenvalues.    
 
 \subsection{Sparse Variational Gaussian Process}
-Another approximation is to consider the elements in the covariance matrix as the parameters to a surrogate distribution and then use \textit{Variational Inference} to approximate the true posterior distribution \cite{tran2016variational}. The problem of inverting large matrices is then turned into an optimization problem. Variational Inference was covered in the specialization project \cite{mellbye}. 
+Another solution is to consider the elements in the covariance matrix as the parameters to a surrogate distribution and then use \textit{Variational Inference} to approximate the true posterior distribution \cite{tran2016variational}. The problem of inverting large matrices is then turned into an optimization problem. Variational Inference is covered in the specialization project \cite{mellbye}. 
 
-The \textit{\acrfull{svgp}} is a sparse approximation of \acrshort{gp}s which builds on variational inference. 
-The idea is to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$ \cite{Titsias2008VariationalMS}. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data. Libraries such as \textit{GPFlow} \cite{GPflow2017} allow the \acrshort{svgp} to be combined with powerfull stochastic optimization techniques to learn sparse approximations for large datasets.
+The \textit{\acrfull{svgp}} is a sparse approximation of \acrshort{gp}s, which builds on variational inference. 
+The idea is to summarize the data $(X, \boldsymbol{y})$ using a set of $m$ \textit{inducing variables} for the latent function values $\boldsymbol{f}_m$ at the inducing points $X_m$ \cite{Titsias2008VariationalMS}. $X_m$ can either be a subset of the available training inputs $X$ or auxiliary \textit{pseudo-points}. The goal of \acrshort{svgp} is then to infer the inducing points $X_m$ as well as the hyperparameters $\boldsymbol{\theta}$ from data. Libraries, such as \textit{GPFlow} \cite{GPflow2017}, allow the \acrshort{svgp} to be combined with powerfull stochastic optimization techniques to learn sparse approximations for large datasets.
 
 
 \section{The Kalman Filter}
 The Kalman filter is an algorithm for exact Bayesian filtering for linear Gaussian state-space models \cite{murphy}. The reader is assumed to already be familiar with the Kalman filter, but a short introduction is nevertheless included for completeness. 
 
 The filtering is performed in two steps.
-The \textit{predictions step} computes the marginal distribution of the current state $\boldsymbol{x}_t$ given the known measurements $\boldsymbol{z}_{1:t-1}$ up to the previous timestep.
+The \textit{prediction step} computes the marginal distribution of the current state $\boldsymbol{x}_t$ given the known measurements $\boldsymbol{z}_{1:t-1}$ up to the previous timestep.
 
 \begin{align}
     \begin{split}
