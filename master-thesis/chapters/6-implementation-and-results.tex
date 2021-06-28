@@ -145,7 +145,7 @@ Neither the Direct GP nor the GP-EKF yield consistent uncertainty estimates as f
             \caption{Curved Trajectory}
         \end{subfigure}
     }
-    \caption{GP-EKF using finite differences and the \acrshort{cog} and \acrshort{sog} from the AIS dataset on $350$ trajectories. The finite differences approach performs consistently better, with lower median error and spread.}
+    \caption{GP-EKF using finite differences and the \acrshort{cog} and \acrshort{sog} from the AIS dataset on $350$ trajectories. The finite difference approach performs slightly better, with lower median error and spread.}
     \label{fig:stats_gp_ekf_fd_vs_cog}
 \end{figure}
 
@@ -154,12 +154,12 @@ A key design choice for the GP-EKF is deciding which data source to use for trai
 
 For the path errors in \cref{table:stats_straight_path_err} and \cref{table:stats_curved_path_err}, the results favor the \acrshort{cog}/\acrshort{sog} approach, with overall lower mean and median path errors when compared to the finite difference approach.
 
-Using \acrshort{cog}/\acrshort{sog} yield a considerable \acrshort{nees} improvement over the finite difference approach, as seen in \cref{fig:stats_straigth_nees_cog_vs_fd} and \cref{fig:stats_curved_nees_cog_vs_df}. On curved trajectories, the estimated \acrshort{nees} quartiles is close to the theoretical values when using \acrshort{cog}/\acrshort{sog} as input data, while the finite difference approach yields overconfident results. A similar pattern is found for the median \acrshort{nees} values in \cref{table:stats_nees_straight} and \cref{table:stats_nees_straight} for all variants of the GP-EKF. 
+Using \acrshort{cog}/\acrshort{sog} yields a considerable \acrshort{nees} improvement over the finite difference approach, as seen in \cref{fig:stats_straigth_nees_cog_vs_fd} and \cref{fig:stats_curved_nees_cog_vs_df}. On curved trajectories, the estimated \acrshort{nees} quartiles are close to the theoretical values when using \acrshort{cog}/\acrshort{sog} as input data, while the finite difference approach yields overconfident results. A similar pattern is found for the median \acrshort{nees} values in \cref{table:stats_nees_straight} and \cref{table:stats_nees_curved} for all variants of the GP-EKF. 
 
 \subsection{GP-EKF: Incorporating positions data}
-The effect on the mean prediction for both the \acrshort{pdaf} and the \acrshort{sl} update procedures are compared to the basic GP-EKF configuration in \cref{fig:stats_gp_ekf_with_or_without_update}. The results are remarkably similar for both straight-line and curved trajectories. On closer inspection, there appears to be a slight advantage to using the \acrshort{pdaf} update step, but the improvement is within the margin of error, so it is not possible to draw any definitive conclusion.
+The effect on the mean prediction for both the \acrshort{pdaf} and the \acrshort{sl} update procedures is compared to the basic GP-EKF configuration in \cref{fig:stats_gp_ekf_with_or_without_update}. The results are incredibly similar for both straight-line and curved trajectories. On closer inspection, there appears to be a slight advantage to using the \acrshort{pdaf} update step, but the improvement is within the margin of error, so it is not possible to draw any definitive conclusion.
 
-However, the \acrshort{sl}, and, to some extent, the \acrshort{pdaf} update has a detrimental effect on the \acrshort{nees}, leading to even more overconfident predictions. This is apparent when comparing the GP-EKF NEES with and without the update steps in \cref{fig:stats_straight_nees_update} and \cref{fig:stats_curved_nees_update}, as the \acrshort{nees} for the \acrshort{sl} update explodes compared to the basic GP-EKF method. Similar patterns are found in \cref{table:stats_nees_straight} and \cref{table:stats_nees_curved} regardless of whether the GP-EKF is trained with finite difference or \acrshort{cog}/\acrshort{sog} data.
+However, the \acrshort{sl}, and to some extent the \acrshort{pdaf} update, have a detrimental effect on the \acrshort{nees}, leading to even more overconfident predictions. This is apparent when comparing the GP-EKF NEES with and without the update steps in \cref{fig:stats_straight_nees_update} and \cref{fig:stats_curved_nees_update}, as the \acrshort{nees} for the \acrshort{sl} update explodes compared to the basic GP-EKF method. Similar patterns are found in \cref{table:stats_nees_straight} and \cref{table:stats_nees_curved} regardless of whether the GP-EKF is trained with finite difference or \acrshort{cog}/\acrshort{sog} data.
 
 \begin{figure}
     \centering
@@ -190,7 +190,7 @@ However, the \acrshort{sl}, and, to some extent, the \acrshort{pdaf} update has 
         \includegraphics[width=\textwidth]{figures/curved_line_stats/gp_vs_update.pdf}
         \caption{Curved Trajectories}
     \end{subfigure}
-    \caption{GP-EKF with and without the \acrshort{sl} and \acrshort{pdaf} updates on $350$ straight-line and $350$ curved trajectories. While there are some slight differences, the \acrshort{pdaf} and \acrshort{sl} update does not appear to have any considerable effect on the trajectory errors. On straight-line trajectories, the results are almost identicall across all three variants. On curved trajectories, the \acrshort{pdaf} yield slightly lower error for the median and upper quartiles, though the difference is well within the margin of error.}
+    \caption{GP-EKF with and without the \acrshort{sl} and \acrshort{pdaf} updates on $350$ straight-line and $350$ curved trajectories. While there are some slight differences, the \acrshort{pdaf} and \acrshort{sl} update does not appear to have any considerable effect on the trajectory errors. On straight-line trajectories, the results are almost identical across all three variants. On curved trajectories, the \acrshort{pdaf} yields slightly lower error for the median and upper quartiles, though the difference is well within the margin of error.}
     \label{fig:stats_gp_ekf_with_or_without_update}
 \end{figure}
 
@@ -247,7 +247,7 @@ However, the \acrshort{sl}, and, to some extent, the \acrshort{pdaf} update has 
         \end{subfigure}
     }
 
-    \caption{The NEES compared between the different methods. The top row compares the \acrshort{nees} for the Direct GP and the base GP-EKF to the theoretical quartile values for the $\mathcal{X}^2$ distribution (red dashed lines) and is intended as a base of comparison. The second row compares the difference in consistency between using \acrshort{cog}/\acrshort{sog} and finite difference as input data. The last row compares the effect of the update steps for the GP-EKF. The theoretical quartiles are not included in the last row due to the large differences in scale, and the reader is advised to use the Direct GP and basic GP-EKF for comparison.}
+    \caption{A comparison of the NEES for the different methods. The top row compares the \acrshort{nees} for the Direct GP and the base GP-EKF to the theoretical quartile values for the $\mathcal{X}^2$ distribution (red dashed lines) and is intended as a base of comparison. The second row compares the difference in consistency between using \acrshort{cog}/\acrshort{sog} and finite difference as input data. The last row compares the effect of the update steps for the GP-EKF. The theoretical quartiles are not included in the last row due to the large differences in scale, and the reader is advised to use the Direct GP and basic GP-EKF for comparison.}
 
 \end{figure}
 
