@@ -189,7 +189,7 @@ The prediction procedure is summarized in \cref{alg:gp_ekf_prediction} and can b
         \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_state.pdf}
         \caption{$95\%$ credibility interval for the trajectory plotted against time}
     \end{subfigure}
-    \caption{Predicted position using GP-EKF}
+    \caption{Illustrative example of the GP-EKF in practice}
     \label{fig:gp_ekf}
 \end{figure}
 
@@ -291,13 +291,13 @@ The derivations in this section blindly make quite substantial assumptions that 
         \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_syn_state.pdf}
         \caption{$95\%$ credibility interval for the trajectory plotted against time.}
     \end{subfigure}
-    \caption{Predicted position with the \acrshort{sl} update procedure.}
+    \caption{Illustrative example of the GP-EKF with the \acrshort{sl} update procedure in practice.}
     \label{fig:gp_ekf_with_syn}
 \end{figure}
 
 
 \subsection{Probabilistic Data Association Filter}
-The \acrshort{sl} update ends up using an overly simplistic measurement model and does not consider the possibility that some measurements may originate from different underlying trajectories. Thus, for the target vessel following a specific underlying trajectory, the dataset may actually contain substantial false measurements, which negatively affect the prediction. As the \acrshort{sl} update has no notion of false measurements, the result is overconfident uncertainty measurements, as can be seen in \cref{fig:gp_ekf_with_syn}.
+The \acrshort{sl} update ends up using an overly simplistic measurement model and does not consider the possibility that some measurements may originate from different underlying trajectories. Thus, for the target vessel following a specific underlying trajectory, the dataset may actually contain substantial amounts of false measurements, which negatively affect the prediction. As the \acrshort{sl} update has no notion of false measurements, the result is overconfident uncertainty measurements, as can be seen in \cref{fig:gp_ekf_with_syn}.
 
 This section attempts a rather different approach by incorporating the notion of data association into the mix. More specifically, the idea is to view the entire problem as single-target tracking and then apply the \textit{\acrfull{pdaf}} to solve the problem.
 
@@ -403,16 +403,15 @@ By combining the \acrshort{pdaf} update with the GP-EKF prediction procedure in 
         \includegraphics[width=\textwidth]{figures/dyngp/gp_ekf_with_pdaf_state.pdf}
         \caption{$95\%$ credibility interval for the trajectory plotted against time.}
     \end{subfigure}
-    \caption{Predicted position with the PDAF update procedure.}
+    \caption{Illustrative example of the GP-EKF with the PDAF update procedure in practice.}
     \label{fig:gp_ekf_with_pdaf}
 \end{figure}
 
-\subsubsection{Tuning PDAF parameters}
-The model should primarily trust the prediction model, since it would get stuck as the measurements do not change over time. If the \acrshort{pdaf} parameters are tuned too aggressively, it tends to affect the velocity estimates of the prediction negatively. In practice, tuning the measurement noise $\boldsymbol{R}$ to get a desirable update effect works well.
-However, finding a set of parameters that works well across different trajectories turns out to be challenging. Parameters that improve the prediction for one trajectory may do more harm than good on another. The performance of using PDAF will be explored further in \cref{chap:stat_testing}.
+\subsection{Tuning the parameters}
+The model should primarily trust the prediction model, since it would get stuck as the measurements do not change over time. If the \acrshort{sl} or the \acrshort{pdaf} parameters are tuned too aggressively, it tends to affect the velocity estimates of the prediction negatively. However, finding a set of parameters that works well across different trajectories turns out to be challenging. Parameters that improve the prediction for one trajectory may do more harm than good on another. The performance of using \acrshort{sl} and \acrshort{pdaf} will be explored further in \cref{chap:stat_testing}.
 
 
-\subsection{Simulating trajectories using Gaussian Process Sequential Monte Carlo}\label{sec:dyngp_particle}
+\section{Simulating trajectories using Gaussian Process Sequential Monte Carlo}\label{sec:dyngp_particle}
 The Kalman-based prediction scheme proposed in the previous section works well as long as a single Gaussian distribution can sufficiently explain the uncertainty. However, in branching trajectories, minor differences in position early in the predicted trajectory might significantly affect the predictions that follow. The result is a multimodal trajectory distribution, which a Kalman-based approach is not able to express.
 
 Inspired by the prediction step used by \textit{particle filters} \cite{sensorfusjon}, the idea of sampling trajectories can be used to explore the multimodal trajectory distribution. While inspired by the particle filter, this approach will from now on be referred to as \textit{Sequential Monte-Carlo} to avoid confusion\footnote{A vital part of the particle filter is weighting the particles based on available measurements. As only the sampling of trajectories is performed, Sequential Monte-Carlo seems like a better fit.}, as well as to follow the same naming convention as used by \citeauthor{pedestrian} \cite{pedestrian}.
@@ -432,11 +431,11 @@ $N$ different trajectories are initialized with similar initial conditions. The 
     \label{fig:gp_particle}
 \end{figure}
 
-\subsection{Training Source}
+\section{Training Source}
 There are two potential sources for the training samples $\boldsymbol{y}$:
 
 \begin{enumerate}
-    \item Trajectories from the dataset are converted into training samples for $\vec{f}$ using the simple first-order finite-difference method in \cref{eq:finite_difference} between subsequent \acrshort{ais} samples in a trajectory $i$. This yields the training outputs $\boldsymbol{y}_t^{i}$ corresponding to the inputs $\boldsymbol{\eta}_t^i$ such that $\boldsymbol{y}_t^i = \vec{f}(\boldsymbol{\eta}_t^i) + \epsilon$.
+    \item Trajectories from the dataset can be converted into training samples for $\vec{f}$ using the simple first-order finite-difference method in \cref{eq:finite_difference} between subsequent \acrshort{ais} samples in a trajectory $i$. This yields the training outputs $\boldsymbol{y}_t^{i}$ corresponding to the inputs $\boldsymbol{\eta}_t^i$ such that $\boldsymbol{y}_t^i = \vec{f}(\boldsymbol{\eta}_t^i) + \epsilon$.
     \item The \acrshort{cog} and \acrshort{sog} from the \acrshort{ais} data can be used directly.
 \end{enumerate}
 
@@ -472,7 +471,7 @@ The hyperparameters can be optimized using the \acrshort{ml} approach discussed 
 
 The whole dataset cannot be used to find the optimal hyperparameters due to the computational complexity. Two approaches are proposed to mitigate this issue:
 \begin{enumerate}
-    \item Fit the hyperparameter to many different subsets of the available training data and use the median values. The median is preferred over the mean values to avoid issues with outlier parameter estimates. This approach tends to find a set of hyperparameters that work well across a wide range of cases, but it may become too general for challenging scenarios.
+    \item Find a set of hyperparameters that work well across a wide range of cases. Model selection is then be performed in an offline context, and more extensive testing can be performed to ensure a good model is selected. One possible approach is to use Monte-Carlo simulation to find a set of robust hyperparameters which empirically works well. However, the hyperparameters may become too general for the more challenging scenarios.
     \item Rerun the hyperparameter optimization for each scenario. This approach tends to find the optimal parameters in each case. However, it is also error-prone as it is not guaranteed to find a global optimum, and it may cause overfitting.
 \end{enumerate}
 
@@ -486,7 +485,7 @@ This chapter has introduced quite a few new concepts so that it might be nice wi
     \item Training inputs $\boldsymbol{\eta}$ and outputs $\boldsymbol{y}$ for $\vec{f}$ are generated from the training trajectories.
     \item The kernel hyperparameters are optimized using \acrshort{ml} to find the parameters that best explain the training data. This is either done once to find a global set of parameters or individually for each scenario.
     \item The training data and kernel can then used to get the conditional distribution for $\vec{f}$.
-    \item The \acrshort{ekf} procedure in \cref{alg:gp_ekf_prediction} is called repeatedly, using the current state of the target vessel as initial condition. At each step, if desirable, the \acrshort{pdaf} update procedure can be used as well. Sequential Monte-Carlo can alternatively be used to simulate multimodal trajectories.
+    \item The \acrshort{ekf} procedure in \cref{alg:gp_ekf_prediction} is called repeatedly, using the current state of the target vessel as initial conditions. At each step, if desirable, the \acrshort{sl} or the \acrshort{pdaf} update procedure can be used as well. Sequential Monte-Carlo can alternatively be used to simulate multimodal trajectories.
 \end{enumerate}
 
-The only parameters that need manual tuning are the time increment $\Delta \tau$ and the initial covariance $\boldsymbol{P}_0$. All other parameters are learned from the data.
+The only parameters that need manual tuning for the GP-EKF are the time increment $\Delta \tau$ and the initial covariance $\boldsymbol{P}_0$. All other parameters are learned from the data.
